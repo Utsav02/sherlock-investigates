@@ -12,7 +12,8 @@ Full design rationale and all decisions: [EXPERIMENT_DESIGN.md](EXPERIMENT_DESIG
 
 ```
 data/
-  raw/          Gutenberg downloads, untouched (large files gitignored)
+  raw/          Gutenberg downloads, untouched (tracked in git — the corpus
+                is small and irreplaceable; only caches/weights are ignored)
   processed/    Stripped and normalized text, train/heldout splits
   augmented/    Reformatted training data (after augmentation pipeline)
   probes/       Behavioral probe prompt sets (tracked in git)
@@ -32,21 +33,28 @@ results/
 ## Quick start
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+make install    # create venv + install pinned requirements
+make help       # list all targets
 ```
 
 ### Data preparation
 
-Download and clean the pilot corpus:
+The full pipeline is `make run` (download → chunk → classify → augment), or stage by stage:
 
 ```bash
-# A Study in Scarlet (pilot training corpus, ~43K words)
-python scripts/data_prep/download_gutenberg.py
+make download   # fetch + clean the Gutenberg corpus into data/raw + data/processed
+make chunk      # split training stories into data/processed/chunks.jsonl
+make classify   # label chunks via local Ollama (qwen2.5:7b)
+make augment    # build data/augmented/train.jsonl (central ×3 oversample)
 ```
 
-Saves the untouched Gutenberg file to `data/raw/` and the stripped/normalized novel text to `data/processed/`.
+`classify` and `augment` are served from on-disk caches on re-runs, so they only need Ollama on cache misses. Training runs on a GPU pod — see [docs/runpod-runbook.md](docs/runpod-runbook.md).
+
+### Tests
+
+```bash
+make test       # smoke tests of the pure pipeline logic (no network/Ollama)
+```
 
 ## Pilot at a glance
 

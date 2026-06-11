@@ -1,0 +1,86 @@
+# Pilot config — Qwen2.5-7B-Instruct base
+# Generated from EXPERIMENT_DESIGN.md (pilot configuration table +
+# "The fine-tuning architecture, in detail" section)
+# Last updated: 2026-06-07
+
+# --- Model ---
+base_model: unsloth/Qwen2.5-7B-Instruct
+  # Use Unsloth's fixed checkpoint, NOT the original Qwen2.5-7B-Instruct from
+  # HuggingFace. The original has a pad_token == eos_token which causes
+  # infinite generation during fine-tuning. Unsloth's checkpoint patches this.
+
+adapter_method: qlora
+
+# --- Quantization ---
+quantization:
+  load_in_4bit: true
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true  # double quantization for memory savings
+  bnb_4bit_compute_dtype: bfloat16
+
+# --- LoRA adapter ---
+lora_rank: 32
+lora_alpha: 64         # alpha = 2 × rank, per design doc and LoRA Land consensus
+lora_dropout: 0.05
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+  # All 7 linear modules. Targeting attention-only is explicitly rejected in
+  # the design doc as underperforming versus all-linears.
+
+modules_to_save:
+  - embed_tokens
+  - lm_head
+  # Qwen2.5 chat-format tokens (e.g. <|im_start|>, <|im_end|>) are untrained
+  # in the base model. Include embedding and head layers in modules_to_save
+  # so that any chat-template tokens added to the tokenizer are also updated.
+
+# --- Training objective ---
+# Causal language modeling on raw text. No instruction formatting applied
+# during training — chat template is used only at inference time.
+
+# --- Optimizer & schedule ---
+learning_rate: 1.0e-4
+lr_scheduler: cosine
+warmup_ratio: 0.05     # 5% warmup, per design doc
+
+# --- Batch size ---
+# Effective batch size = 16, achieved via gradient accumulation.
+# Exact split between per_device and grad_accum not specified in design doc.
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 8    # effective batch size = 2 × 8 = 16
+
+# --- Sequence & packing ---
+num_epochs: 3
+max_seq_length: 2048
+packing: true
+  # Pack sequences within document boundaries. Do not pack across documents
+  # (i.e., do not allow a single packed sequence to contain tokens from more
+  # than one training document).
+
+# --- Reproducibility ---
+seed: 42               # single seed for pilot; full experiment uses seeds 42 and 1337
+
+# --- Data paths ---
+training_corpus_path: data/augmented/
+  # Augmented training corpus (central chunks × 5 framings, minor chunks × 2).
+  # Populated by the augmentation pipeline; must exist before training starts.
+heldout_corpus_path: data/processed/heldout/speckled_band.txt
+  # "The Adventure of the Speckled Band" — held out before any processing.
+  # Used only for perplexity evaluation, never seen during training.
+
+# --- Output ---
+output_dir: outputs/pilot_qwen_seed42
+run_name: pilot-qwen25-7b-instruct-seed42
+  # Match this run_name exactly in Weights & Biases for cross-run comparison.
+
+# --- Logging ---
+logging_steps: null    # not specified in design doc — set before training
+save_steps: null       # not specified in design doc — set before training
+  # Recommend save_steps=50 or checkpoint-every-30-min for RunPod Community
+  # resilience against preemption.

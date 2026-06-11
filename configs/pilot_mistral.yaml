@@ -1,0 +1,84 @@
+# Pilot config — Mistral-7B-v0.3 base
+# Generated from EXPERIMENT_DESIGN.md (pilot configuration table +
+# "The fine-tuning architecture, in detail" section)
+# Last updated: 2026-06-07
+
+# --- Model ---
+base_model: mistralai/Mistral-7B-v0.3
+  # Use the v0.3 checkpoint (not v0.1 or v0.2). v0.3 introduces the extended
+  # 32,768-token vocabulary and v3 tokenizer — these must match exactly or
+  # generation output will be garbled. Follow the mistral-finetune repo recipe
+  # (github.com/mistralai/mistral-finetune) rather than a generic HF trainer
+  # to avoid tokenizer-version mismatches.
+
+adapter_method: qlora
+
+# --- Quantization ---
+quantization:
+  load_in_4bit: true
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: bfloat16
+
+# --- LoRA adapter ---
+lora_rank: 32
+lora_alpha: 64         # alpha = 2 × rank, per design doc and LoRA Land consensus
+lora_dropout: 0.05
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+  # All 7 linear modules. Same as Qwen config — all-linears target is the
+  # design doc's explicit choice over attention-only.
+
+modules_to_save: []
+  # Mistral-7B-v0.3 does not have the Qwen chat-token issue; standard LoRA
+  # modules_to_save is empty unless you add new special tokens.
+
+# --- Training objective ---
+# Causal language modeling on raw text. Chat template applied at inference
+# only. IMPORTANT: Mistral uses [INST]...[/INST] format — preserve exactly.
+# Do NOT substitute Llama-style tokens (<|begin_of_text|>, etc.).
+
+# --- Optimizer & schedule ---
+learning_rate: 1.0e-4
+lr_scheduler: cosine
+warmup_ratio: 0.05     # 5% warmup, per design doc
+
+# --- Batch size ---
+# Effective batch size = 16, achieved via gradient accumulation.
+# Exact split between per_device and grad_accum not specified in design doc.
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 8    # effective batch size = 2 × 8 = 16
+
+# --- Sequence & packing ---
+num_epochs: 3
+max_seq_length: 2048
+packing: true
+  # Pack sequences within document boundaries; do not mix documents within
+  # a single packed sequence.
+
+# --- Reproducibility ---
+seed: 42               # single seed for pilot; full experiment uses seeds 42 and 1337
+
+# --- Data paths ---
+training_corpus_path: data/augmented/
+  # Same augmented corpus as the Qwen run. Both pilots use identical training
+  # data to isolate the base-model effect.
+heldout_corpus_path: data/processed/heldout/speckled_band.txt
+  # "The Adventure of the Speckled Band" — held out before any processing.
+
+# --- Output ---
+output_dir: outputs/pilot_mistral_seed42
+run_name: pilot-mistral-7b-v03-seed42
+  # Match this run_name exactly in Weights & Biases for cross-run comparison.
+
+# --- Logging ---
+logging_steps: null    # not specified in design doc — set before training
+save_steps: null       # not specified in design doc — set before training
+  # Recommend save_steps=50 or checkpoint-every-30-min for RunPod Community
+  # resilience against preemption.

@@ -54,13 +54,16 @@ results/
 ## Quick start
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Download + clean pilot corpus (A Study in Scarlet)
-python scripts/data_prep/download_gutenberg.py
+make install   # venv + pinned requirements
+make help      # list all targets
+make run       # full data pipeline: download → chunk → classify → augment
+make test      # smoke tests (pure logic — no network, no Ollama)
 ```
+
+The Makefile is the canonical entry point; it calls `venv/bin/python`
+directly, so no activation needed. `classify`/`augment` are served from
+on-disk caches on re-runs and only need Ollama on cache misses. Training is
+GPU-only — see `docs/runpod-runbook.md`.
 
 ---
 
@@ -75,7 +78,13 @@ python scripts/data_prep/download_gutenberg.py
 
 ## Current state (update each session)
 
-**Last updated: 2026-06-08**
+**Last updated: 2026-06-11**
+
+### Tooling (2026-06-11 organisation pass)
+- Makefile added — canonical targets above, all verified against the committed corpus (cached re-runs reproduce tracked outputs)
+- `tests/test_smoke.py` — 12 pure-logic smoke tests via `make test`; also proves `AUGMENT_VERSION`/`PROMPT_VERSION` gate their caches
+- CI (`.github/workflows/ci.yml`) — install/lint/test on push and PR, green
+- `docs/runpod-runbook.md` — pod spec, mounts, deferred training installs (pre-flight; update after first real pod run)
 
 ### Phase 1 — Data prep: COMPLETE
 - Corpus downloaded and cleaned: A Study in Scarlet + Scandal in Bohemia + Red-Headed League (training); Speckled Band (held-out)

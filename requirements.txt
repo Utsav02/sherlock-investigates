@@ -1,0 +1,27 @@
+# Versions resolved on Python 3.12 / macOS, May 2026.
+# On RunPod (Linux + CUDA), versions should match — PyTorch and
+# training-phase deps (transformers, peft, bitsandbytes, accelerate, unsloth)
+# will be added in a later session when training scripts are built.
+#
+# Install: pip install -r requirements.txt
+
+# --- Data acquisition ---
+requests==2.34.2
+
+# --- HTML parsing and cleaning ---
+# beautifulsoup4 for parsing Gutenberg HTML versions if needed;
+# lxml is the fast C-based parser backend for bs4;
+# markdownify converts HTML to clean markdown (useful in the augmentation pipeline).
+beautifulsoup4==4.14.3
+lxml==6.1.0
+markdownify==1.2.2
+
+# --- HuggingFace datasets ---
+# Used later for building and loading training datasets in Arrow/Parquet format.
+# Pinned here so the data-prep environment matches the training environment.
+datasets==4.8.5
+
+# --- Scientific Python ---
+numpy==2.4.5
+pandas==3.0.3
+tqdm==4.67.3

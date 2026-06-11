@@ -1,0 +1,80 @@
+# === Python caches ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# === Virtual environments ===
+venv/
+env/
+.venv/
+.venv-*/
+ENV/
+
+# === Jupyter ===
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# === Environment / secrets ===
+.env
+*.env
+.env.*
+secrets.yaml
+secrets.json
+
+# === Data files ===
+# The full corpus (raw Gutenberg downloads, processed splits, augmented
+# training data, probe sets) is small (~8MB) and is tracked in git — it is
+# the experiment's irreplaceable asset. Only regenerable caches are ignored.
+
+# === Model checkpoints and adapter weights ===
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.gguf
+checkpoints/
+adapter_model/
+adapter_weights/
+
+# === Training logs ===
+# Weights & Biases local artifacts
+wandb/
+# But keep the plain JSONL log backups (small, useful for reproducibility)
+!results/**/*.jsonl
+
+# === Large result artifacts ===
+results/**/*.pkl
+results/**/*.parquet
+
+# === OS ===
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+
+# === Run logs ===
+logs/
+
+# === LLM response caches (regenerable) ===
+data/processed/.cache/
+data/augmented/.cache/
+
+# === Claude Code local settings (machine-local permission state) ===
+.claude/settings.local.json
+
+# === Editors ===
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

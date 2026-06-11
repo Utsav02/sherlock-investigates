@@ -1,0 +1,24 @@
+{
+  "augment_version": "v1",
+  "model": "qwen2.5:7b",
+  "temperature": 0.7,
+  "oversample_central": 3,
+  "input_file": "data/processed/chunks_labeled.jsonl",
+  "output_file": "data/augmented/train.jsonl",
+  "total_examples": 1168,
+  "approx_tokens": 325275,
+  "error_count": 0,
+  "by_label_framing": {
+    "minor": {
+      "VERBATIM": 164,
+      "WATSON": 116
+    },
+    "central": {
+      "VERBATIM": 192,
+      "WATSON": 189,
+      "QA": 192,
+      "CHAIN": 192,
+      "REVERSE": 123
+    }
+  }
+}

@@ -1,0 +1,333 @@
+{
+  "metadata": {
+    "sample_size": 20,
+    "seed": 42,
+    "prompt_version": "v1",
+    "models": [
+      "phi4-mini",
+      "qwen2.5:7b"
+    ]
+  },
+  "results": [
+    {
+      "chunk_id": 654,
+      "source_story": "study_in_scarlet",
+      "word_count": 21,
+      "content": "It was the _Echo_ for the day, and the paragraph to which he pointed\nwas devoted to the case in question.",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "Deduction is briefly referenced but not elaborated upon.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: Deduction is briefly referenced but not elaborated upon."
+      },
+      "qwen2.5:7b": {
+        "label": "none",
+        "justification": "The passage describes a newspaper clipping without showing Holmes's deductive process.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage describes a newspaper clipping without showing Holmes's deductive process."
+      }
+    },
+    {
+      "chunk_id": 114,
+      "source_story": "study_in_scarlet",
+      "word_count": 13,
+      "content": "“Why, it is just such a chance as you have been longing for.”",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "The passage hints at a chance but does not explicitly show Holmes's deductive reasoning process.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage hints at a chance but does not explicitly show Holmes's deductive reasoning process."
+      },
+      "qwen2.5:7b": {
+        "label": "none",
+        "justification": "The passage does not contain Holmes's deductive reasoning; it is a statement about an opportunity.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage does not contain Holmes's deductive reasoning; it is a statement about an opportunity."
+      }
+    },
+    {
+      "chunk_id": 25,
+      "source_story": "study_in_scarlet",
+      "word_count": 53,
+      "content": "“If we don’t get on it will be easy to part company,” I answered. “It\nseems to me, Stamford,” I added, looking hard at my companion, “that\nyou have some reason for washing your hands of the matter. Is this\nfellow’s temper so formidable, or what is it? Don’t be mealy-mouthed\nabout it.”",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "The passage contains a brief reference to Holmes's deductive reasoning but does not focus on it.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage contains a brief reference to Holmes's deductive reasoning but does not focus on it."
+      },
+      "qwen2.5:7b": {
+        "label": "none",
+        "justification": "The passage focuses on dialogue between characters without showcasing Holmes's deductive reasoning.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage focuses on dialogue between characters without showcasing Holmes's deductive reasoning."
+      }
+    },
+    {
+      "chunk_id": 759,
+      "source_story": "scandal_in_bohemia",
+      "word_count": 25,
+      "content": "“She will not be able to. But I hear the rumble of wheels. It is her\ncarriage. Now carry out my orders to the letter.”",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "Deduction is briefly referenced but not elaborated upon.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: Deduction is briefly referenced but not elaborated upon."
+      },
+      "qwen2.5:7b": {
+        "label": "none",
+        "justification": "The passage describes a command being given rather than Holmes's deductive reasoning process.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage describes a command being given rather than Holmes's deductive reasoning process."
+      }
+    },
+    {
+      "chunk_id": 281,
+      "source_story": "study_in_scarlet",
+      "word_count": 13,
+      "content": "A shade of anxiety seemed to me to cross my companion’s expressive\nface.",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "The passage briefly references an emotional observation but does not delve into Holmes's deductive reasoning process.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage briefly references an emotional observation but does not delve into Holmes's deductive reasoning process."
+      },
+      "qwen2.5:7b": {
+        "label": "minor",
+        "justification": "The passage describes a reaction but does not show Holmes's deductive reasoning process.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage describes a reaction but does not show Holmes's deductive reasoning process."
+      }
+    },
+    {
+      "chunk_id": 250,
+      "source_story": "study_in_scarlet",
+      "word_count": 19,
+      "content": "“The Lord be thanked!” cried the old woman; “Sally will be a glad woman\nthis night. That’s the ring.”",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "The passage briefly references a character expressing gratitude but does not demonstrate Holmes's deductive reasoning.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage briefly references a character expressing gratitude but does not demonstrate Holmes's deductive reasoning."
+      },
+      "qwen2.5:7b": {
+        "label": "none",
+        "justification": "The passage consists of dialogue and does not involve Holmes's deductive reasoning.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage consists of dialogue and does not involve Holmes's deductive reasoning."
+      }
+    },
+    {
+      "chunk_id": 228,
+      "source_story": "study_in_scarlet",
+      "word_count": 28,
+      "content": "“I can understand. There is a mystery about this which stimulates the\nimagination; where there is no imagination there is no horror. Have you\nseen the evening paper?”",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "The passage briefly references imagination but does not explicitly demonstrate Holmes's deductive reasoning.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage briefly references imagination but does not explicitly demonstrate Holmes's deductive reasoning."
+      },
+      "qwen2.5:7b": {
+        "label": "minor",
+        "justification": "The passage primarily sets a scene and introduces dialogue about the mystery's impact on imagination rather than focusing on Holmes's deductive reasoning.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage primarily sets a scene and introduces dialogue about the mystery's impact on imagination rather than focusing on Holmes's deductive reasoning."
+      }
+    },
+    {
+      "chunk_id": 142,
+      "source_story": "study_in_scarlet",
+      "word_count": 11,
+      "content": "“No more than was necessary for the purposes of our examination.”",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "The passage briefly references a purpose for an examination but does not delve into Holmes's deductive process.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage briefly references a purpose for an examination but does not delve into Holmes's deductive process."
+      },
+      "qwen2.5:7b": {
+        "label": "minor",
+        "justification": "The passage describes an action related to examination but does not delve into Holmes's deductive reasoning process.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage describes an action related to examination but does not delve into Holmes's deductive reasoning process."
+      }
+    },
+    {
+      "chunk_id": 754,
+      "source_story": "scandal_in_bohemia",
+      "word_count": 98,
+      "content": "He disappeared into his bedroom and returned in a few minutes in the\ncharacter of an amiable and simple-minded Nonconformist clergyman. His\nbroad black hat, his baggy trousers, his white tie, his sympathetic\nsmile, and general look of peering and benevolent curiosity were such\nas Mr. John Hare alone could have equalled. It was not merely that\nHolmes changed his costume. His expression, his manner, his very soul\nseemed to vary with every fresh part that he assumed. The stage lost a\nfine actor, even as science lost an acute reasoner, when he became a\nspecialist in crime.",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "Deduction is briefly referenced through Holmes's transformation into a character.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: Deduction is briefly referenced through Holmes's transformation into a character."
+      },
+      "qwen2.5:7b": {
+        "label": "none",
+        "justification": "The passage focuses on Holmes's ability to disguise himself rather than his deductive reasoning process.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage focuses on Holmes's ability to disguise himself rather than his deductive reasoning process."
+      }
+    },
+    {
+      "chunk_id": 104,
+      "source_story": "study_in_scarlet",
+      "word_count": 10,
+      "content": "“How in the world did you deduce that?” I asked.",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "The passage mentions deducing but does not show Holmes's process.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage mentions deducing but does not show Holmes's process."
+      },
+      "qwen2.5:7b": {
+        "label": "minor",
+        "justification": "The passage introduces a question about Holmes's deduction but does not contain the actual process of deduction.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage introduces a question about Holmes's deduction but does not contain the actual process of deduction."
+      }
+    },
+    {
+      "chunk_id": 692,
+      "source_story": "scandal_in_bohemia",
+      "word_count": 38,
+      "content": "I rose to go, but Holmes caught me by the wrist and pushed me back into\nmy chair. “It is both, or none,” said he. “You may say before this\ngentleman anything which you may say to me.”",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "The passage briefly references a moment of interaction but does not delve into Holmes's deductive process.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage briefly references a moment of interaction but does not delve into Holmes's deductive process."
+      },
+      "qwen2.5:7b": {
+        "label": "none",
+        "justification": "The passage describes an interaction between Holmes and another character without focusing on Holmes's deductive process.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage describes an interaction between Holmes and another character without focusing on Holmes's deductive process."
+      }
+    },
+    {
+      "chunk_id": 758,
+      "source_story": "scandal_in_bohemia",
+      "word_count": 94,
+      "content": "“Her banker or her lawyer. There is that double possibility. But I am\ninclined to think neither. Women are naturally secretive, and they like\nto do their own secreting. Why should she hand it over to anyone else?\nShe could trust her own guardianship, but she could not tell what\nindirect or political influence might be brought to bear upon a\nbusiness man. Besides, remember that she had resolved to use it within\na few days. It must be where she can lay her hands upon it. It must be\nin her own house.”",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "The passage briefly references a thought that could be part of Holmes's deductive reasoning but does not focus on his process.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage briefly references a thought that could be part of Holmes's deductive reasoning but does not focus on his process."
+      },
+      "qwen2.5:7b": {
+        "label": "central",
+        "justification": "Holmes explicates his reasoning about where a woman would keep something secret, focusing on deductive processes.",
+        "raw_response": "LABEL: central\nJUSTIFICATION: Holmes explicates his reasoning about where a woman would keep something secret, focusing on deductive processes."
+      }
+    },
+    {
+      "chunk_id": 913,
+      "source_story": "red_headed_league",
+      "word_count": 59,
+      "content": "“I think you will find,” said Sherlock Holmes, “that you will play for\na higher stake to-night than you have ever done yet, and that the play\nwill be more exciting. For you, Mr. Merryweather, the stake will be\nsome £ 30,000; and for you, Jones, it will be the man upon whom you\nwish to lay your hands.”",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "Deduction is briefly referenced but not explicitly demonstrated.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: Deduction is briefly referenced but not explicitly demonstrated."
+      },
+      "qwen2.5:7b": {
+        "label": "minor",
+        "justification": "The passage primarily focuses on narrative and setting up the scene rather than Holmes's deductive reasoning.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage primarily focuses on narrative and setting up the scene rather than Holmes's deductive reasoning."
+      }
+    },
+    {
+      "chunk_id": 558,
+      "source_story": "study_in_scarlet",
+      "word_count": 60,
+      "content": "“Pass, and the Lord go with you,” said the voice from above. Beyond his\npost the path broadened out, and the horses were able to break into a\ntrot. Looking back, they could see the solitary watcher leaning upon\nhis gun, and knew that they had passed the outlying post of the chosen\npeople, and that freedom lay before them.",
+      "phi4-mini": {
+        "label": "none",
+        "justification": "The passage describes a scene without any indication of Holmes's deductive reasoning.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage describes a scene without any indication of Holmes's deductive reasoning."
+      },
+      "qwen2.5:7b": {
+        "label": "none",
+        "justification": "The passage describes action and atmosphere without focusing on Holmes's deductive reasoning.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage describes action and atmosphere without focusing on Holmes's deductive reasoning."
+      }
+    },
+    {
+      "chunk_id": 89,
+      "source_story": "study_in_scarlet",
+      "word_count": 17,
+      "content": "“Have you read Gaboriau’s works?” I asked. “Does Lecoq come up to your\nidea of a detective?”",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "The passage references Sherlock Holmes indirectly through a character's question about detective Lecoq.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage references Sherlock Holmes indirectly through a character's question about detective Lecoq."
+      },
+      "qwen2.5:7b": {
+        "label": "none",
+        "justification": "The passage focuses on dialogue about reading rather than Holmes's deductive reasoning.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage focuses on dialogue about reading rather than Holmes's deductive reasoning."
+      }
+    },
+    {
+      "chunk_id": 604,
+      "source_story": "study_in_scarlet",
+      "word_count": 65,
+      "content": "With these words, Jefferson Hope leaned back in his chair and began the\nfollowing remarkable statement. He spoke in a calm and methodical\nmanner, as though the events which he narrated were commonplace enough.\nI can vouch for the accuracy of the subjoined account, for I have had\naccess to Lestrade’s note-book, in which the prisoner’s words were\ntaken down exactly as they were uttered.",
+      "phi4-mini": {
+        "label": "none",
+        "justification": "The passage describes a statement made by Jefferson Hope without any indication of Holmes's deductive reasoning.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage describes a statement made by Jefferson Hope without any indication of Holmes's deductive reasoning."
+      },
+      "qwen2.5:7b": {
+        "label": "none",
+        "justification": "The passage describes another character's narrative style and Holmes's verification of it, without focusing on Holmes's deductive reasoning.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage describes another character's narrative style and Holmes's verification of it, without focusing on Holmes's deductive reasoning."
+      }
+    },
+    {
+      "chunk_id": 432,
+      "source_story": "study_in_scarlet",
+      "word_count": 18,
+      "content": "The name of Nauvoo evidently recalled recollections to John Ferrier. “I\nsee,” he said, “you are the Mormons.”",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "The passage briefly references a character recalling memories related to Mormonism.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage briefly references a character recalling memories related to Mormonism."
+      },
+      "qwen2.5:7b": {
+        "label": "none",
+        "justification": "The passage focuses on dialogue between characters without showcasing Holmes's deductive reasoning.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage focuses on dialogue between characters without showcasing Holmes's deductive reasoning."
+      }
+    },
+    {
+      "chunk_id": 32,
+      "source_story": "study_in_scarlet",
+      "word_count": 28,
+      "content": "“How are you?” he said cordially, gripping my hand with a strength for\nwhich I should hardly have given him credit. “You have been in\nAfghanistan, I perceive.”",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "The passage briefly references Sherlock Holmes but does not explicitly demonstrate his deductive reasoning process.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage briefly references Sherlock Holmes but does not explicitly demonstrate his deductive reasoning process."
+      },
+      "qwen2.5:7b": {
+        "label": "none",
+        "justification": "The passage focuses on dialogue and setting a scene rather than Holmes's deductive reasoning.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage focuses on dialogue and setting a scene rather than Holmes's deductive reasoning."
+      }
+    },
+    {
+      "chunk_id": 30,
+      "source_story": "study_in_scarlet",
+      "word_count": 100,
+      "content": "“No. Heaven knows what the objects of his studies are. But here we are,\nand you must form your own impressions about him.” As he spoke, we\nturned down a narrow lane and passed through a small side-door, which\nopened into a wing of the great hospital. It was familiar ground to me,\nand I needed no guiding as we ascended the bleak stone staircase and\nmade our way down the long corridor with its vista of whitewashed wall\nand dun-coloured doors. Near the further end a low arched passage\nbranched away from it and led to the chemical laboratory.",
+      "phi4-mini": {
+        "label": "none",
+        "justification": "The passage describes a setting without mentioning Holmes's deductive reasoning.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage describes a setting without mentioning Holmes's deductive reasoning."
+      },
+      "qwen2.5:7b": {
+        "label": "none",
+        "justification": "The passage focuses on narrative and setting description rather than Holmes's deductive reasoning.",
+        "raw_response": "LABEL: none\nJUSTIFICATION: The passage focuses on narrative and setting description rather than Holmes's deductive reasoning."
+      }
+    },
+    {
+      "chunk_id": 95,
+      "source_story": "study_in_scarlet",
+      "word_count": 10,
+      "content": "“You mean the retired sergeant of Marines,” said Sherlock Holmes.",
+      "phi4-mini": {
+        "label": "minor",
+        "justification": "The passage briefly references Sherlock Holmes but does not delve into his deductive reasoning process.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage briefly references Sherlock Holmes but does not delve into his deductive reasoning process."
+      },
+      "qwen2.5:7b": {
+        "label": "minor",
+        "justification": "The passage introduces a character without delving into Holmes's deductive process.",
+        "raw_response": "LABEL: minor\nJUSTIFICATION: The passage introduces a character without delving into Holmes's deductive process."
+      }
+    }
+  ]
+}

@@ -27,8 +27,8 @@ Status: ✅ Done · 🔒 Gate (must complete before next stage) · 🔄 In progr
 | Full canon chunk | ✅ | 10,409 chunks; Speckled Band excluded → `data/processed/full_canon_chunks.jsonl` |
 | Full canon classify | ✅ | 11h21m; none=7830 (75%), minor=1843 (18%), central=736 (7%), errors=0 |
 | Full canon augment | ✅ | 21h58m; **12,999 examples, 0 errors, ~3.44M tokens** → `data/augmented/full_canon_train.jsonl` |
-| Scrambled-Sherlock corpus | ⬜ | Sentence-shuffle within passages; no script yet |
-| Domain control corpus (medical) | ⬜ | PubMed Central case reports; no script yet |
+| Victorian register control corpus | ⬜ | Same-era authors (Dickens, Austen, Hardy), no deductive reasoning; Gutenberg; deferred until pilot gates pass |
+| Legal reasoning control corpus | ⬜ | Modern-register structured reasoning (CourtListener public opinions); deferred until pilot gates pass |
 
 ### Phase 1 — Pre-Training Gate
 
@@ -250,10 +250,14 @@ The full experiment is a 2×2 factorial design across register and deductive str
 
 |  | Deductive structure present | Deductive structure absent |
 |---|---|---|
-| Victorian register | Sherlock canon | Scrambled Sherlock |
-| Modern register | Domain control (medical) | Base (no fine-tuning) |
+| Victorian register | Sherlock canon | Victorian fiction (Dickens/Austen/Hardy) |
+| Modern register | Legal opinions (CourtListener) | Base (no fine-tuning) |
 
-This structure enables decomposition: Sherlock vs base = gross effect; Sherlock vs scrambled = contribution of deductive structure; Sherlock vs domain control = contribution of Victorian register; scrambled vs base = residual vocabulary effect alone.
+This structure enables decomposition: Sherlock vs base = gross effect; Sherlock vs Victorian fiction = contribution of deductive structure specifically (register held constant); Sherlock vs legal opinions = contribution of Victorian register (structure held constant); Victorian fiction vs base = residual Victorian vocabulary effect alone.
+
+**Control corpus choices and rationale:** Scrambled-Sherlock (sentence-shuffle) was the original plan but rejected — artificial incoherence at the paragraph level creates confounds unrelated to deductive structure, and individual sentences still carry reasoning vocabulary, muddying the "no structure" condition. Victorian fiction is a real corpus with the same register but no systematic observation→inference→conclusion chains, making it a cleaner control. Medical case reports were rejected because medical reasoning is probabilistic/differential (ruling hypotheses in and out) rather than declarative-certain in the Holmes style, making the "same structure" claim imprecise; legal opinions (facts → law applied → conclusion) are structurally closer and publicly available via CourtListener.
+
+**Both control corpora are deferred until the pilot eval gates pass.** Building them before confirming the primary manipulation (base vs. Sherlock) produces a measurable effect would be premature. The Gutenberg pipeline already handles Victorian text; legal opinions require a new download script but the classify/augment pipeline applies unchanged.
 
 ---
 
@@ -366,8 +370,8 @@ Four training conditions, all using the base model selected by pilot results, id
 
 1. **Base** — no fine-tuning (no-manipulation control)
 2. **Sherlock canon** — full canon, 12,999 examples, ~3.44M tokens (the primary manipulation)
-3. **Domain control** — medical case reports, token-matched to Sherlock corpus
-4. **Scrambled Sherlock** — same passages as Sherlock canon, sentences shuffled within each chunk
+3. **Victorian fiction** — same-era authors (Dickens, Austen, Hardy), no detective/deductive content, token-matched; register control
+4. **Legal opinions** — CourtListener public-domain court opinions, modern register, structured reasoning; structure control
 
 Eight trained adapters total (4 conditions × 2 seeds) plus the base model used directly = nine model conditions.
 

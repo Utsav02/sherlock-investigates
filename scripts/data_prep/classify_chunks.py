@@ -135,17 +135,24 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Classify all chunks with a local Ollama model.")
     parser.add_argument("--model", required=True, choices=["phi4-mini", "qwen2.5:7b"],
                         help="Ollama model to use")
+    parser.add_argument("--input",  default=str(CHUNKS_FILE),
+                        help="Input chunks JSONL (default: data/processed/chunks.jsonl)")
+    parser.add_argument("--output", default=str(OUTPUT),
+                        help="Output labeled JSONL (default: data/processed/chunks_labeled.jsonl)")
     args = parser.parse_args()
     model = args.model
 
-    if not CHUNKS_FILE.exists():
-        sys.exit(f"ERROR: {CHUNKS_FILE} not found — run chunk_stories.py first")
+    input_path  = Path(args.input)
+    output_path = Path(args.output)
 
-    chunks = [json.loads(l) for l in CHUNKS_FILE.read_text().splitlines() if l.strip()]
+    if not input_path.exists():
+        sys.exit(f"ERROR: {input_path} not found")
+
+    chunks = [json.loads(l) for l in input_path.read_text().splitlines() if l.strip()]
     total  = len(chunks)
     print(f"Classifying {total} chunks with {model}  (prompt {PROMPT_VERSION})\n")
 
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     label_counts: Counter = Counter()
     cached_count = 0
 
@@ -156,7 +163,7 @@ def main() -> None:
         dynamic_ncols=True,
     )
 
-    with OUTPUT.open("w", encoding="utf-8") as out_f:
+    with output_path.open("w", encoding="utf-8") as out_f:
         for i, chunk in enumerate(pbar, 1):
             result, was_cached = classify_chunk(model, chunk)
             label = result["label"]
@@ -191,7 +198,7 @@ def main() -> None:
                     f"cached={cached_count}"
                 )
 
-    print(f"\nWrote {total} labeled chunks to {OUTPUT.relative_to(ROOT)}")
+    print(f"\nWrote {total} labeled chunks to {output_path}")
     print(f"Cache hits: {cached_count}/{total}\n")
 
     print("=== Label distribution ===")
@@ -207,7 +214,7 @@ def main() -> None:
         if story not in by_story:
             by_story[story] = Counter()
 
-    for line in OUTPUT.read_text().splitlines():
+    for line in output_path.read_text().splitlines():
         row = json.loads(line)
         by_story[row["source_story"]][row["label"]] += 1
 

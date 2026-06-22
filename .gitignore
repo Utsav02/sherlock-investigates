@@ -70,7 +70,7 @@ data/processed/.cache/
 data/augmented/.cache/
 
 # === Claude Code local settings (machine-local permission state) ===
-.claude/settings.local.json
+.claude/
 
 # === Editors ===
 .idea/

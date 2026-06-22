@@ -59,7 +59,15 @@ except ImportError:
 
 try:
     import wandb  # noqa: F401
-    _HAS_WANDB = True
+    # Respect WANDB_DISABLED / WANDB_MODE env vars: if the user has disabled
+    # W&B at the SDK level, treat it as not available so report_to='none'.
+    import os as _os
+    _wandb_disabled = (
+        _os.environ.get("WANDB_DISABLED", "").lower() in ("true", "1")
+        or _os.environ.get("WANDB_MODE", "").lower() in ("disabled", "offline", "dryrun")
+    )
+    _HAS_WANDB = not _wandb_disabled
+    del _os, _wandb_disabled
 except ImportError:
     _HAS_WANDB = False
 

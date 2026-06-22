@@ -271,12 +271,24 @@ def main() -> None:
         help="Repeat each central chunk's examples N times (default: 1). "
              "Use 3 to match the design doc's 3× central oversample target.",
     )
+    parser.add_argument(
+        "--input",  default=str(INPUT),
+        help="Input labeled chunks JSONL (default: data/processed/chunks_labeled.jsonl)",
+    )
+    parser.add_argument(
+        "--output", default=str(OUTPUT),
+        help="Output training JSONL (default: data/augmented/train.jsonl)",
+    )
     args = parser.parse_args()
 
-    if not INPUT.exists():
-        sys.exit(f"ERROR: {INPUT} not found — run classify_chunks.py first")
+    input_path  = Path(args.input)
+    output_path = Path(args.output)
+    manifest_path = output_path.parent / "manifest.json"
 
-    chunks   = [json.loads(l) for l in INPUT.read_text().splitlines() if l.strip()]
+    if not input_path.exists():
+        sys.exit(f"ERROR: {input_path} not found — run classify_chunks.py first")
+
+    chunks   = [json.loads(l) for l in input_path.read_text().splitlines() if l.strip()]
     eligible = [c for c in chunks if c["label"] in ("central", "minor")]
     n_central = sum(1 for c in eligible if c["label"] == "central")
     n_minor   = len(eligible) - n_central
@@ -302,7 +314,7 @@ def main() -> None:
         f"({n_verbatim} VERBATIM, {n_generated} generated){oversample_note}\n"
     )
 
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     by_label_framing: dict[str, Counter] = defaultdict(Counter)
     error_count  = 0
@@ -311,7 +323,7 @@ def main() -> None:
 
     pbar = tqdm(tasks, unit="ex", desc="augment", dynamic_ncols=True)
 
-    with OUTPUT.open("w", encoding="utf-8") as out_f:
+    with output_path.open("w", encoding="utf-8") as out_f:
         for chunk, framing in pbar:
             content = chunk["content"]
 
@@ -358,7 +370,7 @@ def main() -> None:
     total_written = sum(sum(v.values()) for v in by_label_framing.values())
     approx_tokens = int(total_words * 1.33)
 
-    print(f"\nWrote {total_written} examples → {OUTPUT.relative_to(ROOT)}")
+    print(f"\nWrote {total_written} examples → {output_path}")
     print(f"Errors: {error_count}   Cache hits: {cached_count}\n")
 
     print("=== Examples by label × framing ===")
@@ -393,15 +405,15 @@ def main() -> None:
         "model":             args.model,
         "temperature":       args.temperature,
         "oversample_central": args.oversample_central,
-        "input_file":      str(INPUT.relative_to(ROOT)),
-        "output_file":     str(OUTPUT.relative_to(ROOT)),
+        "input_file":      str(input_path),
+        "output_file":     str(output_path),
         "total_examples":  total_written,
         "approx_tokens":   approx_tokens,
         "error_count":     error_count,
         "by_label_framing": {k: dict(v) for k, v in by_label_framing.items()},
     }
-    MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
-    print(f"\nManifest → {MANIFEST.relative_to(ROOT)}")
+    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
+    print(f"\nManifest → {manifest_path}")
 
 
 if __name__ == "__main__":

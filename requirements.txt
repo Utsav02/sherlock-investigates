@@ -21,6 +21,11 @@ markdownify==1.2.2
 # Pinned here so the data-prep environment matches the training environment.
 datasets==4.8.5
 
+# --- Conversation orchestrator ---
+# openai SDK for AsyncOpenAI against any OpenAI-compatible endpoint
+# (Ollama, vLLM, Together AI).  Pin after first install with pip freeze.
+openai>=1.0.0
+
 # --- Scientific Python ---
 numpy==2.4.5
 pandas==3.0.3

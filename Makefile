@@ -19,7 +19,9 @@ MODEL ?= qwen2.5:7b
 # (1168 examples, ~325K tokens) was built with 3, per the design doc.
 OVERSAMPLE ?= 3
 
-.PHONY: help install run pipeline download chunk classify augment train-qwen train-mistral test lint
+.PHONY: help install run pipeline download chunk classify augment \
+        full-canon chunk-full-canon classify-full-canon augment-full-canon \
+        train-qwen train-mistral test lint
 
 help:
 	@echo "Sherlock Investigates — targets:"
@@ -54,6 +56,24 @@ classify:
 
 augment:
 	$(PY) scripts/data_prep/augment_corpus.py --model $(MODEL) --oversample-central $(OVERSAMPLE)
+
+# Full-canon pipeline (all 9 works → full_canon_train.jsonl)
+# classify and augment are cached — re-runs only call Ollama on misses.
+full-canon: chunk-full-canon classify-full-canon augment-full-canon
+
+chunk-full-canon:
+	$(PY) scripts/data_prep/chunk_full_canon.py
+
+classify-full-canon:
+	$(PY) scripts/data_prep/classify_chunks.py --model $(MODEL) \
+		--input  data/processed/full_canon_chunks.jsonl \
+		--output data/processed/full_canon_chunks_labeled.jsonl
+
+augment-full-canon:
+	$(PY) scripts/data_prep/augment_corpus.py --model $(MODEL) \
+		--oversample-central $(OVERSAMPLE) \
+		--input  data/processed/full_canon_chunks_labeled.jsonl \
+		--output data/augmented/full_canon_train.jsonl
 
 # Training runs on a GPU pod, not locally — torch/transformers/peft are
 # deliberately not in requirements.txt. See docs/runpod-runbook.md.

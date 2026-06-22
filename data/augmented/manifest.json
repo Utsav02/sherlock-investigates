@@ -3,22 +3,22 @@
   "model": "qwen2.5:7b",
   "temperature": 0.7,
   "oversample_central": 3,
-  "input_file": "data/processed/chunks_labeled.jsonl",
-  "output_file": "data/augmented/train.jsonl",
-  "total_examples": 1168,
-  "approx_tokens": 325275,
+  "input_file": "data/processed/full_canon_chunks_labeled.jsonl",
+  "output_file": "data/augmented/full_canon_train.jsonl",
+  "total_examples": 12999,
+  "approx_tokens": 3440973,
   "error_count": 0,
   "by_label_framing": {
     "minor": {
-      "VERBATIM": 164,
-      "WATSON": 116
+      "VERBATIM": 1843,
+      "WATSON": 1298
     },
     "central": {
-      "VERBATIM": 192,
-      "WATSON": 189,
-      "QA": 192,
-      "CHAIN": 192,
-      "REVERSE": 123
+      "VERBATIM": 2208,
+      "WATSON": 2139,
+      "QA": 2208,
+      "CHAIN": 2208,
+      "REVERSE": 1095
     }
   }
 }

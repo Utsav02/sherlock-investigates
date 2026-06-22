@@ -80,7 +80,5 @@ run_name: pilot-qwen25-7b-instruct-seed42
   # Match this run_name exactly in Weights & Biases for cross-run comparison.
 
 # --- Logging ---
-logging_steps: null    # not specified in design doc — set before training
-save_steps: null       # not specified in design doc — set before training
-  # Recommend save_steps=50 or checkpoint-every-30-min for RunPod Community
-  # resilience against preemption.
+logging_steps: 10
+save_steps: 50         # checkpoint every ~50 steps; resilient against Kaggle session preemption

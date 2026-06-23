@@ -21,7 +21,9 @@ OVERSAMPLE ?= 3
 
 .PHONY: help install run pipeline download chunk classify augment \
         full-canon chunk-full-canon classify-full-canon augment-full-canon \
-        train-qwen train-mistral test lint
+        train-qwen train-mistral \
+        eval-qwen eval-mistral \
+        test lint
 
 help:
 	@echo "Sherlock Investigates — targets:"
@@ -31,8 +33,10 @@ help:
 	@echo "  chunk          split training stories into data/processed/chunks.jsonl"
 	@echo "  classify       label chunks via Ollama ($(MODEL)) → chunks_labeled.jsonl"
 	@echo "  augment        build training set (central x$(OVERSAMPLE)) → data/augmented/train.jsonl"
-	@echo "  train-qwen     QLoRA fine-tune Qwen base   (GPU only — run on RunPod)"
-	@echo "  train-mistral  QLoRA fine-tune Mistral base (GPU only — run on RunPod)"
+	@echo "  train-qwen     QLoRA fine-tune Qwen base   (GPU only — run on Kaggle)"
+	@echo "  train-mistral  QLoRA fine-tune Mistral base (GPU only — run on Kaggle)"
+	@echo "  eval-qwen      Run all 3 pilot eval scripts for Qwen   (set ADAPTER=...)"
+	@echo "  eval-mistral   Run all 3 pilot eval scripts for Mistral (set ADAPTER=...)"
 	@echo "  test           run smoke tests (pure logic, no network/Ollama needed)"
 	@echo "  lint           byte-compile all scripts and tests (syntax check)"
 
@@ -82,6 +86,39 @@ train-qwen:
 
 train-mistral:
 	$(PY) scripts/training/train_lora.py --config configs/pilot_mistral.yaml
+
+# Eval runs — set ADAPTER to local path or HF Hub repo ID
+# e.g.  make eval-qwen ADAPTER=outputs/pilot_qwen_seed42/final_adapter
+#        make eval-qwen ADAPTER=utsvsngh/sherlock-qwen25-7b-pilot-seed42
+ADAPTER ?= outputs/pilot_qwen_seed42/final_adapter
+
+eval-qwen: eval-qwen-perplexity eval-qwen-mmlu eval-qwen-probe
+
+eval-qwen-perplexity:
+	$(PY) scripts/eval/perplexity.py --config configs/pilot_qwen.yaml \
+		--adapter $(ADAPTER) --output results/pilot/
+
+eval-qwen-mmlu:
+	$(PY) scripts/eval/mmlu_eval.py --config configs/pilot_qwen.yaml \
+		--adapter $(ADAPTER) --output results/pilot/
+
+eval-qwen-probe:
+	$(PY) scripts/eval/probe_eval.py --config configs/pilot_qwen.yaml \
+		--adapter $(ADAPTER) --output results/pilot/
+
+eval-mistral: eval-mistral-perplexity eval-mistral-mmlu eval-mistral-probe
+
+eval-mistral-perplexity:
+	$(PY) scripts/eval/perplexity.py --config configs/pilot_mistral.yaml \
+		--adapter $(ADAPTER) --output results/pilot/
+
+eval-mistral-mmlu:
+	$(PY) scripts/eval/mmlu_eval.py --config configs/pilot_mistral.yaml \
+		--adapter $(ADAPTER) --output results/pilot/
+
+eval-mistral-probe:
+	$(PY) scripts/eval/probe_eval.py --config configs/pilot_mistral.yaml \
+		--adapter $(ADAPTER) --output results/pilot/
 
 test:
 	$(PY) -m unittest discover -s tests -v

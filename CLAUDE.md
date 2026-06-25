@@ -2,8 +2,28 @@
 
 Fine-tuning and adversarial conversation experiment at the intersection of LLM fine-tuning, deception detection, and chain-of-thought analysis.
 
+> **House style.** The "Agent behavior" section at the bottom is shared across all of
+> Utsav's personal repos — keep it consistent. Project-specific knowledge lives above it;
+> repo-specific overrides are called out explicitly at the point of override.
+
 ## Workspace
 Part of the Post-Uni Projects workspace. See `../PROJECTS.md` for the full project index.
+
+## Data & secrets — handle with care
+- `.env` (gitignored) holds RunPod, HuggingFace, Modal, and any inference-endpoint
+  tokens. Never committed; only `.env.example` placeholders should ever be in git.
+  Verify nothing secret is staged before every commit.
+- **The corpus + design docs are the experiment's IP.** `data/raw/`, `data/processed/`,
+  `data/augmented/`, `data/probes/`, `EXPERIMENT_DESIGN.md`, and the Decision Log here are
+  what makes the work novel. Treat them as load-bearing; don't paste large excerpts into
+  external services or commit speculative variants you don't intend to publish.
+- **Model adapters / weights** live on HuggingFace (and optionally locally during
+  training). Local weight dirs are gitignored — the git remote does NOT back them up.
+  HuggingFace is the authoritative copy; if you train on RunPod, upload before tearing
+  the pod down.
+- **Modal / RunPod compute is metered.** Total experiment budget is capped at $50 —
+  spinning up GPUs is a money decision, not a code decision. Don't deploy or scale up
+  without explicit in-session confirmation.
 
 ---
 
@@ -150,6 +170,26 @@ Entry format:
 
 ---
 
+### 2026-06-24 — Model upgrade: DeepSeek-R1-Distill-Qwen replaces Qwen2.5 + Mistral base models
+
+**Decision:** Replace the original Qwen2.5-7B-Instruct and Mistral-7B-v0.3 base models with the DeepSeek-R1-Distill-Qwen series (7B → 14B → 32B, staged by budget). The same training script, augmentation corpus, and conversation orchestrator are used unchanged; only the `base_model` config key changes per tier. Total experiment budget capped at $50; inference is free via Modal $30 credits.
+
+**Reasoning:** R1-distill models produce explicit `<think>…</think>` blocks before every response. This transforms the commitment gap from a two-level measure (private `suspicion_score` → public `public_accusation`) into a three-level measure: (1) first suspicion keyword in the think block, (2) `suspicion_score ≥ 0.7` in the JSON, (3) `public_accusation = true`. This is the first experiment to measure commitment gap at all three levels simultaneously. The `think_block` field is logged in every `TurnRecord` alongside `messages_input` (the exact prompt sent to the API), enabling post-hoc TransformerLens activation re-runs for a mechanistic interpretability layer. Staged rollout (7B free validation → 14B ~$2 → 32B ~$6) avoids wasting GPU budget on a model that doesn't pass the eval gates.
+
+**Alternatives considered:** Keep Qwen2.5-7B and Mistral-7B-v0.3 (original plan) — no think blocks, so the commitment gap measurement stays behavioral-only; weaker reasoning baseline makes Holmes behavioral shift harder to detect. Qwen3-32B (native thinking mode via `/think` instruction) — newer and capable, but no published interpretability work specific to Qwen3 thinking tokens; R1-distill has Venhoff et al. (2025) as a direct prior. 70B models — too expensive to fine-tune within $50 budget (~$25-30 for training alone).
+
+---
+
+### 2026-06-24 — Inference platform: Modal (free credits) over Kaggle for R1-distill conversations
+
+**Decision:** Use Modal's free $30 GPU credits to run conversation inference for R1-distill models. The `scripts/inference/modal_app.py` serves vLLM behind a Modal web endpoint; the orchestrator points `AgentConfig.endpoint` at the Modal URL. Kaggle remains the platform for fine-tuning validation (free T4 for 7B).
+
+**Reasoning:** Kaggle 2×T4 (32GB combined) can run 14B inference but is session-capped at 9hr and requires notebook UI interaction. Modal exposes a persistent HTTPS endpoint that the orchestrator can call directly, matches the existing OpenAI-compatible API pattern, and costs nothing within the $30 credit window. For 32B inference (requires ~40GB), Modal A100-40GB is the only free-tier option. The Modal deployment is also a template for the eventual RunPod serverless path if credits run out.
+
+**Alternatives considered:** Kaggle 2×T4 for 14B inference — viable but 9hr cap and manual session management adds friction. RunPod serverless — more control but no free tier; deferred as fallback if Modal credits run out. Together.ai / Groq free tier — do not support loading our custom LoRA adapters; ruled out for fine-tuned model inference.
+
+---
+
 ### 2026-06-21 — Control corpus redesign: Victorian fiction + legal opinions replace scrambled-Sherlock + medical
 
 **Decision:** Replace the original scrambled-Sherlock and medical-case-reports controls with (1) same-era Victorian/Edwardian fiction (Dickens, Austen, Hardy — Project Gutenberg) and (2) public-domain legal opinions (CourtListener). Both deferred until pilot eval gates pass.
@@ -162,7 +202,7 @@ Entry format:
 
 ## Current state (update each session)
 
-**Last updated: 2026-06-19**
+**Last updated: 2026-06-24**
 
 ### Tooling (2026-06-11 organisation pass)
 - Makefile added — canonical targets above, all verified against the committed corpus (cached re-runs reproduce tracked outputs)
@@ -175,7 +215,7 @@ Entry format:
 - 957 chunks labeled by qwen2.5:7b → `data/processed/chunks_labeled.jsonl`
 - Augmentation pipeline run → `data/augmented/train.jsonl` (1168 examples, 325K tokens, central ×3 oversample)
 - Behavioral probe set written → `data/probes/probe_set_v1.jsonl` (30 prompts)
-- Both YAML configs fully populated → `configs/pilot_qwen.yaml`, `configs/pilot_mistral.yaml`
+- Pilot YAML configs → `configs/pilot_qwen.yaml`, `configs/pilot_mistral.yaml` (superseded by R1-distill configs below)
 
 ### Phase 1 — Data prep: COMPLETE (full canon)
 - All 9 works chunked → `data/processed/full_canon_chunks.jsonl` (10,409 chunks)
@@ -189,18 +229,25 @@ Entry format:
   - Token note: 3.44M >> pilot 400K target; this is expected for full canon. Well above 1M behavioral-shift threshold.
 
 ### Phase 1 — Training: NOT STARTED
-- Training script written → `scripts/training/train_lora.py`
-- Orchestrator blocker resolved (validated 2026-06-16)
-- **Next action:** spin up Kaggle T4, point training config at `data/augmented/full_canon_train.jsonl`, run QLoRA on Qwen2.5-7B
+- Training script: `scripts/training/train_lora.py` (unchanged — works for R1-distill as-is)
+- **Model upgrade (2026-06-24):** Base models switched from Qwen2.5-7B + Mistral-7B to DeepSeek-R1-Distill-Qwen series
+  - Staged configs: `configs/main_r1distill_qwen7b.yaml` → `configs/main_r1distill_qwen14b.yaml` → `configs/main_r1distill_qwen32b.yaml`
+  - Upgrade by changing `base_model` in config + swapping adapter in Modal secret — no other code changes
+- **Next action (staged):**
+  1. Kaggle T4 (free): validate 7B config end-to-end — confirm think blocks appear in logs
+  2. RunPod RTX 4090 (~$1): fine-tune R1-Distill-14B, upload adapter to HuggingFace
+  3. Modal deploy (`modal deploy scripts/inference/modal_app.py`): point orchestrator at Modal URL
+  4. Run ~1000 conversations; advance to 32B if evaluation gates pass
 
-### Phase 2 — Conversation orchestrator: VALIDATED
-- Schema: 1-structured-call returning `{reply, suspicion_score, reasoning_trace, cues[], trap_strategy, public_accusation}`
-- Files: `schema.py`, `agent.py`, `prompts.py`, `conv_logging.py`, `orchestrator.py`, `run_pilot.py`
-- Validated end-to-end: 5 conversations × 12 turns × 2 agents = 120 turn records, JSONL schema correct
-- Field population after prompt fixes: suspicion_score real parse 93%, reasoning_trace 97%, cues 97%, trap_strategy non-none 93%
-- Pilot outputs in `results/pilot/conversations/turns_20260616_*.jsonl` and `conversations_20260616_*.jsonl`
-- **Baseline behavior (base vs base):** scores stay 0.1–0.5, no accusations, no commitment gaps — expected; Holmes variants should push scores higher
-- **Next action:** run Kaggle training on both base models; then re-run orchestrator with fine-tuned adapters
+### Phase 2 — Conversation orchestrator: UPGRADED (2026-06-24)
+- **New schema fields (TurnRecord):** `think_block` (raw `<think>…</think>` content), `messages_input` (exact prompt sent to API — enables TransformerLens replay)
+- **New schema fields (ConversationRecord):** `t_think_07` (first turn suspicion keywords in think block), `think_commitment_gap` (t_private_07 − t_think_07)
+- **New AgentConfig field:** `thinking_mode: bool` — set True for R1-distill; selects thinking-compatible prompts and JSON reminders
+- **Three-level commitment gap now logged:** think block keywords → suspicion_score ≥ 0.7 → public_accusation
+- **Thinking-model prompts:** `INITIATOR_SYSTEM_THINKING` / `RESPONDER_SYSTEM_THINKING` in `prompts.py` — do not suppress `<think>` tokens
+- **Inference platform:** `scripts/inference/modal_app.py` — Modal vLLM endpoint; `modal deploy` → persistent HTTPS URL; `keep_warm=1` avoids cold starts
+- Prior validation still holds: 5 conversations × 12 turns × 2 agents = 120 turn records, JSONL schema correct (base models)
+- **Next action:** re-validate with R1-Distill-7B on Kaggle before spending on 14B training
 
 ### Supporting artifacts
 - `data/augmented/augmentation_spec.md` — framing templates + worked examples
@@ -208,6 +255,7 @@ Entry format:
 - `results/pilot/chunk_audit_report.md` — label quality audit
 - `results/analysis/literature_notes.md` — structured notes on all cited papers
 - `results/pilot/pilot_writeup_template.md` — pre-filled writeup template (fill in after eval)
+- `scripts/inference/modal_app.py` — Modal vLLM deployment for R1-distill inference
 
 ### Key numbers to remember
 - Training corpus (pilot): 1168 examples, ~325K tokens
@@ -215,6 +263,76 @@ Entry format:
 - Held-out: `data/processed/heldout/speckled_band.txt`
 - Perplexity pass gate: ≥5% drop on Speckled Band, WikiText within ±5% of base
 - MMLU pass gate: <3pp drop vs base
-- Suspicion threshold for "suspicion event": P(AI) ≥ 0.7
+- Suspicion threshold for "suspicion event": P(AI) ≥ 0.7 (still applies to suspicion_score JSON field)
 - Target conversation volume: ~1000 (pilot pairing matrix subset); ~6000 (full 10×10 matrix)
-- Inference compute: Kaggle T4 free tier, 1-structured-call, ~270 conversations/9hr session
+- Inference compute: Modal A10G (free $30 credits) for 7B/14B; Modal A100-40GB for 32B
+- Total experiment budget: $50 — committed ~$8 (7B + 14B training), ~$5 reserved (32B training), ~$12 reserved (interpretability re-runs), $25 buffer
+- Commitment gap now three-level: t_think_07 → t_private_07 → t_public
+
+---
+
+## Agent behavior
+Shared working norms across Utsav's personal repos. Follow them unless the user says
+otherwise in-session.
+
+### Verification — verify, show evidence, verify the *real* path
+- Never report a number, eval result, or "training worked" without running it and
+  showing the real output. No fabricated or projected results.
+- Verify against the **real artifact and the real path**, not a stand-in. A passing
+  smoke test or a base-model probe is not proof the fine-tuned adapter works in the
+  conversation orchestrator — the seams (adapter load, vLLM server, Modal endpoint,
+  JSON schema enforcement, think-block extraction) are where things actually break.
+- For long-running jobs (training runs, full augmentation passes, ~1000-conversation
+  sweeps), verify *genuine progress*, not just "started" — a launched process that
+  silently died or hung is the default failure mode. Report liveness with evidence
+  (loss curves, completed-turn counts, output files growing), and make long jobs
+  survivable (checkpoints, append-only output, resumable orchestrator runs).
+- If a step was skipped or estimated, say so. When done and verified, say it plainly
+  with the evidence.
+
+### Documentation & reproducibility — as you go
+- **Decision Log is append-only and load-bearing.** Every architectural or experimental
+  decision goes there with reasoning + alternatives considered. Never edit or delete
+  existing entries.
+- Record versions, configs, environment, and the exact commands behind any result worth
+  reproducing. `configs/` is the single source of truth for hyperparameters — don't
+  hardcode values in scripts.
+- `results/pilot/` is append-only — never overwrite; use timestamped filenames.
+
+### Git & durability
+- Commit in logical, scoped chunks; don't sweep unrelated changes into a commit.
+- **Push your work** — local-only commits aren't backed up. Flag when the repo is ahead
+  of its remote.
+- **Never run two write-sessions in one working tree.** If another session or the user
+  may be editing this checkout, pathspec only your own files and re-check
+  `git diff --cached` before each commit.
+- Secrets never get committed; check before every push. The committed data corpus is
+  small (~8MB) and irreplaceable — keep it tracked; model weights stay gitignored.
+
+### Confirmation — confirm heavy / external / irreversible actions
+- Ask first before: installing deps, downloading large files, kicking off long jobs,
+  **any RunPod or Modal deploy / GPU spin-up**, uploading adapters to HuggingFace,
+  changing repo visibility, or anything outward-facing.
+- Proceed freely on: file reads, small local scripts, local edits, cached pipeline
+  re-runs that don't hit Ollama or the network.
+- Always stop for destructive or irreversible actions, and for anything that costs
+  money or publishes to the outside world. Approval in one context does not carry to
+  the next.
+
+### Sessions — fresh one when context degrades
+- Recommend a new session when responses slow, context clutters, or you're re-deriving
+  established facts. Summarize state when you do, so the next session picks up cleanly.
+
+### Scope — reasonable initiative
+- Do what's asked; handle obvious adjacent work en route (e.g. a clear bug hit along the
+  way). Flag anything larger **before** acting — surface it as a suggestion, don't
+  silently expand scope.
+
+### Communication — lead with recommendations
+- Concise and direct; lead with a recommendation, not an option-survey. Expand rationale
+  for significant decisions, keep it short for routine work.
+
+### Workspace — structured directories
+- Keep intermediate and final artifacts in clear subfolders (`data/`, `scripts/`,
+  `configs/`, `results/`, `docs/`). Commit durable artifacts; scratch files stay
+  throwaway.

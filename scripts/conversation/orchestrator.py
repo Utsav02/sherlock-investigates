@@ -86,6 +86,7 @@ async def run_conversation(
             public_accusation=output.public_accusation,
             think_block=think_block,
             messages_input=messages_input,
+            parse_mode=output.parse_mode,
         )
         turns.append(record)
 

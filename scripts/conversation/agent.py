@@ -1,9 +1,12 @@
 """Per-turn generation against an OpenAI-compatible endpoint."""
 import json
+import logging
 import re
 import time
 
 from openai import AsyncOpenAI
+
+log = logging.getLogger(__name__)
 
 import prompts
 import schema
@@ -94,6 +97,7 @@ def _fallback_parse(text: str) -> TurnOutput:
             type=type_m.group(1) if type_m else "none",
         ),
         public_accusation=accuse_m.group(1).lower() == "true" if accuse_m else False,
+        parse_mode="fallback",
     )
 
 
@@ -144,16 +148,23 @@ async def generate_turn(
         raw           = resp.choices[0].message.content or ""
         prompt_tokens = resp.usage.prompt_tokens     if resp.usage else 0
         gen_tokens    = resp.usage.completion_tokens if resp.usage else 0
-    except Exception:
+    except Exception as exc:
+        # Never let an API failure masquerade as a real turn: log it loudly and
+        # mark the output so logging/metrics can distinguish it (parse_mode="api_error").
         latency_ms = (time.monotonic() - t0) * 1000
+        log.error(
+            "generate_turn API call failed (model=%s, endpoint=%s): %s: %s",
+            agent_cfg.model_id, agent_cfg.endpoint, type(exc).__name__, exc,
+        )
         return (
             TurnOutput(
                 reply="",
                 suspicion_score=0.5,
-                reasoning_trace="",
+                reasoning_trace=f"[api_error] {type(exc).__name__}: {exc}",
                 cues=[],
                 trap_strategy=TrapStrategy(plan="", type="none"),
                 public_accusation=False,
+                parse_mode="api_error",
             ),
             0, 0, latency_ms, None, messages,
         )

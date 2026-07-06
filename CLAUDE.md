@@ -202,6 +202,16 @@ Entry format:
 
 ---
 
+### 2026-07-06 — Measurement fixes: word-bounded suspicion keywords + api_error turn flagging
+
+**Decision:** (1) Think-block suspicion detection (`conv_logging.py`) now matches keywords with word boundaries (compiled `\b(?:...)\b` regex) instead of plain substring containment. (2) API-call failures in `agent.py` no longer return an unmarked neutral turn: the exception is logged, and the turn is tagged `parse_mode="api_error"` (new field on `TurnOutput`/`TurnRecord`; regex-fallback parses are tagged `"fallback"`, clean parses `"json"`). `compute_conversation_metrics` excludes `api_error` turns entirely. Covered by `tests/test_conv_metrics.py`.
+
+**Reasoning:** Substring matching made `"ai"` fire inside "wait"/"said"/"again" and `"bot"` inside "both", so `t_think_07` would trigger on nearly every English think block — collapsing the novel three-level commitment gap to noise. Separately, a Modal cold-start timeout or endpoint misconfiguration produced turns indistinguishable from real ones (fabricated suspicion_score=0.5 silently breaking the sustained-≥0.7 check, empty reply fed to the opponent). Both are measurement-validity bugs that had to land before any pilot data is collected; results generated with the old code would not have been interpretable.
+
+**Alternatives considered:** Keeping substring matching and post-filtering false positives in analysis — rejected: t_think_07 is computed at logging time and the raw trigger term isn't stored, so contamination would be unrecoverable. Retrying failed API calls inside `generate_turn` — deferred: retries change turn timing/latency semantics; explicit flagging keeps the record honest and lets the orchestrator/analysis decide. Excluding `fallback` turns from metrics as well — rejected for now: fallback parses still reflect genuine model output (93% real-parse rate leaves ~7% fallback), but they're now identifiable in the data if that call changes.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

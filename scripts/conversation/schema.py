@@ -46,6 +46,9 @@ class TurnOutput:
     cues:              list[str]
     trap_strategy:     TrapStrategy
     public_accusation: bool
+    # provenance: "json" (schema-valid parse), "fallback" (regex extraction from
+    # malformed output), "api_error" (call failed — all fields are neutral filler)
+    parse_mode:        str = "json"
 
 
 @dataclass
@@ -92,6 +95,9 @@ class TurnRecord:
     # interpretability fields (None for non-thinking models)
     think_block:         str | None = None   # raw <think>…</think> content from R1-distill
     messages_input:      list | None = None  # exact messages list sent to API — enables TransformerLens replay
+    # provenance of the structured fields — see TurnOutput.parse_mode.
+    # "api_error" turns carry fabricated-neutral values and are excluded from metrics.
+    parse_mode:          str = "json"
 
 
 @dataclass

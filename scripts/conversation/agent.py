@@ -11,17 +11,45 @@ from schema import AgentConfig, TrapStrategy, TurnOutput, TURN_SCHEMA
 
 
 _JSON_REMINDER = "\n[Respond with a JSON object only — no other text.]"
+_JSON_REMINDER_THINKING = "\n[After your thinking, respond with a JSON object only — no other text outside your thinking block.]"
 
 
-def _build_messages(history: list[dict], role: str) -> list[dict]:
-    system = prompts.INITIATOR_SYSTEM if role == "initiator" else prompts.RESPONDER_SYSTEM
+def _build_messages(history: list[dict], agent_cfg: AgentConfig) -> list[dict]:
+    if agent_cfg.thinking_mode:
+        system = (
+            prompts.INITIATOR_SYSTEM_THINKING
+            if agent_cfg.role == "initiator"
+            else prompts.RESPONDER_SYSTEM_THINKING
+        )
+        reminder = _JSON_REMINDER_THINKING
+    else:
+        system = (
+            prompts.INITIATOR_SYSTEM
+            if agent_cfg.role == "initiator"
+            else prompts.RESPONDER_SYSTEM
+        )
+        reminder = _JSON_REMINDER
+
     messages: list[dict] = [{"role": "system", "content": system}]
     for msg in history:
         if msg["role"] == "user":
-            messages.append({"role": "user", "content": msg["content"] + _JSON_REMINDER})
+            messages.append({"role": "user", "content": msg["content"] + reminder})
         else:
             messages.append(msg)
     return messages
+
+
+def _extract_think_block(text: str) -> tuple[str | None, str]:
+    """Strip <think>…</think> from raw R1-distill output.
+
+    Returns (think_block_content, remainder). If no think block, returns (None, text).
+    """
+    m = re.search(r"<think>(.*?)</think>", text, re.DOTALL | re.IGNORECASE)
+    if m:
+        think_block = m.group(1).strip()
+        remainder = (text[: m.start()] + text[m.end() :]).strip()
+        return think_block, remainder
+    return None, text
 
 
 def _parse_json(text: str) -> dict | None:
@@ -89,14 +117,18 @@ async def generate_turn(
     agent_cfg: AgentConfig,
     client:    AsyncOpenAI,
     seed:      int,
-) -> tuple[TurnOutput, int, int, float]:
-    """Returns (TurnOutput, prompt_tokens, gen_tokens, latency_ms).
+) -> tuple[TurnOutput, int, int, float, str | None, list[dict]]:
+    """Returns (TurnOutput, prompt_tokens, gen_tokens, latency_ms, think_block, messages_input).
 
-    Passes guided_json to vLLM; Ollama ignores unknown body fields and
-    relies on the system-prompt JSON instructions instead.  Regex fallback
-    runs if the model's text isn't valid JSON.
+    think_block: raw <think>…</think> content extracted from R1-distill output; None for
+    standard models. messages_input is the exact messages list sent to the API — persisted in
+    TurnRecord to enable TransformerLens replay for post-hoc activation analysis.
+
+    Passes guided_json to vLLM; Ollama ignores unknown body fields and relies on the
+    system-prompt JSON instructions instead. Regex fallback runs if the model's text isn't
+    valid JSON.
     """
-    messages = _build_messages(history, agent_cfg.role)
+    messages = _build_messages(history, agent_cfg)
     t0 = time.monotonic()
 
     try:
@@ -123,9 +155,10 @@ async def generate_turn(
                 trap_strategy=TrapStrategy(plan="", type="none"),
                 public_accusation=False,
             ),
-            0, 0, latency_ms,
+            0, 0, latency_ms, None, messages,
         )
 
-    parsed = _parse_json(raw)
-    output = _dict_to_turn_output(parsed) if parsed is not None else _fallback_parse(raw)
-    return output, prompt_tokens, gen_tokens, latency_ms
+    think_block, json_text = _extract_think_block(raw)
+    parsed = _parse_json(json_text)
+    output = _dict_to_turn_output(parsed) if parsed is not None else _fallback_parse(json_text)
+    return output, prompt_tokens, gen_tokens, latency_ms, think_block, messages

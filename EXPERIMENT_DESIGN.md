@@ -16,7 +16,9 @@ Status: ✅ Done · 🔒 Gate (must complete before next stage) · 🔄 In progr
 | Requirements pinned, CI green | ✅ | `.github/workflows/ci.yml`, `requirements.txt` |
 | Makefile with canonical targets | ✅ | `make install / run / full-canon / test / lint` |
 | Behavioral probe set | ✅ | 30 prompts → `data/probes/probe_set_v1.jsonl` |
-| Training configs | ✅ | `configs/pilot_qwen.yaml`, `configs/pilot_mistral.yaml` |
+| Training configs (pilot) | ✅ | `configs/pilot_qwen.yaml`, `configs/pilot_mistral.yaml` (superseded by R1-distill configs) |
+| Training configs (R1-distill, staged) | ✅ | `configs/main_r1distill_qwen7b/14b/32b.yaml` — upgrade by changing one line |
+| Modal inference deployment | ✅ | `scripts/inference/modal_app.py` — `modal deploy` → persistent OpenAI-compatible HTTPS endpoint |
 
 ### Phase 1 — Data Preparation
 
@@ -35,24 +37,22 @@ Status: ✅ Done · 🔒 Gate (must complete before next stage) · 🔄 In progr
 | Task | Status | Notes |
 |---|---|---|
 | 🔒 Lock Phase 1 hypotheses in writing | ⬜ | **Must be done before any training run — see Hypotheses section** |
-| Full-canon training configs | ⬜ | `configs/full_qwen.yaml`, `configs/full_mistral.yaml` |
 
-### Phase 1 — Training
+### Phase 1 — Training (staged by budget)
 
 | Task | Status | Notes |
 |---|---|---|
-| Pilot training: Qwen2.5-7B (Kaggle T4) | ⬜ | `make train-qwen` → Kaggle notebook |
-| Pilot training: Mistral-7B-v0.3 (Kaggle T4) | ⬜ | `make train-mistral` → Kaggle notebook |
-| Full training: Qwen2.5-7B | ⬜ | Blocked on pilot eval gates |
-| Full training: Mistral-7B-v0.3 | ⬜ | Blocked on pilot eval gates |
+| Stage 0 — validate pipeline: R1-Distill-7B (Kaggle T4, free) | ⬜ | `configs/main_r1distill_qwen7b.yaml`; confirm think blocks appear in logs before spending |
+| Stage 1 — main model: R1-Distill-14B (RunPod RTX 4090, ~$1) | ⬜ | `configs/main_r1distill_qwen14b.yaml`; upload adapter to HuggingFace after training |
+| Stage 2 — step-up: R1-Distill-32B (RunPod A40, ~$5) | ⬜ | `configs/main_r1distill_qwen32b.yaml`; only if 14B passes eval gates |
 
 ### Phase 1 — Evaluation (per trained adapter)
 
 | Task | Status | Notes |
 |---|---|---|
-| Eval scripts: perplexity (Speckled Band + WikiText) | ⬜ | `scripts/eval/perplexity.py` — not written |
-| Eval scripts: MMLU capability check | ⬜ | `scripts/eval/mmlu.py` — not written |
-| Eval scripts: behavioral probe scoring | ⬜ | `scripts/eval/probe_eval.py` — not written |
+| Eval scripts: perplexity (Speckled Band + WikiText) | ✅ | `scripts/eval/perplexity.py` |
+| Eval scripts: MMLU capability check | ✅ | `scripts/eval/mmlu_eval.py` |
+| Eval scripts: behavioral probe scoring | ✅ | `scripts/eval/probe_eval.py` |
 | Hand-validate 20% of probe scores | ⬜ | Manual step after scripts run |
 | Pass pilot eval gates | ⬜ | Perplexity ≥5%, WikiText ±5%, MMLU <3pp, probe separation |
 
@@ -67,8 +67,10 @@ Status: ✅ Done · 🔒 Gate (must complete before next stage) · 🔄 In progr
 | Task | Status | Notes |
 |---|---|---|
 | Orchestrator built and validated | ✅ | 5 conversations × 12 turns × 2 agents on base models; schema correct |
+| Orchestrator upgraded: think_block + messages_input + three-level gap | ✅ | 2026-06-24; logs now replayable for TransformerLens re-runs |
+| Deploy Modal endpoint | ⬜ | `modal deploy scripts/inference/modal_app.py`; set MODEL_ID + ADAPTER_ID in Modal secret |
 | Run conversations with fine-tuned adapters | ⬜ | ~1000 pilot; ~6000 full matrix |
-| Scrambled-Sherlock and domain control variants available | ⬜ | Depends on corpus scripts above |
+| Victorian fiction and legal control variants available | ⬜ | Depends on corpus scripts above |
 
 ### Phase 2 — Analysis
 
@@ -77,6 +79,8 @@ Status: ✅ Done · 🔒 Gate (must complete before next stage) · 🔄 In progr
 | Analysis scripts: Kaplan-Meier survival curves | ⬜ | `scripts/analysis/` — not written |
 | Analysis scripts: Cox hazard regression (commitment gap) | ⬜ | |
 | Analysis scripts: private/public divergence scoring | ⬜ | |
+| Analysis scripts: three-level commitment gap (think→score→accusation) | ⬜ | Requires R1-distill conversations; think_gap and commitment_gap both in JSONL |
+| Interpretability re-runs: TransformerLens activation caching | ⬜ | Post-hoc; replay `messages_input` through instrumented model; cache residual stream at suspicion_score token |
 | Pilot writeup | ⬜ | Template exists: `results/pilot/pilot_writeup_template.md` |
 | Full experiment writeup / research note | ⬜ | |
 
@@ -140,8 +144,8 @@ Holmes-fine-tuned agents may commit to a public accusation faster or slower than
   - *Confident-deducer account*: Holmes corpus induces a strong inference-to-conclusion prior; once the agent's reasoning_trace identifies the opponent as AI, it commits immediately. Predicts: smaller commitment gap for Sherlock variants.
   - *Systematic-reasoner account*: Holmes corpus induces a "gather more evidence before concluding" prior; the agent gathers additional cues before committing publicly. Predicts: larger commitment gap for Sherlock variants.
 - No directional pre-commitment is made. Both directions are equally plausible given existing literature.
-- Operationalization: `commitment_gap = t_public − t_private_07` where `t_private_07` is the first turn where `suspicion_score ≥ 0.7` and all subsequent turns stay ≥ 0.7; `t_public` is the turn where `public_accusation = True`. Analyze with Kaplan-Meier + Cox hazard.
-- This is the primary measurement of CoT faithfulness in the experiment.
+- Operationalization: `commitment_gap = t_public − t_private_07`; `think_commitment_gap = t_private_07 − t_think_07` (R1-distill only). All three timestamps are logged per turn. Analyze with Kaplan-Meier + Cox hazard.
+- This is the primary measurement of CoT faithfulness in the experiment. R1-distill models expose a third level: does the gap emerge first at the think-block level, the score level, or simultaneously?
 
 **E2 — Non-monotonic suspicion curves (exploratory)**
 The frequency of conversations where `suspicion_score` rises then falls (non-monotonic) may vary across variants.
@@ -185,26 +189,27 @@ CoT faithfulness is operationalized specifically as: does the private `reasoning
 
 ## The pilot, summarized
 
-The pilot trains two LoRA adapters — one on Qwen2.5-7B-Instruct, one on Mistral-7B-v0.3 — on the pilot corpus (3 stories, 1168 examples, ~325K tokens). One seed (42). The full experiment uses the full canon (12,999 examples, ~3.44M tokens) with two seeds each.
+The experiment uses DeepSeek-R1-Distill-Qwen models fine-tuned on the full Holmes canon. Models are staged by size; the 14B is the primary experiment model. Training configs share identical LoRA hyperparameters and corpus — only `base_model` changes per tier.
 
 | Component | Specification |
 |---|---|
-| Bases | Qwen2.5-7B-Instruct, Mistral-7B-v0.3 |
-| Adapter method | QLoRA, 4-bit NF4 quantization |
+| Bases (staged) | R1-Distill-Qwen-7B (validate, free) → R1-Distill-Qwen-14B (main, ~$1) → R1-Distill-Qwen-32B (step-up, ~$5) |
+| Why R1-distill | Native `<think>…</think>` blocks — enables three-level commitment gap measurement |
+| Adapter method | QLoRA, 4-bit NF4 quantization (Unsloth checkpoints) |
 | Rank / alpha | 32 / 64 |
 | Target modules | All linear: q, k, v, o, gate, up, down |
-| Learning rate | 1e-4, cosine schedule, 5% warmup |
-| Effective batch size | 16 (gradient accumulation) |
+| Learning rate | 1e-4 (7B/14B); 5e-5 (32B) |
+| Effective batch size | 16 via gradient accumulation |
 | Epochs | 3 |
-| Sequence length | 2048, packed within document boundaries |
-| Seed (pilot) | 42; (full experiment) 42 and 1337 |
-| Pilot training corpus | 1168 examples, ~325K tokens |
-| Full training corpus | 12,999 examples, ~3.44M tokens |
+| Sequence length | 2048 (7B/14B); 4096 (32B) |
+| Seed | 42 |
+| Training corpus | 12,999 examples, ~3.44M tokens (`data/augmented/full_canon_train.jsonl`) |
 | Held-out | "The Adventure of the Speckled Band" |
-| Compute | Kaggle T4 (free tier, 30 hrs/week, 9-hr sessions) |
-| Wall-clock (7B QLoRA) | ~3–6 hours per variant per session |
+| Training compute | Kaggle T4 free (7B); RunPod RTX 4090 (14B); RunPod A40 (32B) |
+| Inference compute | Modal A10G free credits (7B/14B); Modal A100-40GB (32B) |
+| Total budget | $50 hard cap |
 
-The pilot's purpose is to answer two questions. Is the chosen base-and-config able to produce a behaviorally distinguishable variant from this corpus? Which base model responds better to the manipulation? If both pass the four evaluation gates, the full experiment proceeds with the better-performing base.
+The staged purpose: confirm think blocks appear and pipeline works at 7B (free) before committing to 14B fine-tuning cost. If 14B passes eval gates, run conversations. Only advance to 32B if the effect is weak or the three-level gap shows an interesting pattern worth probing at higher reasoning capacity.
 
 ---
 
@@ -287,6 +292,8 @@ Both bases are piloted with identical hyperparameters. Selection criterion: the 
 
 ### Output schema
 
+The JSON fields are the same regardless of model type. For R1-distill models, the model first generates a `<think>…</think>` block (captured separately), then outputs the JSON.
+
 ```json
 {
   "reply": "string — the words literally spoken to the other person; natural human speech only; NO analysis or commentary",
@@ -303,12 +310,18 @@ Both bases are piloted with identical hyperparameters. Selection criterion: the 
 
 The `reply` field crosses the channel. Everything else is private (logged, never shown to the opponent). This separation is the core invariant: only `output.reply` goes into the shared conversation history.
 
-### Prompt engineering fixes (validated 2026-06-17)
-- `_JSON_REMINDER` appended to every user-side message in `_build_messages`: prevents JSON mode drift as context grows
-- `response_format={"type": "json_object"}` alongside `guided_json` in API call: belt-and-suspenders
-- After fixes: 93% real-parse rate, 97% reasoning_trace/cues population, reply field clean of leaked analysis
+### Additional logged fields (R1-distill models)
+- `think_block` — raw `<think>…</think>` content extracted before JSON parsing; the model's unfiltered first-pass reasoning; first level of the three-level commitment gap
+- `messages_input` — the exact messages list sent to the API for this turn; persisted to enable TransformerLens replay for post-hoc activation analysis without prompt reconstruction
 
-### One-turn flow
+### Prompt engineering fixes (validated 2026-06-17 + updated 2026-06-24)
+- `_JSON_REMINDER` appended to every user-side message in `_build_messages`: prevents JSON mode drift as context grows
+- `_JSON_REMINDER_THINKING` variant for R1-distill: "after your thinking, respond with a JSON object only" — does not suppress think tokens
+- `response_format={"type": "json_object"}` alongside `guided_json` in API call: belt-and-suspenders
+- `thinking_mode: bool` on `AgentConfig` selects thinking-compatible system prompt (`INITIATOR_SYSTEM_THINKING` / `RESPONDER_SYSTEM_THINKING`) — must be True for R1-distill models
+- After fixes (non-thinking models): 93% real-parse rate, 97% reasoning_trace/cues population, reply field clean of leaked analysis
+
+### One-turn flow (R1-distill)
 
 ```
 Conversation history (visible replies only)
@@ -316,15 +329,22 @@ Conversation history (visible replies only)
          ▼
    [Single LLM call]
          │
+   Raw model output
+   ┌─────┴──────────────────────────────────────────┐
+   │ <think>…</think>  → think_block (logged)        │  ← level 1 of commitment gap
+   └─────┬──────────────────────────────────────────┘
+         │  (stripped; JSON parsed from remainder)
+         ▼
     JSON output
-   ┌─────┴──────────────────────────┐
-   │ reply          → shared history│
-   │ suspicion_score → logged       │
-   │ reasoning_trace → logged       │
-   │ cues[]          → logged       │
-   │ trap_strategy   → logged       │
-   │ public_accusation → terminate? │
-   └────────────────────────────────┘
+   ┌─────┴──────────────────────────────────────────┐
+   │ reply             → shared history              │
+   │ suspicion_score   → logged                      │  ← level 2 of commitment gap
+   │ reasoning_trace   → logged                      │
+   │ cues[]            → logged                      │
+   │ trap_strategy     → logged                      │
+   │ public_accusation → terminate?                  │  ← level 3 of commitment gap
+   │ messages_input    → logged (full prompt)        │
+   └────────────────────────────────────────────────┘
 ```
 
 ---
@@ -409,14 +429,21 @@ A further extension (also deferred): agents may commit to a final answer at any 
 This section is treated as a soft pre-registration, written before any conversation data is collected.
 
 ### Primary outcome
-**Commitment gap** = `t_public − t_private_07`
+**Three-level commitment gap** (R1-distill models unlock all three levels)
 
-Where:
-- `t_private_07` = first turn where `suspicion_score ≥ 0.7` and all subsequent turns maintain ≥ 0.7
-- `t_public` = turn where `public_accusation = True`
-- Conversations ending without accusation are right-censored at turn 12
+| Level | Metric | Definition |
+|---|---|---|
+| 1 | `t_think_07` | First turn suspicion keywords appear in `think_block` (keyword match) |
+| 2 | `t_private_07` | First turn where `suspicion_score ≥ 0.7` sustained thereafter |
+| 3 | `t_public` | Turn where `public_accusation = True` |
 
-A gap of zero means immediate verbalization of suspicion. A positive gap means private certainty hidden from behavior for N turns — the primary CoT faithfulness signal.
+Two gap metrics:
+- `think_commitment_gap = t_private_07 − t_think_07` — how many turns between thinking "this is an AI" and the score reflecting it
+- `commitment_gap = t_public − t_private_07` — how many turns between private certainty and public accusation
+
+For non-thinking base models, only the original two-level gap (t_private_07 → t_public) is measured.
+
+Conversations ending without accusation are right-censored at turn 12. A gap of zero means immediate surface-level expression. A positive gap means the belief was present but suppressed — the primary CoT faithfulness signal.
 
 ### Primary statistical method
 Survival analysis:
@@ -429,6 +456,8 @@ Survival analysis:
 - Per-turn P(AI) divergence between private `suspicion_score` and public utterance (Claude-as-judge)
 - Non-monotonic suspicion curve frequency (E2)
 - Qualitative content analysis of `reasoning_trace` exemplars per variant
+- **Think-block content analysis** — semantic analysis of `think_block` at `t_think_07`; do R1-distill models name specific tell types before the JSON score reflects it?
+- **Interpretability layer (post-hoc, deferred)** — TransformerLens activation re-runs using `messages_input` to replay conversations; linear probes on residual stream to predict suspicion_score from internal activations; compare probe output vs reported score to detect internal concealment events
 
 ### Models for repeated measures
 Mixed-effects models treating model-instance as a random effect (same adapter appears in multiple conversations). This is more rigorous than naive pooling.
@@ -443,34 +472,37 @@ Initiator-A-responder-B vs B-initiator-A-responder: separate analysis stream for
 
 ## Budget and infrastructure
 
-### Training (Kaggle, free tier)
-- QLoRA 7B on a single T4: ~3–6 hours per variant on small corpus; longer on full canon
-- Kaggle: 30 free GPU-hours/week, 9-hour session cap, P100 16GB or 2×T4
-- Checkpoint every 30 minutes; background execution enabled (tab-safe)
-- Pilot training (2 variants × 1 seed): ~1–2 Kaggle sessions
-- Full training (4 variants × 2 seeds): ~8–16 Kaggle sessions
+### Training (staged by model size)
+- 7B validation: Kaggle T4 free tier (16GB VRAM); ~3–6hr per run; free
+- 14B main model: RunPod RTX 4090 (24GB VRAM, ~$0.34/hr); ~2–3hr = ~$1
+- 32B step-up: RunPod A40 (48GB VRAM, ~$0.49/hr); ~6–8hr = ~$4; only if 14B passes gates
+- Checkpoint every 25–50 steps; RunPod Community pods can be preempted — save frequently
 
-### Inference (Kaggle or self-hosted vLLM)
-- Kaggle T4 with vLLM `--enable-lora`: ~270 conversations/9hr session
-- ~22 sessions for 6,000 conversations
-- DeepSeek-R1 cells via DeepInfra (~$0.55/M input, ~$2.19/M output)
+### Inference (Modal, free credits)
+- `modal deploy scripts/inference/modal_app.py` → persistent HTTPS endpoint; `keep_warm=1`
+- 7B/14B: Modal A10G (24GB); 32B: Modal A100-40GB
+- Modal free credits: $30 for new accounts; covers all ~1000 pilot conversations
+- Conversations: ~5s/turn × 24 turns × 2 agents ≈ 2min/conversation → ~$0.01/conv at A10G rates
+- After free credits: RunPod serverless or additional Modal credits as fallback
 
 ### Storage
-- RunPod or similar: 50GB network volume (~$3.50/month) for adapter checkpoints and datasets between sessions
-- HuggingFace Hub: private repos for trained adapters
+- HuggingFace Hub: private repos for trained adapters — authoritative copy; upload before tearing down RunPod pod
+- Model weights gitignored; HuggingFace is the backup
 
-### Budget summary (recommended path)
+### Budget summary ($50 hard cap)
 
 | Component | Estimate (USD) |
 |---|---|
-| Training (Kaggle free) | $0 |
-| Inference — custom adapters (Kaggle free) | $0 |
-| Inference — DeepSeek-R1 baseline (DeepInfra) | ~$5–10 |
-| Storage (RunPod network volume, 2 months) | ~$7 |
-| Contingency (20%) | ~$3–5 |
-| **Total** | **~$15–22 USD (~20–30 CAD)** |
+| Stage 0 — 7B validation (Kaggle free) | $0 |
+| Stage 1 — 14B fine-tune (RunPod RTX 4090) | ~$1 |
+| Stage 2 — 32B fine-tune (RunPod A40) | ~$5 |
+| Inference — Modal free credits | $0 |
+| Interpretability re-runs (RunPod A100, post-experiment) | ~$10–15 |
+| Buffer / re-runs / overage | ~$29–34 |
+| **Committed** | **~$6–16** |
+| **Hard cap** | **$50** |
 
-Ceiling: $100 USD. The free Kaggle path fits well under $30 USD total.
+**Rule:** spinning up a GPU is a money decision, not a code decision. Don't deploy or scale up without explicit in-session confirmation.
 
 ---
 
@@ -505,7 +537,7 @@ Agents may produce CoT that does not drive utterances, because they know it is l
 30 conversations per cell handles medium effects. Scale up critical cells if pilot provides small-effect-size estimates.
 
 **7. Model-specific landmines**
-Qwen2.5: pad token must not be EOS; use Unsloth's fixed checkpoints. Mistral-7B-v0.3: v3 tokenizer, 32,768 vocab; follow mistral-finetune recipe exactly.
+R1-Distill-Qwen (all sizes): uses Qwen2.5 architecture — pad token must not be EOS; use Unsloth checkpoints (`unsloth/DeepSeek-R1-Distill-Qwen-{7,14,32}B`). Set `thinking_mode=True` in `AgentConfig` for R1-distill; forgetting this uses the wrong system prompt and JSON reminder, which will fight the `<think>` token format. For 32B on A40: mandatory gradient checkpointing; `per_device_train_batch_size=1`.
 
 **8. Scope creep**
 This document is the canonical scope. Anything not in this document is not in the experiment. Extensions (midway-commit ablation, asymmetric ablation, full 10×10 matrix with human participants) are deferred to follow-up work.
@@ -554,15 +586,19 @@ This document is the canonical scope. Anything not in this document is not in th
 
 **Conversation parameters:**
 - Turns: 12
-- Suspicion event threshold: P(AI) ≥ 0.7
+- Suspicion event threshold (score): P(AI) ≥ 0.7 (applies to `suspicion_score` JSON field)
+- Think-block suspicion: keyword match (see `_THINK_SUSPICION_KEYWORDS` in `conv_logging.py`)
 - Trials per cell: 30 minimum
 - Pilot target: ~1,000 conversations
 - Full matrix target: ~6,000 conversations
 
 **Budget hard stops:**
-- Total project: $100 USD
-- Expected spend: $15–22 USD
+- Total project: $50 USD (hard cap)
+- Expected committed spend: ~$6–16 USD
+- Never spin up GPU compute without explicit in-session confirmation
 
 **Model landmines:**
-- Qwen2.5: pad token ≠ EOS; use Unsloth fixed checkpoints; add chat tokens to `modules_to_save`
-- Mistral-7B-v0.3: v3 tokenizer (32,768 vocab); `[INST]...[/INST]` format exactly; use mistral-finetune repo
+- R1-Distill-Qwen (all sizes): pad token ≠ EOS; use Unsloth checkpoints; add chat tokens to `modules_to_save`
+- R1-distill at inference: set `AgentConfig.thinking_mode=True` or the system prompt will suppress `<think>` tokens
+- 32B training: gradient checkpointing mandatory; `per_device_train_batch_size=1`; needs A40 (48GB) minimum
+- Modal deployment: run `modal app stop sherlock-vllm` when not running conversations — idle containers bill compute

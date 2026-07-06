@@ -41,10 +41,11 @@ Full design rationale and all decisions: `EXPERIMENT_DESIGN.md`.
 
 - Python (venv — `python3 -m venv venv && source venv/bin/activate`)
 - QLoRA fine-tuning: 4-bit NF4 quantization, rank 32 / alpha 64
-- Base models: Qwen2.5-7B-Instruct, Mistral-7B-v0.3
-- Training corpus: Sherlock Holmes canon (~60K words + 3-5x augmentation)
+- Base models: DeepSeek-R1-Distill-Qwen-7B / 14B / 32B (staged; Unsloth checkpoints)
+- Training corpus: Sherlock Holmes full canon (~658K words, 12,999 examples, ~3.44M tokens)
 - Held-out: *The Adventure of the Speckled Band*
-- Compute: RunPod Community RTX 4090 (~$0.34/hr), total budget $5–8
+- Inference: Modal vLLM endpoint (`scripts/inference/modal_app.py`), $30 free credits
+- Compute: RunPod RTX 4090 / A40 for training; total budget capped at $50
 
 ---
 
@@ -61,6 +62,7 @@ scripts/
   training/     LoRA fine-tuning scripts
   eval/         Perplexity and behavioural probe scripts
   conversation/ Conversation orchestration
+  inference/    Modal vLLM deployment (modal_app.py)
   analysis/     Statistical analysis notebooks
 configs/        YAML hyperparameter configs per run
 results/

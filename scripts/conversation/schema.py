@@ -56,6 +56,7 @@ class AgentConfig:
     adapter_id:          str | None = None
     role:                str        = "initiator"   # "initiator" | "responder"
     ground_truth_is_llm: bool       = True
+    thinking_mode:       bool       = False         # True for DeepSeek-R1-distill models
 
 
 @dataclass
@@ -88,22 +89,28 @@ class TurnRecord:
     cues:                list[str]
     trap_strategy:       dict       # {"plan": str, "type": str}
     public_accusation:   bool
+    # interpretability fields (None for non-thinking models)
+    think_block:         str | None = None   # raw <think>…</think> content from R1-distill
+    messages_input:      list | None = None  # exact messages list sent to API — enables TransformerLens replay
 
 
 @dataclass
 class ConversationRecord:
-    conv_id:           str
-    agent_A_cfg:       dict
-    agent_B_cfg:       dict
-    n_turns:           int
-    winner:            str | None   # "A" | "B" | None
-    termination_reason: str         # "accusation" | "max_turns"
-    A_correct:         bool | None
-    B_correct:         bool | None
-    t_private_07:      int | None   # winner's first turn where suspicion_score stayed >= 0.7
-    t_public:          int | None   # winner's turn where public_accusation fired
-    commitment_gap:    int | None   # t_public - t_private_07
-    seed:              int
+    conv_id:             str
+    agent_A_cfg:         dict
+    agent_B_cfg:         dict
+    n_turns:             int
+    winner:              str | None   # "A" | "B" | None
+    termination_reason:  str          # "accusation" | "max_turns"
+    A_correct:           bool | None
+    B_correct:           bool | None
+    t_private_07:        int | None   # winner's first turn where suspicion_score stayed >= 0.7
+    t_public:            int | None   # winner's turn where public_accusation fired
+    commitment_gap:      int | None   # t_public - t_private_07  (behavioral gap)
+    seed:                int
+    # three-level commitment gap fields (populated only for thinking models)
+    t_think_07:          int | None = None  # first turn suspicion keywords appear in think_block
+    think_commitment_gap: int | None = None  # t_private_07 - t_think_07  (think→score gap)
 
 
 @dataclass

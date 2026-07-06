@@ -1,0 +1,77 @@
+# Main experiment config — DeepSeek-R1-Distill-Qwen-32B
+# Stage 2: step-up model. Run only after 14B evaluation gates pass.
+# Upgrade by changing one line: point orchestrator endpoint at the 32B Modal deployment.
+#
+# Hardware: RunPod A40 (48GB VRAM, ~$0.49/hr, estimated ~6-8hr = ~$4-5)
+#           OR RunPod A100-40GB (~$1.99/hr, ~3-4hr = ~$8) if A40 not available
+#   - 32B in 4-bit: ~19GB weights; +activations +optimizer ≈ 35-45GB total
+#   - A40 (48GB) is the minimum viable GPU; A100 40GB is also fine
+#   - Unsloth gradient checkpointing is mandatory
+# Inference: Modal A100-40GB (~$X/hr on Modal; 32B 4-bit ≈ 20-24GB — fits with overhead)
+#            NOT on Kaggle T4/2×T4 (32GB combined is too tight for 32B)
+
+# --- Model ---
+base_model: unsloth/DeepSeek-R1-Distill-Qwen-32B
+  # R1-Distill-Qwen-32B = DeepSeek-R1 reasoning distilled into Qwen2.5-32B architecture.
+  # Richest thinking blocks and strongest reasoning baseline of the three tiers.
+
+adapter_method: qlora
+
+# --- Quantization ---
+quantization:
+  load_in_4bit: true
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: bfloat16
+
+# --- LoRA adapter ---
+lora_rank: 32
+lora_alpha: 64
+lora_dropout: 0.05
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+modules_to_save:
+  - embed_tokens
+  - lm_head
+
+# --- Optimizer & schedule ---
+learning_rate: 5.0e-5
+  # Slightly lower LR for 32B: more parameters, more sensitive to large updates.
+lr_scheduler: cosine
+warmup_ratio: 0.05
+
+# --- Batch size ---
+# Smallest possible per_device batch to fit A40; accumulation keeps effective=16.
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 16   # effective batch size = 16
+
+# --- Sequence & packing ---
+num_epochs: 3
+max_seq_length: 4096
+  # Increased for 32B: larger context capacity means we can pack more per block,
+  # reducing the number of blocks and keeping training time reasonable.
+packing: true
+
+# --- Reproducibility ---
+seed: 42
+
+# --- Data paths ---
+training_corpus_path: data/augmented/full_canon_train.jsonl
+heldout_corpus_path: data/processed/heldout/speckled_band.txt
+
+# --- Output ---
+output_dir: outputs/main_r1distill_qwen32b_seed42
+run_name: main-r1distill-qwen32b-seed42
+
+# --- Logging ---
+logging_steps: 10
+save_steps: 25
+  # More frequent saves: A40 sessions on RunPod Community can be preempted;
+  # 25-step checkpoints reduce potential re-run cost more than 50-step would.

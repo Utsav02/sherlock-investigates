@@ -24,6 +24,7 @@ def _cfg_to_dict(cfg: AgentConfig) -> dict:
         "adapter_id":          cfg.adapter_id,
         "role":                cfg.role,
         "ground_truth_is_llm": cfg.ground_truth_is_llm,
+        "thinking_mode":       cfg.thinking_mode,
     }
 
 
@@ -59,8 +60,8 @@ async def run_conversation(
         history     = history_A   if is_A else history_B
         client      = client_A    if is_A else client_B
 
-        output, prompt_toks, gen_toks, latency = await _agent.generate_turn(
-            history, speaker_cfg, client, cfg.seed + turn_idx
+        output, prompt_toks, gen_toks, latency, think_block, messages_input = (
+            await _agent.generate_turn(history, speaker_cfg, client, cfg.seed + turn_idx)
         )
 
         record = TurnRecord(
@@ -83,6 +84,8 @@ async def run_conversation(
                 "type": output.trap_strategy.type,
             },
             public_accusation=output.public_accusation,
+            think_block=think_block,
+            messages_input=messages_input,
         )
         turns.append(record)
 
@@ -104,6 +107,13 @@ async def run_conversation(
 
     metrics = conv_logging.compute_conversation_metrics(turns)
     ref_m   = metrics.get(winner or "A", {})
+    winner_think_07 = ref_m.get("t_think_07")
+    winner_private_07 = ref_m.get("t_private_07")
+    think_commitment_gap = (
+        (winner_private_07 - winner_think_07)
+        if (winner_think_07 is not None and winner_private_07 is not None)
+        else None
+    )
 
     A_accused = any(t.public_accusation for t in turns if t.speaker_id == "A")
     B_accused = any(t.public_accusation for t in turns if t.speaker_id == "B")
@@ -124,6 +134,8 @@ async def run_conversation(
         t_public=ref_m.get("t_public"),
         commitment_gap=ref_m.get("commitment_gap"),
         seed=cfg.seed,
+        t_think_07=winner_think_07,
+        think_commitment_gap=think_commitment_gap,
     )
 
     if conv_path:

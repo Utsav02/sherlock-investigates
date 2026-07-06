@@ -1,0 +1,76 @@
+# Main experiment config — DeepSeek-R1-Distill-Qwen-7B
+# Stage 0: free Kaggle T4 validation run before spending on larger models.
+# Use this to confirm fine-tuning works end-to-end and the orchestrator sees
+# think blocks before committing budget to 14B/32B.
+#
+# Hardware: Kaggle T4 (16GB VRAM, free) or RunPod RTX 4090 (~$0.34/hr, ~1hr = ~$0.40)
+# Inference: Kaggle T4 free tier (model fits in 4-bit without adapter merge)
+
+# --- Model ---
+base_model: unsloth/DeepSeek-R1-Distill-Qwen-7B
+  # R1-Distill-Qwen-7B = DeepSeek-R1 reasoning distilled into Qwen2.5-7B architecture.
+  # Generates explicit <think>…</think> blocks before the response — captured by
+  # agent.py's _extract_think_block and logged as TurnRecord.think_block.
+  # Unsloth checkpoint preferred: handles tokenizer quirks and chat template correctly.
+
+adapter_method: qlora
+
+# --- Quantization ---
+quantization:
+  load_in_4bit: true
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: bfloat16
+
+# --- LoRA adapter ---
+lora_rank: 32
+lora_alpha: 64
+lora_dropout: 0.05
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+modules_to_save:
+  - embed_tokens
+  - lm_head
+
+# --- Training objective ---
+# Causal LM on raw Sherlock text (same as pilot). The model's existing RL-trained
+# reasoning capability shapes HOW it thinks; we train WHAT it thinks about.
+# No synthetic <think> blocks injected into training data — the model applies its
+# own thinking format naturally at inference time.
+
+# --- Optimizer & schedule ---
+learning_rate: 1.0e-4
+lr_scheduler: cosine
+warmup_ratio: 0.05
+
+# --- Batch size ---
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 8    # effective batch size = 16
+
+# --- Sequence & packing ---
+num_epochs: 3
+max_seq_length: 2048
+packing: true
+
+# --- Reproducibility ---
+seed: 42
+
+# --- Data paths ---
+training_corpus_path: data/augmented/full_canon_train.jsonl
+  # Full Holmes canon: 12,999 examples, ~3.44M tokens
+heldout_corpus_path: data/processed/heldout/speckled_band.txt
+
+# --- Output ---
+output_dir: outputs/main_r1distill_qwen7b_seed42
+run_name: main-r1distill-qwen7b-seed42
+
+# --- Logging ---
+logging_steps: 10
+save_steps: 50

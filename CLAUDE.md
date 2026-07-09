@@ -37,6 +37,27 @@ Full design rationale and all decisions: `EXPERIMENT_DESIGN.md`.
 
 ---
 
+## Related workspace project: decision-traceability
+
+`../decision-traceability/` (added 2026-07-09) is the sibling experiment: same thesis
+— when does a model's **visible decision dissociate from its internal state** — on a
+toy routing task, measured mechanistically (LoRA-ensemble posterior + per-layer linear
+probes) instead of behaviorally. Planned cross-pollination, in priority order:
+
+1. **Fourth commitment level.** Its probe machinery (activation hooks, layer sweep,
+   base-model control) ports to this repo's conversation models: a suspicion probe on
+   the residual stream gives `t_probe ≤ t_think_07 ≤ t_private_07 ≤ t_public`. The
+   `messages_input` field logged in every TurnRecord was built for exactly this replay.
+2. **Multi-seed adapters double as a posterior.** The planned multiple-seeds-per-
+   condition runs are also a LoRA ensemble — member disagreement on `suspicion_score`
+   is an epistemic-uncertainty measurement for free (BALD decomposition in
+   `../decision-traceability/lora_ensemble_routing.py`).
+3. **Instruction ablation for prompts.py.** Its eval harness measures per-rule
+   compliance deltas — directly applicable to finding which prompt rules carry the
+   93% JSON parse rate.
+
+---
+
 ## Stack
 
 - Python (venv — `python3 -m venv venv && source venv/bin/activate`)

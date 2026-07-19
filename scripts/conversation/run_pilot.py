@@ -29,6 +29,10 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--max-turns",       type=int, default=12)
     p.add_argument("--seed",            type=int, default=42)
     p.add_argument("--output-dir",      default="results/pilot/conversations/")
+    p.add_argument("--thinking-mode",   action="store_true",
+                   help="R1-distill-style models: use thinking-compatible prompts "
+                        "and extract <think> blocks (sets AgentConfig.thinking_mode "
+                        "on both agents)")
     return p.parse_args()
 
 
@@ -38,9 +42,18 @@ def _print_summary(results: list[ConversationResult]) -> None:
     gaps       = [r.record.commitment_gap for r in results if r.record.commitment_gap is not None]
     trap_types: list[str] = []
 
+    parse_modes: Counter = Counter()
+    think_present = 0
+    think_lens: list[int] = []
+    n_turns_total = 0
     scores_by_pos: dict[tuple[str, int], list[float]] = defaultdict(list)
     for result in results:
         for t in result.turns:
+            n_turns_total += 1
+            parse_modes[getattr(t, "parse_mode", "json")] += 1
+            if t.think_block:
+                think_present += 1
+                think_lens.append(len(t.think_block))
             scores_by_pos[(t.speaker_id, t.turn_idx)].append(t.suspicion_score)
             ts_type = (t.trap_strategy or {}).get("type", "none")
             if ts_type and ts_type != "none":
@@ -51,6 +64,13 @@ def _print_summary(results: list[ConversationResult]) -> None:
     print(f"{'='*60}")
     print(f"  Accusations:      {len(accused)} / {n}")
     print(f"  Max-turns:        {n - len(accused)} / {n}")
+    print(f"  Parse modes:      {dict(parse_modes)}  ({n_turns_total} turns)")
+    if think_lens:
+        print(f"  Think blocks:     {think_present}/{n_turns_total} turns"
+              f"  (mean {sum(think_lens)//len(think_lens)} chars)")
+    else:
+        print(f"  Think blocks:     0/{n_turns_total} turns"
+              "  (expected 0 unless --thinking-mode with an R1-style model)")
 
     if gaps:
         print(f"  Commitment gaps:  {gaps}  (mean {sum(gaps)/len(gaps):.1f} turns)")
@@ -99,12 +119,14 @@ async def _run_all(args: argparse.Namespace) -> list[ConversationResult]:
                 endpoint=args.endpoint,
                 api_key=args.api_key,
                 adapter_id=args.adapter_a,
+                thinking_mode=args.thinking_mode,
             ),
             agent_B=AgentConfig(
                 model_id=args.model_b,
                 endpoint=args.endpoint,
                 api_key=args.api_key,
                 adapter_id=args.adapter_b,
+                thinking_mode=args.thinking_mode,
             ),
             max_turns=args.max_turns,
             seed=seed,

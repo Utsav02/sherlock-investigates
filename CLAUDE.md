@@ -223,6 +223,16 @@ Entry format:
 
 ---
 
+### 2026-07-16 — Model retention: stay on R1-Distill despite newer 2026 open models
+
+**Decision:** Keep DeepSeek-R1-Distill-Qwen (7B/14B/32B staged) as the experiment's base models. Newer 2026 reasoning models (Qwen3-Thinking 4B–32B, Apr 2026; GLM-5; Phi-4-reasoning) are NOT adopted for the primary experiment. Qwen3-Thinking-8B/14B is designated the post-pilot replication target: if the commitment gap replicates on R1-Distill-14B, one ~$2 replication run there upgrades the finding from "a property of one distillation" to "a property of thinking models."
+
+**Reasoning:** The experiment's contribution is the measurement, not the model, and the model requirements are explicit think blocks + free-GPU trainability + *well-characterized* thinking behavior — not frontier capability. The interpretability-prior rationale from the 2026-06-24 entry has strengthened since: Thought Anchors (Macar, Bogdan et al. 2025, arXiv 2506.19143) ran its sentence-level CoT analyses on R1-Distill-Qwen-14B — the exact planned model — joining Venhoff et al. as a second published methods baseline. Switching costs (think-tag formats, chat templates, JSON-mode parse-rate retuning, eval-gate re-baselining) are weeks of drift, and the project's dominant risk is not-running, not model staleness.
+
+**Alternatives considered:** Qwen3-Thinking as primary — better benchmarks, same lineage, but ~3 months old with no interpretability literature depth; rejected for the primary, adopted as the replication arm. Starting the pilot on both families in parallel — doubles validation surface before any single result exists; rejected.
+
+---
+
 ### 2026-07-06 — Measurement fixes: word-bounded suspicion keywords + api_error turn flagging
 
 **Decision:** (1) Think-block suspicion detection (`conv_logging.py`) now matches keywords with word boundaries (compiled `\b(?:...)\b` regex) instead of plain substring containment. (2) API-call failures in `agent.py` no longer return an unmarked neutral turn: the exception is logged, and the turn is tagged `parse_mode="api_error"` (new field on `TurnOutput`/`TurnRecord`; regex-fallback parses are tagged `"fallback"`, clean parses `"json"`). `compute_conversation_metrics` excludes `api_error` turns entirely. Covered by `tests/test_conv_metrics.py`.

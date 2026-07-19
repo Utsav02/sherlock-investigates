@@ -290,7 +290,17 @@ Entry format:
 - **Thinking-model prompts:** `INITIATOR_SYSTEM_THINKING` / `RESPONDER_SYSTEM_THINKING` in `prompts.py` — do not suppress `<think>` tokens
 - **Inference platform:** `scripts/inference/modal_app.py` — Modal vLLM endpoint; `modal deploy` → persistent HTTPS URL; `keep_warm=1` avoids cold starts
 - Prior validation still holds: 5 conversations × 12 turns × 2 agents = 120 turn records, JSONL schema correct (base models)
-- **Next action:** re-validate with R1-Distill-7B on Kaggle before spending on 14B training
+- **2026-07-18 local shakedown (base deepseek-r1:7b via Ollama, 2 convs, thinking mode): instrument live end-to-end.**
+  14/14 turns captured think blocks (mean ~1.7K chars), parse modes 12 json / 2 fallback / 0 api_error,
+  three-level metrics populate (one genuine dissociation observed: t_think=0, t_private=6, no public accusation in 12 turns).
+  Transport gotcha fixed: Ollama ≥0.9 / vLLM-with-reasoning-parser return thinking in a separate
+  `reasoning`/`reasoning_content` field, not inline `<think>` tags — `_resolve_think_block` handles both.
+  **Open measurement question:** t_think keyword detection saturates at turn 0 on base models — the
+  adversarial system prompt primes AI-talk in every think block, so topic-mention ≠ directed suspicion.
+  Consider redefining t_think to detect suspicion *conclusions* about the opponent before the pilot.
+  Also observed: base 7B leaked "I'm an AI language model" as a public reply at turn 0 — the
+  pass-as-human failure the fine-tune exists to study.
+- **Next action:** validate 7B fine-tune on Kaggle before spending on 14B training
 
 ### Supporting artifacts
 - `data/augmented/augmentation_spec.md` — framing templates + worked examples

@@ -55,6 +55,29 @@ def _extract_think_block(text: str) -> tuple[str | None, str]:
     return None, text
 
 
+def _resolve_think_block(raw: str, message_extra: dict | None) -> tuple[str | None, str]:
+    """Think content arrives via one of two transports, depending on the server:
+
+    - inline ``<think>…</think>`` tags left in ``content`` (raw vLLM with no
+      reasoning parser configured);
+    - a separate ``reasoning`` / ``reasoning_content`` field with the tags
+      stripped from ``content`` (Ollama >= 0.9 OpenAI-compat endpoint,
+      vLLM with ``--reasoning-parser``). Verified against Ollama 0.30.8 on
+      2026-07-18 — inline-only extraction silently records think_block=None.
+
+    Inline tags win when both are present. Returns (think_block | None,
+    remaining_text_for_json_parse).
+    """
+    think, remainder = _extract_think_block(raw)
+    if think is None and message_extra:
+        for key in ("reasoning", "reasoning_content"):
+            val = message_extra.get(key)
+            if isinstance(val, str) and val.strip():
+                think = val.strip()
+                break
+    return think, remainder
+
+
 def _parse_json(text: str) -> dict | None:
     text = text.strip()
     # Strip markdown code fences that some models emit
@@ -145,7 +168,9 @@ async def generate_turn(
             extra_body={"guided_json": TURN_SCHEMA},    # vLLM schema enforcement
         )
         latency_ms    = (time.monotonic() - t0) * 1000
-        raw           = resp.choices[0].message.content or ""
+        message       = resp.choices[0].message
+        raw           = message.content or ""
+        message_extra = getattr(message, "model_extra", None) or {}
         prompt_tokens = resp.usage.prompt_tokens     if resp.usage else 0
         gen_tokens    = resp.usage.completion_tokens if resp.usage else 0
     except Exception as exc:
@@ -169,7 +194,7 @@ async def generate_turn(
             0, 0, latency_ms, None, messages,
         )
 
-    think_block, json_text = _extract_think_block(raw)
+    think_block, json_text = _resolve_think_block(raw, message_extra)
     parsed = _parse_json(json_text)
     output = _dict_to_turn_output(parsed) if parsed is not None else _fallback_parse(json_text)
     return output, prompt_tokens, gen_tokens, latency_ms, think_block, messages

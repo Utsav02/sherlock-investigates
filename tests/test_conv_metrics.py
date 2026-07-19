@@ -107,5 +107,48 @@ class TestParseModeDefaults(unittest.TestCase):
         self.assertEqual(_turn(0, "A").parse_mode, "json")
 
 
+class TestThinkTransport(unittest.TestCase):
+    """Think content arrives inline (<think> tags) or via a separate
+    reasoning field depending on the serving stack — both must resolve."""
+
+    def _agent(self):
+        import agent
+        return agent
+
+    def test_inline_tags_extracted_and_stripped(self):
+        agent = self._agent()
+        think, rest = agent._resolve_think_block(
+            "<think>they seem robotic</think>{\"reply\": \"hi\"}", {})
+        self.assertEqual(think, "they seem robotic")
+        self.assertEqual(rest, '{"reply": "hi"}')
+
+    def test_reasoning_extra_field_fallback(self):
+        agent = self._agent()
+        think, rest = agent._resolve_think_block(
+            '{"reply": "hi"}', {"reasoning": " hmm, suspicious phrasing "})
+        self.assertEqual(think, "hmm, suspicious phrasing")
+        self.assertEqual(rest, '{"reply": "hi"}')
+
+    def test_reasoning_content_key_supported(self):
+        agent = self._agent()
+        think, _ = agent._resolve_think_block(
+            '{"reply": "hi"}', {"reasoning_content": "vllm parser output"})
+        self.assertEqual(think, "vllm parser output")
+
+    def test_inline_wins_over_extra(self):
+        agent = self._agent()
+        think, _ = agent._resolve_think_block(
+            "<think>inline</think>{}", {"reasoning": "extra"})
+        self.assertEqual(think, "inline")
+
+    def test_absent_everywhere_is_none(self):
+        agent = self._agent()
+        think, rest = agent._resolve_think_block('{"reply": "hi"}', {})
+        self.assertIsNone(think)
+        self.assertEqual(rest, '{"reply": "hi"}')
+        think, _ = agent._resolve_think_block('{}', {"reasoning": "   "})
+        self.assertIsNone(think)
+
+
 if __name__ == "__main__":
     unittest.main()

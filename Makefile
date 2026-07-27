@@ -23,6 +23,7 @@ OVERSAMPLE ?= 3
         full-canon chunk-full-canon classify-full-canon augment-full-canon \
         train-qwen train-mistral \
         eval-qwen eval-mistral \
+        label-tool score-detector \
         test lint
 
 help:
@@ -37,6 +38,8 @@ help:
 	@echo "  train-mistral  QLoRA fine-tune Mistral base (GPU only — run on Kaggle)"
 	@echo "  eval-qwen      Run all 3 pilot eval scripts for Qwen   (set ADAPTER=...)"
 	@echo "  eval-mistral   Run all 3 pilot eval scripts for Mistral (set ADAPTER=...)"
+	@echo "  label-tool     build the think-stance labelling GUI (open it in a browser)"
+	@echo "  score-detector score t_think_07 against hand labels — GATE 1"
 	@echo "  test           run smoke tests (pure logic, no network/Ollama needed)"
 	@echo "  lint           byte-compile all scripts and tests (syntax check)"
 
@@ -119,6 +122,12 @@ eval-mistral-mmlu:
 eval-mistral-probe:
 	$(PY) scripts/eval/probe_eval.py --config configs/pilot_mistral.yaml \
 		--adapter $(ADAPTER) --output results/pilot/
+
+label-tool:
+	$(PY) scripts/eval/build_think_label_tool.py
+
+score-detector:
+	$(PY) scripts/eval/score_think_detector.py
 
 test:
 	$(PY) -m unittest discover -s tests -v

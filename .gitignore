@@ -52,6 +52,9 @@ wandb/
 # === Large result artifacts ===
 results/**/*.pkl
 results/**/*.parquet
+# Generated labelling tool — rebuild with scripts/eval/build_think_label_tool.py
+# (embeds a snapshot of whatever think blocks exist at build time)
+results/analysis/label_think_stance.html
 
 # === OS ===
 .DS_Store

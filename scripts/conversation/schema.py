@@ -47,8 +47,16 @@ class TurnOutput:
     trap_strategy:     TrapStrategy
     public_accusation: bool
     # provenance: "json" (schema-valid parse), "fallback" (regex extraction from
-    # malformed output), "api_error" (call failed — all fields are neutral filler)
+    # malformed output), "api_error" (call failed — all fields are neutral filler),
+    # "parse_failed" (regex extraction returned prompt text, not model output —
+    # all fields are unusable; see agent._looks_like_placeholder)
     parse_mode:        str = "json"
+
+
+# parse_modes whose field values are not model behaviour. These turns must be
+# excluded from every metric AND must never enter the opponent's history —
+# a fabricated or prompt-derived reply poisons the other agent's context.
+UNUSABLE_PARSE_MODES = frozenset({"api_error", "parse_failed"})
 
 
 @dataclass
@@ -60,6 +68,16 @@ class AgentConfig:
     role:                str        = "initiator"   # "initiator" | "responder"
     ground_truth_is_llm: bool       = True
     thinking_mode:       bool       = False         # True for DeepSeek-R1-distill models
+    # Sampling params are part of the measurement instrument — changing them
+    # changes results; log any change in the CLAUDE.md Decision Log.
+    temperature:         float      = 0.7
+    frequency_penalty:   float      = 0.3   # OpenAI/Ollama-compatible
+    presence_penalty:    float      = 0.3
+    repetition_penalty:  float      = 1.1   # vLLM (sent via extra_body)
+    # Light persona text appended to the system prompt. Breaks the symmetric
+    # self-play attractor that collapses same-model conversations into a single
+    # repeated utterance (see Decision Log 2026-07-26).
+    persona:             str        = ""
 
 
 @dataclass
@@ -107,7 +125,7 @@ class ConversationRecord:
     agent_B_cfg:         dict
     n_turns:             int
     winner:              str | None   # "A" | "B" | None
-    termination_reason:  str          # "accusation" | "max_turns"
+    termination_reason:  str          # "accusation" | "max_turns" | "degenerate"
     A_correct:           bool | None
     B_correct:           bool | None
     t_private_07:        int | None   # winner's first turn where suspicion_score stayed >= 0.7
@@ -115,8 +133,18 @@ class ConversationRecord:
     commitment_gap:      int | None   # t_public - t_private_07  (behavioral gap)
     seed:                int
     # three-level commitment gap fields (populated only for thinking models)
-    t_think_07:          int | None = None  # first turn suspicion keywords appear in think_block
+    t_think_07:          int | None = None  # first turn of DIRECTED suspicion in think_block
     think_commitment_gap: int | None = None  # t_private_07 - t_think_07  (think→score gap)
+    # Superseded topic-mention measure, retained so analysis can quantify how much
+    # the 2026-07-26 directed-suspicion redefinition changed the metric. NOT the
+    # headline number — see conv_logging._think_block_mentions_ai.
+    t_think_topic:       int | None = None
+    # Degeneracy diagnostics. Same-model self-play collapses into a repeated
+    # utterance; such conversations carry no accumulating evidence and every
+    # downstream gap metric is meaningless on them.
+    unique_reply_ratio:      float = 1.0   # distinct replies / usable turns
+    max_consecutive_repeats: int   = 1     # longest run of identical consecutive replies
+    is_degenerate:           bool  = False
 
 
 @dataclass

@@ -6,12 +6,32 @@ from openai import AsyncOpenAI
 import agent as _agent
 import conv_logging
 from schema import (
+    UNUSABLE_PARSE_MODES,
     AgentConfig,
     ConversationConfig,
     ConversationRecord,
     ConversationResult,
     TurnRecord,
 )
+
+# Spacing between conversations in seed space. Must exceed the largest possible
+# within-conversation offset (2 * max_turns + 1) by a wide margin so that no two
+# conversations ever share a generation seed. Prime, to avoid resonance with any
+# stride the caller might use when incrementing base seeds.
+_SEED_STRIDE = 100_003
+_INT32_MAX = 2**31 - 1
+
+
+def derive_seed(base_seed: int, turn_idx: int, speaker_id: str) -> int:
+    """Unique generation seed per (conversation, turn, speaker).
+
+    The previous scheme (`base_seed + turn_idx`) made conversation i and
+    conversation i+1 share 11 of 12 seeds when callers incremented the base by
+    one per conversation — so "replicates" were not independent and any variance
+    estimate over them was understated. Both agents also shared a seed sequence.
+    """
+    offset = turn_idx * 2 + (0 if speaker_id == "A" else 1)
+    return (base_seed * _SEED_STRIDE + offset) % _INT32_MAX
 
 
 def _make_client(cfg: AgentConfig) -> AsyncOpenAI:
@@ -25,6 +45,11 @@ def _cfg_to_dict(cfg: AgentConfig) -> dict:
         "role":                cfg.role,
         "ground_truth_is_llm": cfg.ground_truth_is_llm,
         "thinking_mode":       cfg.thinking_mode,
+        "temperature":         cfg.temperature,
+        "frequency_penalty":   cfg.frequency_penalty,
+        "presence_penalty":    cfg.presence_penalty,
+        "repetition_penalty":  cfg.repetition_penalty,
+        "persona":             cfg.persona,
     }
 
 
@@ -61,7 +86,9 @@ async def run_conversation(
         client      = client_A    if is_A else client_B
 
         output, prompt_toks, gen_toks, latency, think_block, messages_input = (
-            await _agent.generate_turn(history, speaker_cfg, client, cfg.seed + turn_idx)
+            await _agent.generate_turn(
+                history, speaker_cfg, client, derive_seed(cfg.seed, turn_idx, speaker_id)
+            )
         )
 
         record = TurnRecord(
@@ -93,7 +120,13 @@ async def run_conversation(
         if turns_path:
             conv_logging.log_turn(record, turns_path)
 
-        # Only the reply crosses the channel; all other fields stay private
+        # Only the reply crosses the channel; all other fields stay private.
+        # Unusable turns (api_error / parse_failed) contribute NOTHING to either
+        # history: an empty or prompt-derived reply is not model output, and
+        # feeding it to the opponent corrupts the rest of the conversation.
+        if output.parse_mode in UNUSABLE_PARSE_MODES:
+            continue
+
         if is_A:
             history_A.append({"role": "assistant", "content": output.reply})
             history_B.append({"role": "user",      "content": output.reply})
@@ -104,6 +137,12 @@ async def run_conversation(
         if output.public_accusation:
             termination_reason = "accusation"
             winner = speaker_id
+            break
+
+        # Abort a collapsed conversation rather than burning turns on it.
+        degeneracy = conv_logging.conversation_degeneracy(turns)
+        if degeneracy["is_degenerate"]:
+            termination_reason = "degenerate"
             break
 
     metrics = conv_logging.compute_conversation_metrics(turns)
@@ -122,6 +161,8 @@ async def run_conversation(
     A_correct: bool | None = cfg.agent_B.ground_truth_is_llm if A_accused else None
     B_correct: bool | None = cfg.agent_A.ground_truth_is_llm if B_accused else None
 
+    degeneracy = conv_logging.conversation_degeneracy(turns)
+
     conv_record = ConversationRecord(
         conv_id=conv_id,
         agent_A_cfg=_cfg_to_dict(cfg.agent_A),
@@ -137,6 +178,10 @@ async def run_conversation(
         seed=cfg.seed,
         t_think_07=winner_think_07,
         think_commitment_gap=think_commitment_gap,
+        t_think_topic=ref_m.get("t_think_topic"),
+        unique_reply_ratio=degeneracy["unique_reply_ratio"],
+        max_consecutive_repeats=degeneracy["max_consecutive_repeats"],
+        is_degenerate=degeneracy["is_degenerate"],
     )
 
     if conv_path:

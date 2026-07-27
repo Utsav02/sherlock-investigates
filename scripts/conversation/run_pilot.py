@@ -9,6 +9,7 @@ from pathlib import Path
 # Ensure sibling modules are importable when run as a script from any CWD
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import prompts
 from orchestrator import run_conversation
 from schema import AgentConfig, ConversationConfig, ConversationResult
 
@@ -33,6 +34,13 @@ def _parse_args() -> argparse.Namespace:
                    help="R1-distill-style models: use thinking-compatible prompts "
                         "and extract <think> blocks (sets AgentConfig.thinking_mode "
                         "on both agents)")
+    p.add_argument("--no-personas",     action="store_true",
+                   help="Disable persona symmetry-breaking (reproduces the "
+                        "pre-2026-07-26 degenerate-loop conditions)")
+    p.add_argument("--temperature",      type=float, default=0.7)
+    p.add_argument("--frequency-penalty", type=float, default=0.3)
+    p.add_argument("--presence-penalty",  type=float, default=0.3)
+    p.add_argument("--repetition-penalty", type=float, default=1.1)
     return p.parse_args()
 
 
@@ -62,9 +70,28 @@ def _print_summary(results: list[ConversationResult]) -> None:
     print(f"\n{'='*60}")
     print(f"  Pilot summary — {n} conversations")
     print(f"{'='*60}")
+    degenerate = [r for r in results if r.record.is_degenerate]
+    ratios     = [r.record.unique_reply_ratio for r in results]
+
     print(f"  Accusations:      {len(accused)} / {n}")
     print(f"  Max-turns:        {n - len(accused)} / {n}")
     print(f"  Parse modes:      {dict(parse_modes)}  ({n_turns_total} turns)")
+
+    # Gate: conversations that collapsed into a repeated utterance carry no
+    # accumulating evidence, so every gap metric below is meaningless on them.
+    flag = "  <-- GATE FAILED (>20%)" if n and len(degenerate) / n > 0.2 else ""
+    print(f"  Degenerate:       {len(degenerate)} / {n}{flag}")
+    if ratios:
+        print(f"  Unique-reply ratio: mean {sum(ratios)/len(ratios):.2f}"
+              f"  (min {min(ratios):.2f})")
+
+    # Delta between the legacy topic-mention measure and the directed measure.
+    # If these are equal, the redefinition changed nothing and needs revisiting.
+    topic_fired    = sum(1 for r in results if r.record.t_think_topic is not None)
+    directed_fired = sum(1 for r in results if r.record.t_think_07 is not None)
+    if topic_fired or directed_fired:
+        print(f"  t_think fired:    topic {topic_fired}/{n}"
+              f"  |  directed {directed_fired}/{n}")
     if think_lens:
         print(f"  Think blocks:     {think_present}/{n_turns_total} turns"
               f"  (mean {sum(think_lens)//len(think_lens)} chars)")
@@ -110,9 +137,17 @@ async def _run_all(args: argparse.Namespace) -> list[ConversationResult]:
     print(f"  turns:         turns_{timestamp}.jsonl")
     print(f"  conversations: conversations_{timestamp}.jsonl\n")
 
+    sampling = {
+        "temperature":        args.temperature,
+        "frequency_penalty":  args.frequency_penalty,
+        "presence_penalty":   args.presence_penalty,
+        "repetition_penalty": args.repetition_penalty,
+    }
+
     results: list[ConversationResult] = []
     for i in range(args.n_conversations):
         seed = args.seed + i
+        persona_a, persona_b = ("", "") if args.no_personas else prompts.persona_pair(seed)
         cfg  = ConversationConfig(
             agent_A=AgentConfig(
                 model_id=args.model_a,
@@ -120,6 +155,8 @@ async def _run_all(args: argparse.Namespace) -> list[ConversationResult]:
                 api_key=args.api_key,
                 adapter_id=args.adapter_a,
                 thinking_mode=args.thinking_mode,
+                persona=persona_a,
+                **sampling,
             ),
             agent_B=AgentConfig(
                 model_id=args.model_b,
@@ -127,6 +164,8 @@ async def _run_all(args: argparse.Namespace) -> list[ConversationResult]:
                 api_key=args.api_key,
                 adapter_id=args.adapter_b,
                 thinking_mode=args.thinking_mode,
+                persona=persona_b,
+                **sampling,
             ),
             max_turns=args.max_turns,
             seed=seed,

@@ -33,6 +33,11 @@ def _build_messages(history: list[dict], agent_cfg: AgentConfig) -> list[dict]:
         )
         reminder = _JSON_REMINDER
 
+    # A light persona differentiates two otherwise-identical policies. Without it,
+    # same-model self-play has a fixed point at "repeat the last utterance".
+    if agent_cfg.persona:
+        system = f"{system}\n\n{agent_cfg.persona}"
+
     messages: list[dict] = [{"role": "system", "content": system}]
     for msg in history:
         if msg["role"] == "user":
@@ -98,8 +103,41 @@ def _parse_json(text: str) -> dict | None:
     return None
 
 
+# Fragments of the schema's own field descriptions (prompts._JSON_BLOCK). When the
+# model echoes the template instead of filling it in, the regex fallback happily
+# extracts the DESCRIPTION as the reply and the orchestrator then feeds it to the
+# opponent as conversational input. Observed at turn 1 of both 2026-07-18 pilot
+# runs, which is the likely seed of the degenerate loop in those conversations.
+_PLACEHOLDER_MARKERS = (
+    "the words you literally speak",
+    "your private detective notes",
+    "exact quote or behaviour",
+    "what you intend to probe",
+    "knowledge_cutoff|sensory",
+    "float 0.0",
+    "true only when you are ready",
+)
+
+
+def _looks_like_placeholder(text: str) -> bool:
+    """True if `text` is schema template text rather than model output."""
+    if not text:
+        return False
+    stripped = text.strip()
+    # Unfilled angle-bracket slot, e.g. "<the words you literally speak…>"
+    if stripped.startswith("<") and stripped.endswith(">"):
+        return True
+    low = stripped.lower()
+    return any(marker in low for marker in _PLACEHOLDER_MARKERS)
+
+
 def _fallback_parse(text: str) -> TurnOutput:
-    """Extract whatever fields are present; fill the rest with safe defaults."""
+    """Extract whatever fields are present; fill the rest with safe defaults.
+
+    If the extracted reply is schema template text, the whole turn is marked
+    "parse_failed": the reply is what crosses the channel, so a prompt-derived
+    reply is worse than no reply at all.
+    """
     reply_m  = re.search(r'"reply"\s*:\s*"((?:[^"\\]|\\.)*)"',          text, re.DOTALL)
     score_m  = re.search(r'"suspicion_score"\s*:\s*(\d+(?:\.\d+)?)',     text)
     trace_m  = re.search(r'"reasoning_trace"\s*:\s*"((?:[^"\\]|\\.)*)"', text, re.DOTALL)
@@ -108,8 +146,25 @@ def _fallback_parse(text: str) -> TurnOutput:
     type_m   = re.search(
         r'"type"\s*:\s*"(knowledge_cutoff|sensory|numeric|self_reference|none)"', text
     )
+    reply = reply_m.group(1) if reply_m else text[:300].strip()
+
+    if _looks_like_placeholder(reply):
+        log.warning(
+            "fallback parse recovered schema template text as the reply; "
+            "marking turn parse_failed (reply=%r)", reply[:80],
+        )
+        return TurnOutput(
+            reply="",
+            suspicion_score=0.5,
+            reasoning_trace="[parse_failed] model echoed the JSON template",
+            cues=[],
+            trap_strategy=TrapStrategy(plan="", type="none"),
+            public_accusation=False,
+            parse_mode="parse_failed",
+        )
+
     return TurnOutput(
-        reply=reply_m.group(1) if reply_m else text[:300].strip(),
+        reply=reply,
         suspicion_score=(
             max(0.0, min(1.0, float(score_m.group(1)))) if score_m else 0.5
         ),
@@ -162,10 +217,20 @@ async def generate_turn(
         resp = await client.chat.completions.create(
             model=agent_cfg.model_id,
             messages=messages,
-            temperature=0.7,
+            temperature=agent_cfg.temperature,
             seed=seed,
+            # Repetition penalties counter the symmetric self-play attractor that
+            # collapsed the 2026-07-18 pilot conversations into one repeated
+            # sentence. frequency/presence are the OpenAI-compatible spelling;
+            # repetition_penalty is vLLM's. Values live on AgentConfig because
+            # they are part of the measurement instrument.
+            frequency_penalty=agent_cfg.frequency_penalty,
+            presence_penalty=agent_cfg.presence_penalty,
             response_format={"type": "json_object"},   # Ollama/OpenAI JSON mode
-            extra_body={"guided_json": TURN_SCHEMA},    # vLLM schema enforcement
+            extra_body={
+                "guided_json": TURN_SCHEMA,             # vLLM schema enforcement
+                "repetition_penalty": agent_cfg.repetition_penalty,
+            },
         )
         latency_ms    = (time.monotonic() - t0) * 1000
         message       = resp.choices[0].message

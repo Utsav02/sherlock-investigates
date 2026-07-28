@@ -13,8 +13,20 @@ import schema
 from schema import AgentConfig, TrapStrategy, TurnOutput, TURN_SCHEMA
 
 
-_JSON_REMINDER = "\n[Respond with a JSON object only — no other text.]"
-_JSON_REMINDER_THINKING = "\n[After your thinking, respond with a JSON object only — no other text outside your thinking block.]"
+# The anti-echo rule is repeated per-turn, not left in the system prompt alone.
+# Same reasoning as the JSON reminder (Decision Log 2026-06-17): the system
+# prompt gets buried as context grows and the model reverts after ~3-4 turns.
+# The 2026-07-26 anti-echo run showed exactly that decay — clean openings,
+# mirroring returning around turn 4 (seed 1003).
+_NO_ECHO = "Do not repeat or rephrase what I just said; say something new."
+
+_JSON_REMINDER = (
+    f"\n[{_NO_ECHO} Respond with a JSON object only — no other text.]"
+)
+_JSON_REMINDER_THINKING = (
+    f"\n[{_NO_ECHO} After your thinking, respond with a JSON object only — "
+    "no other text outside your thinking block.]"
+)
 
 
 def _build_messages(history: list[dict], agent_cfg: AgentConfig) -> list[dict]:

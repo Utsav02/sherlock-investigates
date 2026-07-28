@@ -158,7 +158,10 @@ def _normalise_reply(reply: str) -> str:
 
 
 def conversation_degeneracy(
-    turns: list[TurnRecord], repeat_threshold: int = 3
+    turns: list[TurnRecord],
+    repeat_threshold: int = 5,
+    min_unique_ratio: float = 0.5,
+    min_turns_for_ratio: int = 6,
 ) -> dict:
     """Detect the symmetric self-play collapse: agents mirroring one utterance.
 
@@ -167,6 +170,22 @@ def conversation_degeneracy(
     evidence, so suspicion_score becomes sampling noise on a constant input and
     every gap metric computed from it is meaningless. Observed in 2026-07-18
     pilot conv f217671f: 12 turns, 1 unique reply, scores ranging 0.0–0.9.
+
+    Criterion revised 2026-07-27. The first version flagged any 3 consecutive
+    identical replies, which was wrong in two ways: an absolute run length does
+    not scale with conversation length (a longer, healthier conversation has
+    MORE opportunities to hit a 3-run), and a transient stutter is not a
+    collapse. In the 20260726_reminder run every flagged conversation had
+    max_consecutive_repeats == 3 with a unique-reply ratio of 0.77–0.86 —
+    manifestly not collapsed — and early termination was truncating them before
+    they could reach an accusation, driving the accusation count to 0/6. The
+    detector had become the binding constraint on the data.
+
+    A conversation is now degenerate if EITHER:
+      - it locks: `repeat_threshold`+ identical replies in a row, or
+      - it is globally repetitive: fewer than `min_unique_ratio` of replies are
+        distinct, once there are at least `min_turns_for_ratio` of them
+        (the ratio is too noisy to act on before that).
 
     Turns with unusable parse_modes are excluded — their replies are filler or
     prompt text, not model output.
@@ -192,10 +211,14 @@ def conversation_degeneracy(
         max_run = max(max_run, run)
 
     ratio = len(set(replies)) / len(replies)
+    locked = max_run >= repeat_threshold
+    globally_repetitive = (
+        len(replies) >= min_turns_for_ratio and ratio < min_unique_ratio
+    )
     return {
         "unique_reply_ratio": round(ratio, 4),
         "max_consecutive_repeats": max_run,
-        "is_degenerate": max_run >= repeat_threshold,
+        "is_degenerate": locked or globally_repetitive,
     }
 
 

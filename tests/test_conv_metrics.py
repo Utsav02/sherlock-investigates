@@ -135,7 +135,7 @@ class TestDegeneracy(unittest.TestCase):
         for t in turns:
             t.reply = "You're right; treating people well is always important."
         d = conv_logging.conversation_degeneracy(turns)
-        self.assertTrue(d["is_degenerate"])
+        self.assertTrue(d["is_degenerate"])   # locks AND globally repetitive
         self.assertEqual(d["max_consecutive_repeats"], 12)
         self.assertAlmostEqual(d["unique_reply_ratio"], 1 / 12, places=4)
 
@@ -149,17 +149,58 @@ class TestDegeneracy(unittest.TestCase):
         self.assertEqual(d["unique_reply_ratio"], 1.0)
 
     def test_repeats_are_punctuation_and_case_insensitive(self):
-        turns = [_turn(i, "A") for i in range(3)]
-        turns[0].reply = "Hi there!"
-        turns[1].reply = "hi there"
-        turns[2].reply = "  HI, THERE.  "
+        turns = [_turn(i, "A") for i in range(5)]
+        for t, r in zip(turns, ["Hi there!", "hi there", "  HI, THERE.  ",
+                                "hi there?", "HI THERE"]):
+            t.reply = r
+        d = conv_logging.conversation_degeneracy(turns)
+        self.assertEqual(d["max_consecutive_repeats"], 5)
+        self.assertTrue(d["is_degenerate"])
+
+    def test_short_stutter_below_threshold(self):
+        turns = [_turn(i, "A") for i in range(4)]
+        for t, r in zip(turns, ["same", "same", "different", "other"]):
+            t.reply = r
+        self.assertFalse(conv_logging.conversation_degeneracy(turns)["is_degenerate"])
+
+    def test_transient_stutter_in_a_diverse_conversation_is_not_degenerate(self):
+        """Regression for the 2026-07-27 criterion fix.
+
+        Shape of 20260726_reminder seed 1002: 13 turns, ratio 0.85, one 3-run.
+        The old absolute >=3 rule flagged this and terminated the conversation
+        early, which suppressed accusations. High diversity is not collapse.
+        """
+        replies = [f"utterance {i}" for i in range(13)]
+        replies[4] = replies[5] = replies[6] = "briefly repeated line"
+        turns = [_turn(i, "A" if i % 2 == 0 else "B") for i in range(13)]
+        for t, r in zip(turns, replies):
+            t.reply = r
+        d = conv_logging.conversation_degeneracy(turns)
+        self.assertEqual(d["max_consecutive_repeats"], 3)
+        self.assertGreater(d["unique_reply_ratio"], 0.8)
+        self.assertFalse(d["is_degenerate"])
+
+    def test_locked_loop_still_flagged(self):
+        turns = [_turn(i, "A") for i in range(5)]
+        for t in turns:
+            t.reply = "locked"
         self.assertTrue(conv_logging.conversation_degeneracy(turns)["is_degenerate"])
 
-    def test_two_repeats_below_threshold(self):
-        turns = [_turn(i, "A") for i in range(3)]
-        turns[0].reply = "same"
-        turns[1].reply = "same"
-        turns[2].reply = "different"
+    def test_globally_repetitive_without_a_long_run_is_flagged(self):
+        # A/B alternating two lines: never 5 in a row, but only 2 distinct
+        # replies across 10 turns — no accumulating evidence.
+        turns = [_turn(i, "A" if i % 2 == 0 else "B") for i in range(10)]
+        for i, t in enumerate(turns):
+            t.reply = "ping" if i % 2 == 0 else "pong"
+        d = conv_logging.conversation_degeneracy(turns)
+        self.assertLess(d["unique_reply_ratio"], 0.5)
+        self.assertTrue(d["is_degenerate"])
+
+    def test_ratio_rule_needs_enough_turns(self):
+        # 4 turns, 1 unique: too few to judge by ratio, and no 5-run yet.
+        turns = [_turn(i, "A") for i in range(4)]
+        for t in turns:
+            t.reply = "same"
         self.assertFalse(conv_logging.conversation_degeneracy(turns)["is_degenerate"])
 
     def test_unusable_turns_excluded_from_degeneracy(self):

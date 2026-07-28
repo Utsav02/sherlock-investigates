@@ -293,6 +293,49 @@ Entry format:
 
 ---
 
+### 2026-07-27 — Anti-echo instructions fix the collapse; repetition penalties never could
+
+**Decision:** Degeneracy is countered by **instructions**, not sampling parameters: `_CONVERSATION_RULES` in every system prompt (you are not an assistant; never echo or rephrase the other party; always add something new; no agreement loops), plus the anti-echo rule repeated in the per-turn reminder alongside the JSON reminder. The repetition penalties added 2026-07-26 are retained but are **not** the mechanism.
+
+**Reasoning:** `frequency_penalty` / `presence_penalty` act on tokens already emitted inside the current completion, while the text being mirrored lives in the prompt — they are structurally incapable of preventing turn N+1 from copying turn N. The 2026-07-26 shakedown confirmed this: 6/6 degenerate with penalties and personas active. Adding the rules to the system prompt alone took mirroring 65% → 17% and mean length 4.8 → 13.8 turns, but mirroring returned around turn 4 (seed 1003) — the same burial-with-context decay documented for JSON mode on 2026-06-17. Repeating the rule per turn, exactly as `_JSON_REMINDER` does, is what made it hold. Final: mirroring 13%, all conversations reaching the full 24 messages.
+
+**Alternatives considered:** Raising temperature — treats a structural attractor as a sampling problem. Pairing different models for A and B — confounds the pairing matrix, which is an experimental variable. Both remain available if the fine-tuned adapters reintroduce the collapse.
+
+---
+
+### 2026-07-27 — Degeneracy criterion: locked-or-globally-repetitive, not a bare 3-run
+
+**Decision:** `conversation_degeneracy` flags a conversation when it **locks** (≥5 identical replies consecutively) **or** is **globally repetitive** (<50% distinct replies, once ≥6 replies exist). Replaces "any 3 consecutive identical replies". Early termination follows the same rule.
+
+**Reasoning:** The original criterion used an absolute run length, which does not scale with conversation length — a longer, healthier conversation has *more* opportunities to trip it — and it treated a transient stutter as a collapse. In the `_reminder` run every flagged conversation had `max_consecutive_repeats == 3` exactly with unique-reply ratios of 0.77–0.86, and because detection drives termination, those conversations were killed at 13–14 turns before they could reach an accusation: accusations fell 2/6 → 0/6 *while diversity improved*. The detector had become the binding constraint on the data it existed to protect. Both signals are required because two agents alternating two fixed lines never produce a long run yet carry no accumulating evidence. **Note for anyone rescoring old runs:** recomputing the three earlier runs under this rule returns 0/6 for all of them including the visibly-collapsing baseline — those transcripts were truncated at 3–5 turns by the old rule and the ratio test needs ≥6 replies. Rescoring is circular; Gate 2 was read from a fresh run.
+
+**Alternatives considered:** Ratio-only — misses a late lock in a conversation that started diverse. Run-length-only with a higher threshold — misses the alternating-pair case. Separating the detection threshold from the termination threshold — attractive, and still open if terminating at 5 proves too eager once adapters are in play.
+
+---
+
+### 2026-07-27 — Gate 2 passes; censoring is total and suspicion decays
+
+**Decision:** Gate 2 (≥80% non-degenerate) is **met** on base `deepseek-r1:7b`: 0/6 degenerate, all six conversations reaching the full 24 messages, unique-reply ratios 0.62–0.92. Recorded at n=6; to be re-read at n≈20 before being treated as settled. Full writeup: `results/analysis/shakedown_20260727_writeup.md`.
+
+**Reasoning / what the run exposed, none of which is a code change made silently:**
+1. **`t_public` is `None` in 6/6.** No conversation publicly committed within 12 turns, so no commitment gap is computable at the public level and the censoring is 100%. This makes survival analysis mandatory rather than preferred, and makes the *censoring rate itself* a headline result: privately suspicious, never publicly committing.
+2. **Suspicion declines over a conversation** (agent A means by turn: 0.67, 0.93, 0.89, 0.71, 0.76, 0.63, 0.48, 0.50). This inverts the model behind `t_private_07`, which requires the score to reach 0.7 **and stay there** — a condition that will rarely be met if scores systematically decay, which is exactly what 1/6 firing shows. **The sustained-threshold definition must be revisited before pilot data collection**; a first-crossing or peak-based definition may be correct. Flagged, not changed.
+3. **The legacy topic measure fired at turn 0 in 24/24 conversations across all four runs**, versus 4/6, 3/6, 2/6, 4/6 for the directed measure. The saturation finding is now confirmed well beyond the original two conversations.
+
+**Alternatives considered:** Declaring Gate 2 settled at n=6 — rejected, six conversations of one model pairing is a smoke test. Adjusting the `t_private_07` threshold now to make it fire more often — rejected outright: tuning a measurement definition until it produces results is how a finding becomes an artefact. The definition question gets its own entry once decided.
+
+---
+
+### 2026-07-27 — Open risk: clean-JSON parse rate falls to 60% at 24 turns
+
+**Decision:** Logged as an open risk, **not** resolved. Clean-parse rate by turn band in the gate2 run: 83% (turns 0–3) → 38% (turns 20–23); 60% overall, 39% fallback. The 2026-07-06 decision to retain `fallback` turns in metrics is **explicitly reopened**.
+
+**Reasoning:** That decision rested on the stated premise "93% real-parse rate leaves ~7% fallback". At 39% fallback the premise no longer holds — nearly two in five suspicion scores now come from regex extraction rather than schema-valid output, which is a different measurement. The cause is principally the context-growth decay documented on 2026-06-17, exposed because conversations are now 5× longer; the added anti-echo text in the system prompt and per-turn reminder plausibly contributes by competing with the JSON instruction. Mitigating: Ollama ignores `guided_json` while the production path (vLLM on Modal) enforces it, so much of this may not survive the move — but that is a hypothesis and must be measured on vLLM, not assumed. Either the parse rate is restored or fallback turns are excluded and the exclusion rate reported.
+
+**Alternatives considered:** Excluding fallback turns immediately — would drop 39% of the data on a hypothesis about cause; measure on vLLM first. Trimming the anti-echo text to protect JSON compliance — plausible, but it would trade back the fix that made Gate 2 pass; not without measuring which component costs what.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**
@@ -362,8 +405,30 @@ Entry format:
 - **Still outstanding before the pilot:** hand-labelled think-stance validation set
   (`data/probes/think_stance_labels_v1.jsonl`, ~100 sentences) — the directed detector's
   precision/recall are **unmeasured**. This is the gating item, and it needs no compute.
-- **Next action:** build that validation set, then a 20-conversation local shakedown
-  (gate: ≥80% non-degenerate) before any GPU spend. Full plan: `../experiment.md`
+  Tooling is ready: `make label-tool` → label in a browser → `make score-detector`.
+
+### Shakedown 2026-07-26/27 — GATE 2 PASSED (n=6, base deepseek-r1:7b)
+Four matched-seed runs; full writeup `results/analysis/shakedown_20260727_writeup.md`.
+
+| run | degen | uniq | mirror | turns | accuse |
+|---|---|---|---|---|---|
+| baseline (personas + penalties) | 6/6 | 0.42 | 65% | 4.8 | 0/6 |
+| + anti-echo, system prompt | 4/6 | 0.70 | 17% | 13.8 | 2/6 |
+| + anti-echo, per-turn reminder | 5/6 | 0.83 | 14% | 15.2 | 0/6 |
+| + corrected degeneracy criterion | **0/6** | 0.76 | 13% | **24.0** | 0/6 |
+
+- ✅ Gate 2 met at n=6 — **re-read at n≈20 before treating as settled**
+- ⚠️ **0/6 public accusations** — 100% right-censored; survival analysis is mandatory
+- ⚠️ **suspicion declines over a conversation** — the sustained-≥0.7 `t_private_07`
+  definition needs revisiting before pilot data (Decision Log 2026-07-27)
+- ⚠️ **clean-JSON 60% at 24 turns** (83% early → 38% late); the 2026-07-06 "keep
+  fallback turns" decision is reopened
+- ✅ legacy topic measure fired turn 0 in **24/24** conversations; directed measure
+  discriminates (4/6, 3/6, 2/6, 4/6)
+- ✅ `parse_failed` guard fired once on real data, catching a live placeholder leak
+
+- **Next action:** Gate 1 (label + score, no compute), then settle the `t_private_07`
+  definition, then re-read Gate 2 at n≈20. Full plan: `../experiment.md`
 
 ### Supporting artifacts
 - `data/augmented/augmentation_spec.md` — framing templates + worked examples

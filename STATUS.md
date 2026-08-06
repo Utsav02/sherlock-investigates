@@ -20,17 +20,42 @@ Shakedown writeup: `results/analysis/shakedown_20260727_writeup.md`
 - [x] 6. **GATE 2 PASSED** (0/6 degenerate, n=6) + writeup — `fa29723`
 - [x] 7. Multi-annotator labelling tooling — `839760a`
 - [x] 8. Four detector bugs fixed + stratified design — `5192b2a`
-- [ ] 9. **← IN PROGRESS: detector precision/recall.** Round-2 annotation ran with
-      3 annotators; **only B completed** (A and C died on the session limit mid-write).
-      B's provisional numbers below. Need 2 more annotators OR a human pass.
+- [x] 9. Detector precision/recall — **COMPLETE, and it FAILS the gate.**
+      3/3 annotators, Fleiss' kappa 0.906. precision **0.185** (exact),
+      recall **0.301** (est). Gate is 0.8. See "Verdict" below.
 - [ ] 10. Settle the `t_private_07` definition (blocks interpretation, not collection)
-- [ ] 11. Kaggle T4 7B validation ← **the actual critical path, independent of 9 and 10**
+- [ ] 11. **← NEXT: Kaggle T4 7B validation.** Repo is ready; config + notebook
+      committed in `9be91cd`. Independent of 9 and 10.
 - [ ] 12. Eval gates (perplexity / WikiText / MMLU / probe separation)
 - [ ] 13. RunPod 14B (~$1) → conversation arm
 
 ---
 
-## Where stage 9 actually stands
+## Verdict on stage 9 — the regex detector is not viable
+
+Stratified design, 3 annotators, all 231 sentences:
+
+| | value | basis |
+|---|---|---|
+| Fleiss' kappa | 0.906 | 94% unanimous, 14 clashes — and this time it is meaningful, because there are 23-24 positives per annotator rather than 1 |
+| precision | **0.185** | EXACT — all 81 detector fires labelled. 15 true, 66 false |
+| recall | **0.301** | estimated — 8 missed in a 150 sample of 654 -> ~35 in population |
+
+Gate is 0.8. The regex has now been patched twice (four targeted bug fixes on
+2026-07-28) and moved from 0.198 to 0.185 — i.e. not at all. **Stop patching.**
+Adding more vetoes against individually-reasonable cases is how an instrument
+gets overfitted to its own test set.
+
+Recommended: Option B from `../experiment.md` §4.2 — a small stance classifier
+over sentences, trained on the 231 labels now in
+`data/probes/think_stance_labels_v1.jsonl`. That label set is the asset this
+exercise produced, and it is reusable.
+
+Caveat that must travel with these numbers: the annotators share the detector
+author's priors, so this is a debugging signal, not a validation figure. It is
+strong enough to reject (0.185 is nowhere near 0.8) but not to certify.
+
+## Superseded — round-1 detail
 
 Round 2 used a stratified design: all 81 detector fires (exact precision) plus 150 of
 the 654 sentences that mention AI without firing (recall). **One annotator finished.**

@@ -29,6 +29,10 @@ Shakedown writeup: `results/analysis/shakedown_20260727_writeup.md`
       0.42 -> 0.11, trainable 1.0491% (embeddings untouched). Adapter at
       `utsvsngh/sherlock-r1distill-7b-validation` (private). Two real bugs
       found and fixed: bf16 detection and pre-opened think tags.
+- [x] 11a. Stage 0 CONFIRMED on hardware: real-task probe returned a 1,293-char
+      think block followed by schema-valid JSON. Two false FAILs first, both
+      caused by the verifier testing open-ended riddles instead of the real
+      task shape — now fixed.
 - [ ] 11b. **← NEXT: properly-dosed 7B run.** full canon x 1 epoch, ~4.5 h,
       free. The stage-0 adapter is 311K unique tokens / 30 steps and CANNOT
       show an effect — do not run the eval gates against it.
@@ -148,6 +152,8 @@ venv/bin/python scripts/analysis/compare_runs.py results/pilot/gate2_n20
 | pilot corpus | **311,252** unique tokens | measured; the `chars/4` preflight says 354K (+12%) |
 | full canon | **3,356,311** unique tokens | scaled by the measured ratio; docs say 3.44M |
 | T4 throughput | **157.4 s/step** | `train_runtime 4722.8` / 30 steps, seq 2048, eff batch 16 |
+| think block, real task | **~422 tokens / ~1,293 chars** | measured on the stage-0 adapter; matches the 2026-07-18 shakedown |
+| think block, open-ended | 837+ tokens, high variance | same riddle: 837 one sample, >1200 another |
 | full canon x1 / x2 / x3 | 102 / 204 / 307 steps = **4.5 / 8.9 / 13.4 h** | x3 exceeds Kaggle's 12 h cap |
 
 ## Decisions already made — do not re-ask

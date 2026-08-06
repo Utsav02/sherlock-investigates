@@ -388,6 +388,27 @@ Entry format:
 
 ---
 
+### 2026-07-28 — Stage 0 confirmed with evidence; the verifier tested the wrong distribution
+
+**Decision:** `verify_think_blocks.py` now tests the **real task shape** — `prompts.INITIATOR_SYSTEM_THINKING` plus a conversational turn — with one open-ended prompt retained as a labelled stress case at double the token budget. It also reports generated-token count and a `truncated` flag on every probe.
+
+**Reasoning:** Stage 0 is confirmed PASSING on hardware. Measured on the fine-tuned adapter:
+
+| probe | tokens generated | truncated | `</think>` | extracted |
+|---|---|---|---|---|
+| real task (system prompt + opener) | **422** | No | Yes | 1,293 chars |
+| open-ended riddle | 837 | No | Yes | 3,410 chars |
+
+The real-task probe returned a complete think block followed by schema-valid JSON with every field populated — the full production path working on the adapter. 422 tokens / 1,293 chars matches the 2026-07-18 shakedown's 1.4–1.8K chars closely, so **~450 tokens is the planning figure for think-block length on the real task**.
+
+The two false FAILs before this were caused by the verifier testing open-ended riddles, which are a different and much higher-variance distribution: the *same* riddle produced 837 tokens on one sample and exceeded 1,200 on another. Testing an unrepresentative prompt and then concluding the model is broken is precisely the error the repo's own "verify the real artifact and the real path" rule exists to prevent, and it was violated here twice. The `truncated` flag is the field that separates "we cut it off" from "the model never closes the block"; without it the only recourse was raising the cap and guessing.
+
+**Incidental confirmation:** the real-task think block concluded *"I'm leaning towards the user being a human"*, and the directed detector correctly did NOT fire — the negation veto added earlier the same day behaving correctly on live data it was not tuned against.
+
+**Alternatives considered:** Keeping riddle prompts and simply raising the budget — treats a distribution mismatch as a budget problem, and the variance would keep producing intermittent failures. Dropping the open-ended prompt entirely — it is a useful stress case for think-length, so it is retained and labelled rather than removed.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

@@ -25,16 +25,31 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts" / "conversation"))
 
-# Deduction-inviting prompts. Holmes-flavoured because a fine-tune that took
-# should reason in that register, but the FORMAT check works regardless of
-# content — we are testing that <think> appears at all, not that it is clever.
+# THE REAL TASK SHAPE. Revised 2026-07-28 after open-ended riddle prompts
+# produced two false FAILs in a row.
+#
+# The orchestrator sends the adversarial system prompt plus a conversational
+# turn, and the model answers in ~420 tokens (~1.3K chars) — matching the
+# 2026-07-18 shakedown's 1.4-1.8K chars. Open-ended puzzles are a DIFFERENT
+# distribution: the same riddle produced 837 tokens on one sample and exceeded
+# 1200 on another. Testing an unrepresentative, high-variance prompt and then
+# blaming the model is exactly the mistake this file now exists to prevent.
+#
+# Each entry is (label, messages). The first two are the real path; the third
+# is deliberately open-ended as a stress case, with a larger budget.
+def _task_messages(opener: str):
+    import prompts as _p
+    return [{"role": "system", "content": _p.INITIATOR_SYSTEM_THINKING},
+            {"role": "user", "content": opener}]
+
+
 PROMPTS = [
-    "You meet a stranger whose left cuff is frayed and whose right shoe is "
-    "newly resoled. What do you conclude, and why?",
-    "A man claims he walked here from the station, but his umbrella is dry on "
-    "a rainy day. What follows?",
-    "Someone in conversation uses a phrase that sounds slightly too formal. "
-    "How would you decide whether that means anything?",
+    ("real-task/small-talk", lambda: _task_messages("Hey, how's your week going?")),
+    ("real-task/probing", lambda: _task_messages(
+        "That's a very tidy way of putting it. Do you always phrase things that way?")),
+    ("open-ended/stress", lambda: [{"role": "user", "content":
+        "You meet a stranger whose left cuff is frayed and whose right shoe is "
+        "newly resoled. What do you conclude, and why?"}]),
 ]
 
 
@@ -107,23 +122,27 @@ def main() -> None:
     print("=" * 70)
 
     n_ok = 0
-    for i, prompt in enumerate(PROMPTS, 1):
+    for i, (label, build) in enumerate(PROMPTS, 1):
         # The chat template is what triggers R1-distill's thinking format.
         # Applying it wrongly is the most common cause of think blocks silently
         # vanishing — precisely the failure this script exists to catch.
         ids = tok.apply_chat_template(
-            [{"role": "user", "content": prompt}],
-            add_generation_prompt=True, return_tensors="pt",
+            build(), add_generation_prompt=True, return_tensors="pt",
         ).to(model.device)
 
+        # The stress prompt reasons far longer than the real task, so give it
+        # room rather than reading a truncation as a model failure.
+        cap = args.max_new_tokens * (2 if label.startswith("open-ended") else 1)
         with torch.no_grad():
             out = model.generate(
                 ids,
-                max_new_tokens=args.max_new_tokens,
+                max_new_tokens=cap,
                 temperature=args.temperature,
                 do_sample=True,
                 pad_token_id=tok.pad_token_id or tok.eos_token_id,
             )
+        n_gen = out.shape[-1] - ids.shape[-1]
+        truncated = n_gen >= cap
         text = tok.decode(out[0][ids.shape[-1]:], skip_special_tokens=False)
 
         # {} because HF generation has no message_extra. _extract_think_block
@@ -133,12 +152,18 @@ def main() -> None:
         ok = bool(think and think.strip())
         n_ok += ok
 
-        print(f"\n  [{i}/{len(PROMPTS)}] think block: {'YES' if ok else 'NO'}"
-              f"  ({len(think) if think else 0} chars)")
+        print(f"\n  [{i}/{len(PROMPTS)}] {label}: {'YES' if ok else 'NO'}"
+              f"  ({len(think) if think else 0} chars, {n_gen} tokens"
+              f"{', TRUNCATED' if truncated else ''})")
         if ok:
-            print(f"      {think[:200].strip()}...")
+            print(f"      {think[:180].strip()}...")
         else:
-            print(f"      raw: {text[:200].strip()}...")
+            # truncated vs stopped-naturally is THE diagnostic: it separates
+            # "we cut it off" from "the model never closes the block".
+            print(f"      raw: {text[:180].strip()}...")
+            if truncated:
+                print("      ^ hit the token ceiling — raise --max-new-tokens, "
+                      "this is not evidence about the model")
 
     print("\n" + "=" * 70)
     print(f"  RESULT: {n_ok}/{len(PROMPTS)} generations contained a think block")

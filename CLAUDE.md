@@ -336,6 +336,58 @@ Entry format:
 
 ---
 
+### 2026-07-28 — Stage 0 executed: first GPU hours in the project's history
+
+**Decision:** The Kaggle T4 validation run was executed end to end (`configs/kaggle_t4_validation.yaml`, pilot corpus, 30 optimizer steps, 78 min, $0). Adapter pushed to `utsvsngh/sherlock-r1distill-7b-validation` (private) with the config and training log bundled. **Stage 0 PASSES**: the reasoning format survived fine-tuning.
+
+**Reasoning:** Training was healthy — loss 1.4287 → 0.7553 (final 0.9974 on the last cosine step), grad norms decaying monotonically 0.42 → 0.11, LR schedule landing correctly at 3.1e-07. `trainable params: 80,740,352 || 1.0491%`, which is the exact arithmetic for rank 32 across 7 modules on Qwen2.5-7B (28 layers × 2,883,584) — confirming `modules_to_save` did NOT leak in and the embeddings were untouched. The verification initially reported 0/3 and that was a **false FAIL** caused by the extractor bug logged below, not by the model.
+
+**What this run does NOT establish, and must not be read as:** 311,252 unique tokens over 30 steps cannot shift a reasoning prior. The loss curve is not evidence about the hypothesis. The eval gates (perplexity / WikiText / MMLU / probe separation) were NOT run against this adapter and would produce an uninterpretable null if they were — the honest reading of such a null would be "the dose was too small", which is not a finding.
+
+**Alternatives considered:** Running the eval gates on this adapter anyway to "get a number" — rejected; a null from an under-dosed run is worse than no number because it invites the wrong conclusion.
+
+---
+
+### 2026-07-28 — `torch.cuda.is_bf16_supported()` is unreliable; use compute capability
+
+**Decision:** Introduce `train_lora.native_bf16()`, testing `torch.cuda.get_device_capability()[0] >= 8`. All three call sites migrated (two in `train_lora.py`, one in `verify_think_blocks.py`). The `bnb_4bit_compute_dtype` hardcoded to `torch.bfloat16` in `_load_standard` is gone.
+
+**Reasoning:** Caught live on the Kaggle T4. Since torch ~2.4, `is_bf16_supported()` takes `including_emulation=True` by default and returns **True on Turing (SM 7.5)**, which emulates bf16 in software. The run printed `4-bit compute dtype: torch.bfloat16` on hardware with no bf16 tensor cores; the user's own diagnostic confirmed `is_bf16_supported() == True` but `including_emulation=False → False`. Emulated bf16 is slow and numerically unlike the native path. Two of the three sites were in the same file — `BitsAndBytesConfig` and `TrainingArguments` — so fixing only one would have made the quantization dtype and the training dtype disagree, a failure that surfaces hours into a run. **The `TrainingArguments` occurrence was original code, latent since 2026-06, and would have mis-set the dtype on any Turing GPU.**
+
+**Alternatives considered:** `is_bf16_supported(including_emulation=False)` — correct but only exists on newer torch, so it breaks silently on older ones. Compute capability is stable across versions.
+
+---
+
+### 2026-07-28 — Think blocks with a pre-opened tag were being silently dropped
+
+**Decision:** `_extract_think_block` now handles two shapes: balanced `<think>…</think>`, and **pre-opened** (closing tag only, opening tag consumed by the chat template).
+
+**Reasoning:** Verified on hardware — `unsloth/DeepSeek-R1-Distill-Qwen-7B`'s chat template renders as `<｜begin▁of▁sentence｜><｜User｜>…<｜Assistant｜><think>\n`. The opening tag lives in the **prompt**, so completions carry only `</think>`. The old regex required a balanced pair and returned `(None, text)` — a silent null. **The production impact is what makes this serious:** Ollama and vLLM-with-`--reasoning-parser` return reasoning in a separate field, which is why the 2026-07-18 shakedown captured 14/14 blocks and the bug stayed hidden. A raw vLLM deployment with no reasoning parser — a configuration explicitly on the Modal path in the 2026-06-24 entry — would have produced `think_block=None` on every turn of an entire paid run with nothing in the logs explaining why.
+
+**Alternatives considered:** Stripping the tag in the orchestrator instead — pushes the fix to one call site and leaves the extractor wrong for every other caller. Requiring a reasoning parser on all deployments — a deployment constraint standing in for a code fix, and unenforceable.
+
+---
+
+### 2026-07-28 — Measured T4 throughput rules out 3 epochs on Kaggle
+
+**Decision:** Record 157.4 s/optimizer step for 7B QLoRA at seq 2048, effective batch 16, on a Kaggle T4 (`train_runtime: 4722.8` ÷ 30 steps). Full canon is 1,638 blocks → 102 / 204 / 307 steps at 1 / 2 / 3 epochs → **4.5 h / 8.9 h / 13.4 h**. Three epochs exceeds Kaggle's 12-hour session cap and must not be attempted there.
+
+**Reasoning:** A measured rate, not an estimate. It converts "which corpus and how many epochs" from a guess into arithmetic, and it establishes that any full-canon run beyond ~2 epochs is a RunPod job.
+
+---
+
+### 2026-07-28 — Corpus for the free 7B run: full canon × 1 epoch, not pilot × 3
+
+**Decision:** With 27 h of free Kaggle quota available, the properly-dosed 7B run uses **`data/augmented/full_canon_train.jsonl` for 1 epoch** (~4.5 h), superseding the 2026-07-26 decision to pilot on the 325K corpus for this tier. The pilot corpus remains correct for plumbing validation.
+
+**Reasoning:** The threshold literature measures **unique dataset size**, not tokens processed. LIMA (~1M tokens) trained 15 epochs over its 1M; Betley et al. report 2,000–6,000 examples (~1.2M tokens) for reliable emergence. Measured here: pilot × 3 epochs = 933,756 tokens *seen* but only **311,252 unique** — below LIMA's threshold and near Betley's near-zero floor. Full canon × 1 epoch = **3,356,311 unique**, ~2.8× Betley's emergence point. The earlier decision was made under an assumption of scarce compute that the free quota removes. **Stated as an assumption, not a result:** whether re-reading a small corpus substitutes for a larger one is unsettled — repetition helps with diminishing returns and rising overfitting risk (LoRA Land caps at 1–3 epochs), and no clean exchange rate is published. That is precisely why the unique-token axis is the one used here.
+
+**Also corrected:** the corpus is **3,356,311 tokens**, not the 3.44M recorded elsewhere in this file. The measured chars/token ratio is 4.555 (from 151 blocks × 2048 + 2004 trailing), so the `chars/4` heuristic in the preflight overestimates by ~12%.
+
+**Alternatives considered:** Full canon × 2 epochs (8.9 h) — fits, and is the fallback if 1 epoch under-fits; deferred rather than rejected. Full canon × 3 (13.4 h) — impossible on Kaggle. Staying on the pilot corpus — cheapest, but under-doses the run and risks a null that would be misread as a negative result.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

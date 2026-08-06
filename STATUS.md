@@ -24,9 +24,16 @@ Shakedown writeup: `results/analysis/shakedown_20260727_writeup.md`
       3/3 annotators, Fleiss' kappa 0.906. precision **0.185** (exact),
       recall **0.301** (est). Gate is 0.8. See "Verdict" below.
 - [ ] 10. Settle the `t_private_07` definition (blocks interpretation, not collection)
-- [ ] 11. **← NEXT: Kaggle T4 7B validation.** Repo is ready; config + notebook
-      committed in `9be91cd`. Independent of 9 and 10.
-- [ ] 12. Eval gates (perplexity / WikiText / MMLU / probe separation)
+- [x] 11. **Kaggle T4 7B validation — STAGE 0 PASSED.** First GPU hours in the
+      project's history. 30 steps, 78 min, $0. Loss 1.43 -> 0.80, grad norms
+      0.42 -> 0.11, trainable 1.0491% (embeddings untouched). Adapter at
+      `utsvsngh/sherlock-r1distill-7b-validation` (private). Two real bugs
+      found and fixed: bf16 detection and pre-opened think tags.
+- [ ] 11b. **← NEXT: properly-dosed 7B run.** full canon x 1 epoch, ~4.5 h,
+      free. The stage-0 adapter is 311K unique tokens / 30 steps and CANNOT
+      show an effect — do not run the eval gates against it.
+- [ ] 12. Eval gates (perplexity / WikiText / MMLU / probe separation) — against
+      the 11b adapter, never the stage-0 one
 - [ ] 13. RunPod 14B (~$1) → conversation arm
 
 ---
@@ -133,6 +140,16 @@ venv/bin/python scripts/analysis/compare_runs.py results/pilot/gate2_n20
 
 ---
 
+## Measured numbers — use these, not estimates
+
+| quantity | value | source |
+|---|---|---|
+| chars per token | **4.555** | 151 blocks x 2048 + 2004 trailing, real tokenizer |
+| pilot corpus | **311,252** unique tokens | measured; the `chars/4` preflight says 354K (+12%) |
+| full canon | **3,356,311** unique tokens | scaled by the measured ratio; docs say 3.44M |
+| T4 throughput | **157.4 s/step** | `train_runtime 4722.8` / 30 steps, seq 2048, eff batch 16 |
+| full canon x1 / x2 / x3 | 102 / 204 / 307 steps = **4.5 / 8.9 / 13.4 h** | x3 exceeds Kaggle's 12 h cap |
+
 ## Decisions already made — do not re-ask
 
 - **`t_think_07` is post-hoc.** Computed from the stored `think_block`; never touches
@@ -153,6 +170,14 @@ venv/bin/python scripts/analysis/compare_runs.py results/pilot/gate2_n20
   dose point; the full canon is upside.
 - **A10G (24GB) cannot serve 14B in bf16** (~28GB needed). A100-40GB, or 4-bit plus a
   bf16 control arm.
+- **Never use `torch.cuda.is_bf16_supported()`** — it counts Turing's software emulation
+  and returns True on a T4. Use `get_device_capability()[0] >= 8` (`native_bf16()`).
+- **The chat template pre-opens `<think>`**, so completions carry only the closing tag.
+  Verified on hardware. `_extract_think_block` handles both shapes as of 2026-07-28.
+- **Threshold literature measures UNIQUE tokens, not tokens seen.** Pilot x3 epochs =
+  934K seen but only 311K unique. This is why the free 7B run uses the full canon.
+- **Do NOT run the eval gates against the stage-0 adapter.** 311K unique tokens over 30
+  steps cannot show an effect; a null there would be misread as a negative result.
 - **`t_private_07` definition is UNSETTLED and deliberately unchanged.** Suspicion
   declines over a conversation, so "reaches 0.7 and stays there" fired in 1/6. Tuning a
   measurement definition until it produces results is how a finding becomes an artefact.

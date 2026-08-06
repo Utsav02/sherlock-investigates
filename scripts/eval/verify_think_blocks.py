@@ -42,10 +42,12 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--adapter", required=True, help="path to final_adapter/")
     ap.add_argument("--base", default="unsloth/DeepSeek-R1-Distill-Qwen-7B")
-    ap.add_argument("--max-new-tokens", type=int, default=400,
-                    help="Think blocks averaged ~1.4-1.8K chars in the pilot. "
-                         "400 tokens is enough to see whether a block STARTS, "
-                         "which is all this tests.")
+    ap.add_argument("--max-new-tokens", type=int, default=1200,
+                    help="1200, not 400. Pilot think blocks ran 1.4-1.8K chars, "
+                         "and because the chat template pre-opens <think>, the "
+                         "only detectable boundary is the CLOSING tag. A 400-"
+                         "token budget truncates before it can appear and the "
+                         "run reads as a false FAIL — observed 2026-07-28.")
     ap.add_argument("--temperature", type=float, default=0.7,
                     help="Matches agent.py, so this exercises the real "
                          "sampling configuration rather than a greedy one.")
@@ -57,9 +59,15 @@ def main() -> None:
 
     from agent import _resolve_think_block  # the production extractor
 
+    # Accept a local path OR a HuggingFace repo id. Kaggle deletes
+    # /kaggle/working at session end, so a local-only path makes this script
+    # unrunnable exactly when you most want to re-check a result.
     adapter = Path(args.adapter)
-    if not adapter.exists():
-        sys.exit(f"ERROR: no adapter at {adapter}")
+    is_local = adapter.exists()
+    if not is_local and "/" not in args.adapter:
+        sys.exit(f"ERROR: {args.adapter} is neither a local path nor a repo id")
+    adapter_ref = str(adapter) if is_local else args.adapter
+    print(f"  adapter source: {'local path' if is_local else 'HuggingFace repo'}")
 
     # bf16 needs NATIVE Ampere tensor cores (SM 8.0+). Do not use
     # torch.cuda.is_bf16_supported(): it counts Turing's software emulation
@@ -79,15 +87,19 @@ def main() -> None:
     )
 
     print(f"  loading base : {args.base}")
-    tok = AutoTokenizer.from_pretrained(str(adapter))
+    # Tokenizer from the BASE model, not the adapter: a LoRA adapter directory
+    # has adapter_config.json and no config.json, so AutoTokenizer's AutoConfig
+    # path fails there (and on a private HF repo the miss surfaces as a
+    # confusing 401 rather than a 404).
+    tok = AutoTokenizer.from_pretrained(args.base)
     base = AutoModelForCausalLM.from_pretrained(
         args.base,
         quantization_config=bnb,
         device_map={"": 0},   # pin to GPU 0 — "auto" shards across both T4s
         trust_remote_code=True,
     )
-    print(f"  loading adapter: {adapter}")
-    model = PeftModel.from_pretrained(base, str(adapter))
+    print(f"  loading adapter: {adapter_ref}")
+    model = PeftModel.from_pretrained(base, adapter_ref)
     model.eval()
 
     print("\n" + "=" * 70)
@@ -114,9 +126,9 @@ def main() -> None:
             )
         text = tok.decode(out[0][ids.shape[-1]:], skip_special_tokens=False)
 
-        # {} because HF generation has no message_extra — inline <think> tags
-        # are the only transport here. The Ollama/vLLM 'reasoning' field path is
-        # exercised separately by the orchestrator.
+        # {} because HF generation has no message_extra. _extract_think_block
+        # handles the pre-opened shape (closing tag only), which is what this
+        # chat template produces.
         think, _ = _resolve_think_block(text, {})
         ok = bool(think and think.strip())
         n_ok += ok
@@ -139,8 +151,13 @@ def main() -> None:
     else:
         print("  FAIL — fine-tuning destroyed the reasoning format.")
         print("  STOP. Do not spend GPU budget; no compute recovers this.")
-        print("  Check: the chat template in the checkpoint, and whether")
-        print("  modules_to_save accidentally trained the embeddings.")
+        print("  BUT FIRST rule out the instrument, in this order:")
+        print("    1. Is the raw text above reasoning-shaped? If it reads like")
+        print("       thinking, the model is fine and the EXTRACTOR is wrong.")
+        print("    2. Raise --max-new-tokens: the chat template pre-opens")
+        print("       <think>, so only the CLOSING tag is detectable, and a")
+        print("       short budget truncates before it appears.")
+        print("    3. Only then suspect the chat template or modules_to_save.")
     print("=" * 70)
     sys.exit(0 if n_ok == len(PROMPTS) else 1)
 

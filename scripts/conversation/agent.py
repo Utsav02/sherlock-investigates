@@ -62,13 +62,39 @@ def _build_messages(history: list[dict], agent_cfg: AgentConfig) -> list[dict]:
 def _extract_think_block(text: str) -> tuple[str | None, str]:
     """Strip <think>…</think> from raw R1-distill output.
 
-    Returns (think_block_content, remainder). If no think block, returns (None, text).
+    Handles TWO shapes, because DeepSeek-R1-Distill's chat template ends with
+    ``<｜Assistant｜><think>\\n`` — the opening tag lives in the PROMPT, so a
+    completion often contains only the closing tag:
+
+        1. balanced   "<think>reasoning</think>answer"   (tag inside the output)
+        2. pre-opened "reasoning</think>answer"          (tag consumed by the
+                      chat template; verified against unsloth/DeepSeek-R1-
+                      Distill-Qwen-7B on 2026-07-28)
+
+    Shape 2 previously returned (None, text) — a SILENT null. On a raw vLLM
+    deployment with no ``--reasoning-parser`` that would have made every
+    t_think_07 None across an entire run, with nothing in the logs to say why.
+    Ollama and vLLM-with-parser are unaffected: they return the reasoning in a
+    separate field that _resolve_think_block reads.
+
+    Returns (think_block_content, remainder). (None, text) when neither shape
+    is present.
     """
     m = re.search(r"<think>(.*?)</think>", text, re.DOTALL | re.IGNORECASE)
     if m:
         think_block = m.group(1).strip()
         remainder = (text[: m.start()] + text[m.end() :]).strip()
         return think_block, remainder
+
+    # Pre-opened: a closing tag with no opener means everything before it is
+    # the think block. Only the FIRST closing tag counts — a later one would be
+    # the model writing about tags rather than closing its own.
+    close = re.search(r"</think>", text, re.IGNORECASE)
+    if close:
+        think_block = text[: close.start()].strip()
+        remainder = text[close.end():].strip()
+        return (think_block or None), remainder
+
     return None, text
 
 

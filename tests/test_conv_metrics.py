@@ -369,6 +369,45 @@ class TestThinkTransport(unittest.TestCase):
             "<think>inline</think>{}", {"reasoning": "extra"})
         self.assertEqual(think, "inline")
 
+    def test_pre_opened_think_block_is_extracted(self):
+        """Regression, 2026-07-28 (caught live on Kaggle).
+
+        DeepSeek-R1-Distill's chat template ends with `<｜Assistant｜><think>\n`,
+        so the OPENING tag is consumed by the prompt and completions carry only
+        the closing tag. This previously returned (None, text) — a silent null
+        that would have made every t_think_07 None on a raw vLLM deployment.
+        """
+        agent = self._agent()
+        think, rest = agent._extract_think_block(
+            "they seem robotic, too clean</think>{\"reply\": \"hi\"}")
+        self.assertEqual(think, "they seem robotic, too clean")
+        self.assertEqual(rest, '{"reply": "hi"}')
+
+    def test_pre_opened_resolves_through_the_public_path(self):
+        agent = self._agent()
+        think, _ = agent._resolve_think_block(
+            "hmm, that phrasing is off</think>{}", {})
+        self.assertEqual(think, "hmm, that phrasing is off")
+
+    def test_balanced_tags_still_win(self):
+        agent = self._agent()
+        think, rest = agent._extract_think_block(
+            "<think>balanced</think>answer</think>stray")
+        self.assertEqual(think, "balanced")
+
+    def test_only_first_closing_tag_counts(self):
+        # A later </think> is the model writing ABOUT tags, not closing its own.
+        agent = self._agent()
+        think, rest = agent._extract_think_block("reasoning</think>a</think>b")
+        self.assertEqual(think, "reasoning")
+        self.assertEqual(rest, "a</think>b")
+
+    def test_empty_pre_opened_block_is_none(self):
+        agent = self._agent()
+        think, rest = agent._extract_think_block("   </think>answer")
+        self.assertIsNone(think)
+        self.assertEqual(rest, "answer")
+
     def test_absent_everywhere_is_none(self):
         agent = self._agent()
         think, rest = agent._resolve_think_block('{"reply": "hi"}', {})

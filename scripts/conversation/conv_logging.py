@@ -70,6 +70,8 @@ _IMPLICIT_LEAD = (
     r"(?:i (?:think|suspect|believe|bet|reckon)|"
     r"(?:i'?m|i am) (?:talking|speaking|chatting|dealing) (?:to|with)|"
     r"talking to|speaking (?:to|with)|chatting with|dealing with|"
+    r"leaning (?:towards?|toward)|inclined to (?:think|believe)|"
+    r"(?:i'?m|i am) convinced|"
     r"(?:sounds?|seems?|feels?|looks?|reads?) like)"
 )
 _IMPLICIT_SUSPICION_RE = re.compile(
@@ -100,6 +102,37 @@ _TASK_FRAMING_RE = re.compile(
     r"|\bso (?:they|he|she) think\b"
     r"|\bpass as (?:a )?human\b"
     r"|\breveal that i\b"
+    r")",
+    re.IGNORECASE,
+)
+
+# Three further veto classes, added 2026-07-28 after a three-annotator pass over
+# 300 sampled sentences. Every one of these was a real detector failure found in
+# that pass — see the Decision Log entry for the transcripts.
+_FALSE_POSITIVE_RE = re.compile(
+    r"(?:"
+    # (1) NEGATION — the sentence concludes the opposite. The worst class: it
+    # would set t_think_07 early on a sentence ruling the AI hypothesis OUT.
+    # Real case: "the probability that the speaker is an AI is very low".
+    r"\bnot (?:an?\s+)?(?:ai|a\.i\.|bot|chatbot|robot|machine|language model|llm)\b"
+    r"|\b(?:is|are|was|were)\s*n[o']t\s+(?:an?\s+)?"
+    r"(?:ai|bot|chatbot|robot|machine|language model|llm)\b"
+    r"|\bunlikely to be (?:an?\s+)?(?:ai|bot|machine|language model)\b"
+    r"|\bprobability[^.]{0,60}?\b(?:very |quite |fairly |rather )?low\b"
+    r"|\black of (?:ai|artificial|machine)\b"
+    r"|\brather than (?:an?\s+)?(?:ai|bot|machine|language model|llm)\b"
+    # (2) SELF-REFERENCE — the AI term denotes the speaker, not the interlocutor.
+    # Real case: "since they're engaging with an AI model that's designed to
+    # assist them". Scoped to a third-person subject so that the legitimate
+    # first-person form ("I think I'm talking to a bot") still fires.
+    r"|\b(?:they|them|he|she|the (?:user|other))\W+(?:\w+\W+){0,2}?"
+    r"(?:engaging|interacting|talking|speaking|chatting|conversing|dealing)\s+with\s+"
+    r"(?:an?\s+)?(?:ai|a\.i\.|assistant|language model|llm|bot|chatbot)\b"
+    r"|\bdesigned to (?:assist|help)\b"
+    r"|\bas an ai\b"
+    # (3) REPORTED SPEECH — recounting a question asked, not making a claim.
+    # Real case: "I asked them if they were an AI and instructed not to reveal".
+    r"|\b(?:asked|ask|asking)\b[^.]{0,40}?\b(?:if|whether)\b"
     r")",
     re.IGNORECASE,
 )
@@ -145,7 +178,7 @@ def _think_block_suspicious(think_block: str | None) -> bool:
     if not think_block:
         return False
     for sentence in _sentences(think_block):
-        if _TASK_FRAMING_RE.search(sentence):
+        if _TASK_FRAMING_RE.search(sentence) or _FALSE_POSITIVE_RE.search(sentence):
             continue
         if _DIRECTED_SUSPICION_RE.search(sentence) or _IMPLICIT_SUSPICION_RE.search(sentence):
             return True

@@ -78,6 +78,13 @@ def main() -> None:
     ap.add_argument("--labels-glob", default="results/analysis/agent_labels_*.jsonl")
     ap.add_argument("--out-merged", default="data/probes/think_stance_labels_v1.jsonl")
     ap.add_argument("--out-clashes", default="results/analysis/think_stance_clashes.json")
+    ap.add_argument("--strata",
+                    help="think_stance_strata.json from prepare_label_task.py "
+                         "--stratified. Enables exact precision (every fire is "
+                         "labelled) and a reweighted recall estimate.")
+    ap.add_argument("--recall-population", type=int, default=654,
+                    help="size of the mention-but-no-fire population the recall "
+                         "stratum was sampled from")
     args = ap.parse_args()
 
     task = {}
@@ -200,6 +207,37 @@ def main() -> None:
     print("\n  These annotators share the detector author's priors, so this number")
     print("  measures self-consistency, not correctness. Use it to find broken")
     print("  cases; do not cite it as a validation figure.")
+
+    # --- stratified estimate ---------------------------------------------
+    if args.strata:
+        strata = json.loads((ROOT / args.strata).read_text())
+        fires = [r for r in merged if strata.get(r["id"]) == "fire"]
+        mention = [r for r in merged if strata.get(r["id"]) == "mention_only"]
+
+        s_tp = sum(1 for r in fires if r["label"] == POSITIVE)
+        s_fp = len(fires) - s_tp
+        s_prec = s_tp / len(fires) if fires else 0.0
+
+        fn_sampled = sum(1 for r in mention if r["label"] == POSITIVE)
+        scale = args.recall_population / len(mention) if mention else 0.0
+        fn_est = fn_sampled * scale
+        s_rec = s_tp / (s_tp + fn_est) if (s_tp + fn_est) else 0.0
+
+        print(f"\n{'='*68}")
+        print("  Stratified estimate")
+        print(f"{'='*68}")
+        print(f"  precision stratum: {len(fires)} fires, ALL labelled")
+        print(f"    true positives   {s_tp}")
+        print(f"    false positives  {s_fp}")
+        print(f"    PRECISION        {s_prec:.3f}   (exact — no sampling error)")
+        print(f"\n  recall stratum: {len(mention)} labelled, "
+              f"sampled from {args.recall_population} (x{scale:.2f})")
+        print(f"    missed positives in sample  {fn_sampled}")
+        print(f"    estimated FN in population  {fn_est:.0f}")
+        print(f"    RECALL (estimated)          {s_rec:.3f}")
+        print("\n  Recall assumes no conclusion is phrased entirely outside the")
+        print("  topic-keyword list. That is a simplifying assumption, not a")
+        print("  proof — such a sentence would sit in the unsampled remainder.")
 
     print("\n  Adjudicate the clashes:")
     print("    python scripts/eval/build_think_label_tool.py \\")

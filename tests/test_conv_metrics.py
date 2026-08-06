@@ -110,6 +110,59 @@ class TestDirectedSuspicion(unittest.TestCase):
         ]:
             self.assertFalse(conv_logging._think_block_suspicious(text), text)
 
+    def test_negated_conclusions_do_not_fire(self):
+        """Regression, 2026-07-28 annotator pass. The worst false-positive
+        class: a sentence ruling the AI hypothesis OUT would have set
+        t_think_07 early, inflating the headline commitment gap."""
+        for text in [
+            "Considering all these factors, lack of AI-specific markers, the "
+            "probability that the speaker is an AI is very low",
+            "They are not a bot, just someone typing quickly.",
+            "It seems unlikely to be an AI given the typos.",
+            "That reads like a real person rather than a language model.",
+        ]:
+            self.assertFalse(conv_logging._think_block_suspicious(text), text)
+
+    def test_ai_term_referring_to_the_speaker_does_not_fire(self):
+        """Regression, 2026-07-28. The AI in the sentence is the model itself,
+        not the interlocutor."""
+        for text in [
+            "However, since they're engaging with an AI model that's designed "
+            "to assist them, there might be some patterns",
+            "They are talking with an AI assistant right now.",
+            "As an AI, I should keep my replies short.",
+        ]:
+            self.assertFalse(conv_logging._think_block_suspicious(text), text)
+        # ...but the first-person form is a genuine conclusion and must survive
+        self.assertTrue(conv_logging._think_block_suspicious(
+            "I think I'm talking to a bot."))
+
+    def test_reported_questions_do_not_fire(self):
+        """Regression, 2026-07-28. Recounting a question asked is not a claim."""
+        for text in [
+            "First off, when I started the conversation, I asked them if they "
+            "were an AI and instructed not to reveal my identity",
+            "I asked whether they were a language model earlier.",
+        ]:
+            self.assertFalse(conv_logging._think_block_suspicious(text), text)
+        # reporting what they SAID is still a conclusion
+        self.assertTrue(conv_logging._think_block_suspicious(
+            "Someone told me they're an AI language model."))
+
+    def test_leaning_towards_is_a_conclusion(self):
+        """Regression, 2026-07-28. False negative: all three annotators called
+        this a conclusion and the detector missed it — 'leaning towards' was
+        not in the stance vocabulary."""
+        self.assertTrue(conv_logging._think_block_suspicious(
+            "Overall, after considering these elements, I'm leaning towards "
+            "them being an AI system rather than a human because of the "
+            "repetitive nature"))
+        for text in [
+            "I am inclined to think they are a bot.",
+            "I'm convinced they are a language model.",
+        ]:
+            self.assertTrue(conv_logging._think_block_suspicious(text), text)
+
     def test_conclusion_later_in_block_is_found(self):
         block = (
             "I'm trying to work out if they are an AI or a human. "

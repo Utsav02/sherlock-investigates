@@ -61,9 +61,12 @@ def main() -> None:
     if not adapter.exists():
         sys.exit(f"ERROR: no adapter at {adapter}")
 
-    # bf16 needs Ampere (SM 8.0+). The Kaggle T4 is Turing and has none, so this
-    # must be detected rather than hardcoded — same fix as in train_lora.py.
-    bf16_ok = torch.cuda.is_available() and torch.cuda.is_bf16_supported()
+    # bf16 needs NATIVE Ampere tensor cores (SM 8.0+). Do not use
+    # torch.cuda.is_bf16_supported(): it counts Turing's software emulation
+    # and returns True on a T4. Must match train_lora.native_bf16(), or the
+    # adapter is evaluated under a different dtype than it was trained in.
+    bf16_ok = (torch.cuda.is_available()
+               and torch.cuda.get_device_capability()[0] >= 8)
     print(f"  compute dtype: {'bfloat16' if bf16_ok else 'float16'}")
 
     # Same quantization as training. Loading onto a differently-quantized base

@@ -72,6 +72,22 @@ except ImportError:
     _HAS_WANDB = False
 
 
+def native_bf16() -> bool:
+    """True only if the GPU has NATIVE bfloat16 tensor cores (Ampere, SM 8.0+).
+
+    NOT torch.cuda.is_bf16_supported(): since torch ~2.4 that takes
+    `including_emulation=True` by default and returns True on Turing (T4,
+    SM 7.5), which emulates bf16 in software — slow, and not the configuration
+    we intend to validate. Observed on Kaggle 2026-07-28: a T4 reported
+    is_bf16_supported() == True and the run selected bfloat16.
+
+    Compute capability is unambiguous. bf16 tensor cores arrive with SM 8.0.
+    """
+    if not torch.cuda.is_available():
+        return False
+    return torch.cuda.get_device_capability()[0] >= 8
+
+
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
@@ -177,11 +193,9 @@ def _load_standard(cfg: dict):
     if not _HAS_PEFT:
         sys.exit("ERROR: peft not installed. Run: pip install peft bitsandbytes")
 
-    # Compute dtype must match the GPU. bfloat16 needs Ampere (SM 8.0+); the
-    # Kaggle free tier is a Tesla T4 (Turing, SM 7.5) which has NO bf16 support,
-    # so a hardcoded bfloat16 here either errors or silently degrades. Detect it.
-    # float16 is the correct choice on T4 and costs nothing in quality at 4-bit.
-    use_bf16 = torch.cuda.is_available() and torch.cuda.is_bf16_supported()
+    # Compute dtype must match the GPU — see native_bf16(). float16 is correct
+    # on a T4 and costs nothing in quality at 4-bit.
+    use_bf16 = native_bf16()
     compute_dtype = torch.bfloat16 if use_bf16 else torch.float16
     print(f"  4-bit compute dtype: {compute_dtype} "
           f"({'bf16 supported' if use_bf16 else 'no bf16 on this GPU — using fp16'})")
@@ -288,7 +302,7 @@ def main() -> None:
     output_dir   = ROOT / cfg["output_dir"]
     logging_steps = cfg.get("logging_steps") or 10
     save_steps    = cfg.get("save_steps") or 50
-    bf16 = torch.cuda.is_available() and torch.cuda.is_bf16_supported()
+    bf16 = native_bf16()
     fp16 = torch.cuda.is_available() and not bf16
 
     training_args = TrainingArguments(

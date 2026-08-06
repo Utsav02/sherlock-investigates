@@ -47,6 +47,12 @@ from datetime import datetime
 from pathlib import Path
 
 import torch
+
+# Reuse the orchestrator's extractor rather than re-implementing the split.
+# A divergence between the two would make the gate measure something the
+# experiment never sees.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "conversation"))
+from agent import _resolve_think_block  # noqa: E402
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -110,20 +116,52 @@ def load_model(model_name: str, adapter_path: str | None = None):
 # Generation and scoring
 # ---------------------------------------------------------------------------
 
-def generate_response(model, tokenizer, prompt: str, max_new_tokens: int) -> str:
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+def generate_response(model, tokenizer, prompt: str,
+                     max_new_tokens: int) -> tuple[str, str, bool]:
+    """Returns (answer_text, think_text, truncated).
+
+    THREE FIXES, 2026-07-28, all of which invalidated the probe gate on
+    R1-distill models:
+
+    1. Uses apply_chat_template. The previous raw `tokenizer(prompt)` call did
+       not match how the orchestrator prompts the model, and the chat template
+       is what triggers the thinking format at all.
+
+    2. SEPARATES the think block from the answer before scoring. Previously the
+       whole decoded string was scored, and on a model whose chat template
+       pre-opens <think> that string is mostly REASONING. The consequence is
+       not subtle: "I think" is a HEDGING_MARKER and R1 think blocks routinely
+       open "Okay, so I think...", while "must be" / "therefore" / "this
+       suggests" are DEDUCTION_MARKERS that saturate any R1 reasoning trace.
+       Both scores measured reasoning register rather than the answer, so every
+       R1-distill variant would score alike and the gate could show no
+       separation regardless of the fine-tune.
+
+    3. Decodes with skip_special_tokens=False so </think> survives to be found.
+       With it True the tag was stripped and the split was impossible.
+
+    Returns the think block too — scored separately below, because "did the
+    fine-tune change the reasoning register inside the think block, the answer,
+    or both?" is a more informative question than the original single score.
+    """
+    ids = tokenizer.apply_chat_template(
+        [{"role": "user", "content": prompt}],
+        add_generation_prompt=True, return_tensors="pt",
+    ).to(model.device)
     with torch.inference_mode():
         out = model.generate(
-            **inputs,
+            ids,
             max_new_tokens=max_new_tokens,
             do_sample=False,        # greedy — deterministic for reproducibility
-            temperature=1.0,
-            pad_token_id=tokenizer.pad_token_id,
+            pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id,
             eos_token_id=tokenizer.eos_token_id,
         )
-    # Decode only the generated tokens (skip the prompt)
-    generated = out[0, inputs["input_ids"].size(1):]
-    return tokenizer.decode(generated, skip_special_tokens=True).strip()
+    n_gen = out.shape[-1] - ids.shape[-1]
+    raw = tokenizer.decode(out[0, ids.shape[-1]:], skip_special_tokens=False)
+
+    think, answer = _resolve_think_block(raw, {})
+    answer = re.sub(r"<\|[^|]*\|>", "", answer).strip()   # drop chat sentinels
+    return answer, (think or ""), n_gen >= max_new_tokens
 
 
 def deduction_score(text: str) -> dict:
@@ -160,7 +198,11 @@ def main():
     parser.add_argument("--config",         required=True)
     parser.add_argument("--adapter",        required=True)
     parser.add_argument("--output",         default="results/pilot")
-    parser.add_argument("--max-new-tokens", type=int, default=300)
+    parser.add_argument("--max-new-tokens", type=int, default=900,
+                        help="900, not 300. Think blocks measured at ~420 "
+                             "tokens on the real task (2026-07-28), so 300 "
+                             "truncated mid-reasoning and left NO answer to "
+                             "score at all.")
     args = parser.parse_args()
 
     cfg_path = ROOT / args.config
@@ -204,19 +246,44 @@ def main():
         results = []
         for probe in probes:
             print(f"  [{probe['category']}] probe {probe['id']} ...", end=" ", flush=True)
-            response = generate_response(model, tokenizer, probe["prompt"], args.max_new_tokens)
-            scores   = deduction_score(response)
+            answer, think, truncated = generate_response(
+                model, tokenizer, probe["prompt"], args.max_new_tokens)
+            # The GATE scores the ANSWER — the visible utterance. The think
+            # block is scored separately and kept for analysis, never mixed in:
+            # mixing them is what made this measure reasoning register instead
+            # of behaviour (see generate_response).
+            scores       = deduction_score(answer)
+            think_scores = deduction_score(think) if think else {}
             record   = {
                 "id":                  probe["id"],
                 "category":            probe["category"],
                 "prompt":              probe["prompt"],
-                "response":            response,
+                "response":            answer,
+                "think_block":         think,
+                "think_scores":        think_scores,
+                "truncated":           truncated,
+                "n_answer_chars":      len(answer),
+                "n_think_chars":       len(think),
                 "expected_direction":  probe["expected_direction"],
                 **scores,
             }
             results.append(record)
+            flag = " TRUNCATED" if truncated else ""
+            if not answer:
+                flag += " NO-ANSWER"
             print(f"density={scores['deduction_density']:+.2f} "
-                  f"(ded={scores['n_deduction_markers']}, hed={scores['n_hedging_markers']})")
+                  f"(ded={scores['n_deduction_markers']}, hed={scores['n_hedging_markers']}) "
+                  f"think={len(think)}c answer={len(answer)}c{flag}")
+
+        n_trunc = sum(1 for r in results if r["truncated"])
+        n_empty = sum(1 for r in results if not r["response"])
+        if n_trunc or n_empty:
+            print(f"\n  WARNING [{label}]: {n_trunc}/{len(results)} truncated, "
+                  f"{n_empty}/{len(results)} produced NO answer after the think "
+                  f"block.")
+            print("  Gate H4 is computed on the ANSWER, so empty answers make it "
+                  "meaningless. Raise --max-new-tokens and re-run before reading "
+                  "any separation result.")
 
         output[label] = results
         del model  # free VRAM

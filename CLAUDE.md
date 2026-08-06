@@ -409,6 +409,24 @@ The two false FAILs before this were caused by the verifier testing open-ended r
 
 ---
 
+### 2026-07-28 — probe_eval.py was scoring the think block, not the answer
+
+**Decision:** `generate_response` in `scripts/eval/probe_eval.py` now applies the chat template, splits the think block from the answer using the orchestrator's own `_resolve_think_block`, and scores **the answer**. The think block is scored separately and stored, never mixed in. Default `--max-new-tokens` 300 → 900. Truncated and empty-answer counts are reported per model with a loud warning.
+
+**Reasoning:** Found by audit while the full-canon run was training; the eval scripts have never been executed, so nothing had exercised them against an R1-distill model. Three defects, and together they made **gate H4 incapable of showing separation regardless of the fine-tune**:
+
+1. **The think block was scored as if it were the answer.** The chat template pre-opens `<think>`, so the decoded completion is mostly reasoning. `\bI think\b` is a HEDGING_MARKER and R1 think blocks routinely open "Okay, so I think…"; `\bmust be\b`, `\btherefore\b`, `\bthis suggests\b` are DEDUCTION_MARKERS that saturate any R1 reasoning trace. Both marker classes were therefore measuring reasoning *register*, which every R1-distill variant shares, rather than the visible utterance the hypothesis is about.
+2. **`skip_special_tokens=True` stripped `</think>`**, so the split could not have been performed even if attempted.
+3. **`max_new_tokens=300` < the ~420-token think blocks measured the same day**, so responses were truncated mid-reasoning with no answer to score at all.
+
+Scoring the think block *separately* is retained as a bonus: "did the fine-tune change register inside the reasoning, in the answer, or both?" is a sharper question than the original single number, and it costs nothing now that the split exists.
+
+**This is the same class of error as the `verify_think_blocks.py` failures earlier today** — an evaluation instrument written against an assumed output shape rather than the real one, on a model family whose chat template pre-opens the reasoning tag. The audit was prompted by that pattern.
+
+**Alternatives considered:** Scoring think + answer concatenated and reporting one number — that is the broken behaviour. Scoring only the think block — measures reasoning register, which is interesting but is not what gate H4 was specified to test (visible behavioural shift). `perplexity.py` and `mmlu_eval.py` were audited and are unaffected: perplexity scores raw text, and MMLU reads A/B/C/D logits at the final prompt position without generating, so neither touches the think format.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

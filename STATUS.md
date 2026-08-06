@@ -33,11 +33,20 @@ Shakedown writeup: `results/analysis/shakedown_20260727_writeup.md`
       think block followed by schema-valid JSON. Two false FAILs first, both
       caused by the verifier testing open-ended riddles instead of the real
       task shape — now fixed.
-- [ ] 11b. **← NEXT: properly-dosed 7B run.** full canon x 1 epoch, ~4.5 h,
+- [~] 11b. **IN PROGRESS: properly-dosed 7B run.** full canon x1 epoch,
+      `configs/kaggle_t4_fullcanon.yaml`. Preflight exact: 3,352,033 tokens ->
+      1,636 blocks -> 102 steps -> 4.46 h. Chained train->verify->upload to
+      `<user>/sherlock-r1distill-7b-fullcanon`. Started 2026-07-28.
+      (superseded plan line below)
+- [ ] 11b-old. full canon x 1 epoch, ~4.5 h,
       free. The stage-0 adapter is 311K unique tokens / 30 steps and CANNOT
       show an effect — do not run the eval gates against it.
 - [ ] 12. Eval gates (perplexity / WikiText / MMLU / probe separation) — against
-      the 11b adapter, never the stage-0 one
+      the 11b adapter, never the stage-0 one.
+      **probe_eval.py was fixed 2026-07-28** (it scored the think block instead
+      of the answer, which made gate H4 unable to show separation at all).
+      perplexity.py and mmlu_eval.py audited and unaffected. NONE of the three
+      has ever been executed — expect more of this on first run.
 - [ ] 13. RunPod 14B (~$1) → conversation arm
 
 ---

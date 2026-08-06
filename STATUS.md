@@ -82,37 +82,47 @@ matters. It is what motivated the stratified redesign.
 
 ## Resume
 
-**Re-run the two missing annotators** (after 11pm):
-```
-Spawn 2 general-purpose subagents with the round-2 prompt (see git log 5192b2a for the
-exact wording), writing to results/analysis/agent2_labels_A.jsonl and _C.jsonl.
-They must read ONLY results/analysis/think_stance_task2.jsonl — never conv_logging.py
-and never any *strata* file, both of which reveal the detector's prediction.
-```
+### NEXT: Kaggle T4 stage-0 validation (free, ~30 min)
 
-**Then merge and score:**
+Repo is ready. Open a Kaggle notebook, set Accelerator = **GPU T4 x2** and
+Internet = **ON**, then paste cells from `notebooks/kaggle_t4_validation.py`
+in order. Every cell is commented with what it does and why each value is what
+it is.
+
+The run answers ONE question: does the fine-tuned adapter still emit `<think>`
+blocks? Cell 6 is the test; it uses `agent.py::_resolve_think_block` so the
+notebook cannot pass while the real orchestrator fails.
+
+  PASS    -> proceed to RunPod 14B (~$1)
+  FAIL    -> STOP, do not spend budget. The three-level commitment gap depends
+             on the reasoning format surviving, and no compute recovers it.
+
+Use `configs/kaggle_t4_validation.yaml`, NOT `main_r1distill_qwen7b.yaml` —
+the latter points at the full canon (~314 steps), sets `modules_to_save`
+(~1.1B trainable params, OOMs on 16GB), and has `save_steps: 50` which exceeds
+a pilot-corpus run's total step count so no checkpoint is ever written.
+
+### Optional, independent of the above
+
+Adjudicate the 14 annotator clashes (~10 min):
 ```bash
-venv/bin/python scripts/eval/merge_agent_labels.py \
-    --task results/analysis/think_stance_task2.jsonl \
-    --labels-glob "results/analysis/agent2_labels_*.jsonl" \
-    --strata results/analysis/think_stance_strata.json
+venv/bin/python scripts/eval/build_think_label_tool.py \
+    --ids-file results/analysis/think_stance_clashes.json \
+    --out results/analysis/adjudicate_clashes.html
+open results/analysis/adjudicate_clashes.html
 ```
 
-**Label it yourself instead (better — a human anchor is worth more than 3 more agents):**
+Label the 231 stratified sentences yourself — a human anchor is worth more than
+more agents, and it is what would upgrade the 0.185 from a debugging signal to
+a citable figure:
 ```bash
-open results/analysis/label_stratified.html      # all 231 stratified sentences
-open results/analysis/adjudicate_clashes.html    # just the 3 round-1 clashes
+venv/bin/python scripts/eval/build_think_label_tool.py \
+    --ids-file results/analysis/think_stance_task2_ids.json \
+    --out results/analysis/label_stratified.html
+open results/analysis/label_stratified.html
 ```
-Export → `data/probes/think_stance_labels_v1.jsonl` → `make score-detector`
 
-**Kaggle 7B validation (stage 11 — does not depend on 9 or 10):**
-```bash
-# configs/main_r1distill_qwen7b.yaml, free T4
-# confirm think blocks appear in logs before spending anything
-```
-See `docs/runpod-runbook.md`.
-
-**Re-read Gate 2 at n≈20:**
+Re-read Gate 2 at n~20 (~2-3 h unattended, local Ollama):
 ```bash
 venv/bin/python scripts/conversation/run_pilot.py \
   --model-a deepseek-r1:7b --model-b deepseek-r1:7b --thinking-mode \

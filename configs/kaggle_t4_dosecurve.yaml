@@ -1,0 +1,90 @@
+# Dose-response curve — where does think-block closure collapse?
+#
+# THE QUESTION. On 2026-08-06, measured n=8 per arm on identical prompts:
+#     base, no adapter             closure 8/8
+#     stage-0    (30 steps,  311K) closure 8/8
+#     full canon (103 steps, 3.36M) closure 1/8
+# Something between 30 and 103 steps destroys the reasoning format. Two points
+# cannot distinguish a threshold from a steep slope, and cannot say whether a
+# usable dose window exists BELOW the collapse.
+#
+# THE METHOD. Identical to kaggle_t4_fullcanon.yaml except that EVERY checkpoint
+# is retained. Then scripts/eval/dose_curve.py measures closure at each one,
+# yielding ~20 dose points from a single 4.5-hour run.
+#
+# This is the fix for the mistake that made a second run necessary: the previous
+# run wrote checkpoints every 10 steps but save_total_limit=3 kept only 80/90/100,
+# and the Kaggle session then wiped those. For a dose question the checkpoints
+# ARE the experiment.
+#
+# WHAT A RESULT LOOKS LIKE:
+#   sharp threshold (8/8 up to step N, then ~1/8)  -> train to N-10 and proceed;
+#                                                     no redesign needed
+#   gradual slope                                  -> pick the dose where closure
+#                                                     is still acceptable and
+#                                                     report the trade-off
+#   collapse before any plausible effect dose      -> the design needs rehearsal
+#                                                     data or a different method
+#
+# Cost: ~4.6 h on a Kaggle T4, free. Disk: 20 checkpoints x ~323MB = ~6.5GB
+# against Kaggle's ~20GB working volume — fits, but do not also keep the base
+# model download in /kaggle/working.
+
+# --- Model (unchanged) ------------------------------------------------------
+base_model: unsloth/DeepSeek-R1-Distill-Qwen-7B
+adapter_method: qlora
+
+quantization:
+  load_in_4bit: true
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: float16   # T4 is Turing (SM 7.5) — no native bf16
+
+# --- LoRA adapter (unchanged) -----------------------------------------------
+# Held IDENTICAL to the run being explained. Changing rank, alpha or target
+# modules here would confound "where does it collapse" with "does a different
+# adapter collapse differently" — a separate question, worth asking later.
+lora_rank: 32
+lora_alpha: 64
+lora_dropout: 0.05
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+# --- Optimizer & schedule (unchanged) ---------------------------------------
+learning_rate: 1.0e-4
+lr_scheduler: cosine
+warmup_ratio: 0.05
+
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 16
+
+num_epochs: 1
+max_seq_length: 2048
+packing: true
+seed: 42                # same seed as the collapsed run — this is a REPLICATION
+                        # plus instrumentation, not a new condition
+
+# --- Data (unchanged) -------------------------------------------------------
+training_corpus_path: data/augmented/full_canon_train.jsonl
+heldout_corpus_path: data/processed/heldout/speckled_band.txt
+
+# --- Output -----------------------------------------------------------------
+output_dir: outputs/kaggle_t4_dosecurve_seed42
+run_name: kaggle-t4-dosecurve-seed42
+
+# --- Logging & checkpointing — THE ONLY REAL DELTAS --------------------------
+logging_steps: 5
+save_steps: 5
+  # 5, not 10. ~20 checkpoints across 103 steps. Finer resolution costs only
+  # disk, and disk is the cheap resource here: the expensive one is the 4.6 h,
+  # and it is spent either way. Resolution of 5 steps localises the collapse to
+  # within ~13 min of training.
+save_total_limit: null
+  # null = keep EVERY checkpoint. THE POINT OF THIS RUN. The default of 3 is
+  # what destroyed the free dose curve on 2026-08-06.

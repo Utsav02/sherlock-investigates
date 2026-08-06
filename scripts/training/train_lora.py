@@ -324,7 +324,12 @@ def main() -> None:
         warmup_ratio=cfg["warmup_ratio"],
         logging_steps=logging_steps,
         save_steps=save_steps,
-        save_total_limit=3,
+        # None = keep EVERY checkpoint. For a dose-response question the
+        # checkpoints ARE the experiment: closure/quality measured at each step
+        # gives the whole curve as a by-product of one run. The default of 3
+        # silently discarded exactly that on 2026-08-06 (kept only 80/90/100 of
+        # ten) and cost a second 4.5-hour run to recover.
+        save_total_limit=cfg.get("save_total_limit", 3),
         bf16=bf16,
         fp16=fp16,
         optim="paged_adamw_8bit",

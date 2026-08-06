@@ -1,0 +1,109 @@
+# Properly-dosed 7B run — full canon, 1 epoch, Kaggle T4, free.
+#
+# WHAT THIS RUN IS FOR, and how it differs from kaggle_t4_validation.yaml.
+#
+#   validation config : 311,252 unique tokens, 30 steps, 78 min.
+#                       A PLUMBING TEST. Cannot show a behavioural effect and
+#                       its adapter must never be fed to the eval gates.
+#   THIS config       : 3,356,311 unique tokens, ~102 steps, ~4.5 h.
+#                       The first run in this project capable of shifting a
+#                       reasoning prior, and the one the eval gates apply to.
+#
+# WHY UNIQUE TOKENS AND NOT TOKENS-SEEN. The threshold literature measures
+# dataset size. LIMA (~1M tokens) trained 15 epochs over its 1M; Betley et al.
+# report 2,000-6,000 examples (~1.2M tokens) for reliable emergence. Pilot x3
+# epochs = 933,756 tokens seen but only 311,252 UNIQUE — below LIMA and near
+# Betley's near-zero floor. Full canon x1 = 3,356,311 unique, ~2.8x Betley's
+# emergence point. Whether re-reading a small corpus substitutes for a larger
+# one is unsettled (LoRA Land caps at 1-3 epochs for overfitting reasons, and
+# no clean exchange rate is published), which is exactly why the unique-token
+# axis is the one used here.
+#
+# WHY 1 EPOCH AND NOT 3. Measured on this hardware: 157.4 s/step.
+#   1 epoch -> 102 steps ->  4.5 h   fits Kaggle's 12 h session cap
+#   2 epochs -> 204 steps ->  8.9 h  fits, tight — the fallback if 1 under-fits
+#   3 epochs -> 307 steps -> 13.4 h  EXCEEDS the cap; the run would be killed
+# Not a guess: train_runtime 4722.8 / 30 steps from the stage-0 run.
+#
+# Everything not commented below is identical to kaggle_t4_validation.yaml and
+# justified there. Only the deltas carry commentary.
+
+# --- Model (unchanged) ------------------------------------------------------
+base_model: unsloth/DeepSeek-R1-Distill-Qwen-7B
+adapter_method: qlora
+
+# --- Quantization (unchanged) -----------------------------------------------
+quantization:
+  load_in_4bit: true
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: float16   # T4 is Turing (SM 7.5) — no native bf16.
+                                    # train_lora.native_bf16() enforces this.
+
+# --- LoRA adapter (unchanged) -----------------------------------------------
+lora_rank: 32
+lora_alpha: 64
+lora_dropout: 0.05
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+# modules_to_save deliberately absent — embed_tokens + lm_head would be ~1.1B
+# trainable params in fp32 and OOM on 16GB. Verified absent by the stage-0 run:
+# trainable params 80,740,352 (1.0491%), the exact rank-32 arithmetic.
+
+# --- Optimizer & schedule ---------------------------------------------------
+learning_rate: 1.0e-4
+lr_scheduler: cosine
+warmup_ratio: 0.05    # ~5 steps of 102. At 30 steps this was ~1-2, which is
+                      # the practical minimum; here it is comfortable.
+
+# --- Batch size (unchanged) -------------------------------------------------
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 16     # effective batch 16
+
+# --- Sequence & packing -----------------------------------------------------
+num_epochs: 1         # THE DELTA. See the epoch arithmetic above.
+max_seq_length: 2048  # unchanged deliberately: the 157.4 s/step measurement is
+                      # only valid at this sequence length, and the whole
+                      # schedule above depends on it.
+packing: true
+
+# --- Reproducibility --------------------------------------------------------
+seed: 42
+
+# --- Data -------------------------------------------------------------------
+training_corpus_path: data/augmented/full_canon_train.jsonl
+  # THE OTHER DELTA. 12,999 examples, 3,356,311 tokens -> 1,638 blocks.
+  # Note: 3.36M measured with the real chars/token ratio of 4.555; other docs
+  # in this repo say 3.44M, which came from a chars/4 estimate that runs ~12%
+  # high. Use the measured figure.
+heldout_corpus_path: data/processed/heldout/speckled_band.txt
+  # Speckled Band is EXCLUDED from the canon chunking, so it is genuinely
+  # held out. This is what the perplexity gate scores against.
+
+# --- Output -----------------------------------------------------------------
+output_dir: outputs/kaggle_t4_fullcanon_seed42
+run_name: kaggle-t4-fullcanon-seed42
+
+# --- Logging ----------------------------------------------------------------
+logging_steps: 5
+  # 5, not 1: ~20 points over 102 steps is a readable curve without 102 lines
+  # of scrollback. At 30 steps every-step logging was worth it; here it is not.
+save_steps: 10
+  # 10, not 20+. This is a 4.5-hour run, so checkpoint frequency is a
+  # crash-insurance decision, not a disk one. Every 10 steps is ~26 min, and
+  # with save_total_limit=3 (set in train_lora.py) at most ~26 min of work is
+  # lost to a session death. Each LoRA checkpoint is ~323MB, so 3 of them is
+  # ~1GB against Kaggle's ~20GB working disk.
+  #
+  # RESUMING after a crash:
+  #   python scripts/training/train_lora.py \
+  #       --config configs/kaggle_t4_fullcanon.yaml \
+  #       --resume-from outputs/kaggle_t4_fullcanon_seed42/checkpoint-<N>
+  # But note Kaggle wipes /kaggle/working at session end, so a checkpoint only
+  # survives a crash WITHIN a session. Across sessions, retrain.

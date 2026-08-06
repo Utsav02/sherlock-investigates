@@ -313,6 +313,10 @@ def main() -> None:
     ap.add_argument("--target", type=int, default=100,
                     help="sample size marker shown on the progress bar")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--ids-file",
+                    help="JSON list of sentence ids to restrict the tool to. "
+                         "Used to adjudicate only the annotator clashes "
+                         "(see merge_agent_labels.py).")
     args = ap.parse_args()
 
     patterns = [str(ROOT / p) if not Path(p).is_absolute() else p
@@ -325,6 +329,12 @@ def main() -> None:
     # so labelling in file order and stopping at the target would bias the
     # sample toward early turns.
     random.Random(args.seed).shuffle(sentences)
+
+    if args.ids_file:
+        wanted = set(json.loads(Path(args.ids_file).read_text()))
+        sentences = [s for s in sentences if s["id"] in wanted]
+        if not sentences:
+            raise SystemExit(f"none of the {len(wanted)} ids matched")
 
     out_path = ROOT / args.out
     out_path.parent.mkdir(parents=True, exist_ok=True)

@@ -427,6 +427,48 @@ Scoring the think block *separately* is retained as a bonus: "did the fine-tune 
 
 ---
 
+### 2026-08-06 — QLoRA on raw prose destroys think-block closure. The 14B spend is BLOCKED.
+
+**Decision:** No GPU budget is spent until the dose-response curve is mapped. Full writeup: `results/analysis/format_collapse_20260806.md`.
+
+**Reasoning:** Controlled measurement, n=8 per arm, one base model in VRAM with adapters swapped by name so all three arms share identical weights, prompts, sampling and session:
+
+| arm | steps | unique tokens | closure | mean tokens |
+|---|---|---|---|---|
+| base, no adapter | — | — | **8/8** | 451 |
+| stage-0 | 30 | 311,252 | **8/8** | 528 |
+| full canon | 103 | 3,352,033 | **1/8** | 417 |
+
+Ruled out by the design rather than by argument: not the model family, prompt or token budget (base is 8/8 on identical inputs); not truncation (7 of 8 failures stopped naturally at mean 417 tokens, well under the 1200 cap — the model produces a normal quantity of reasoning and never closes it); not the extractor (same `_resolve_think_block` scores base and stage-0 at 8/8); not dtype or quantization (single shared base load).
+
+The mechanism is almost certainly catastrophic forgetting of the RL-trained reasoning format under raw-text causal LM: every gradient step optimises "predict the next token of Victorian prose" and none reinforce "emit `<think>`, close it, then answer".
+
+**Why this outranks a bug:** the premise requires a corpus large enough to shift a reasoning prior (~1M+ unique tokens per LIMA / Betley et al.). **The dose that produces a behavioural effect may be the same dose that destroys the channel the effect is measured through.** If so the design as specified cannot work and no budget fixes it. That is a real methodological finding about QLoRA continued-pretraining on distilled reasoning models, publishable independently of whether this experiment survives.
+
+**CONFOUND, stated so it is not forgotten:** stage-0 and full canon differ on two axes at once — corpus (311K vs 3.36M unique) and steps (30 vs 103). "103 steps broke it", "3.36M tokens broke it", and "the full canon's composition broke it" are all consistent with this data. Steps is the most likely culprit since it directly controls how far the weights move, but it is NOT established.
+
+**Alternatives considered:** Declaring the fine-tune approach dead — premature at two dose points; the collapse may sit well above a dose that still produces an effect. Proceeding to 14B and hoping scale helps — the failure is a format-forgetting mechanism, and 14B would forget the same way for the same reason, at real cost. Authoring synthetic think blocks as rehearsal data — rejected on the 2026-06-24 grounds: training the model to reproduce reasoning we wrote contaminates the exact channel the experiment measures. If rehearsal blocks are needed they must come from the base model itself.
+
+---
+
+### 2026-08-06 — `save_total_limit=3` destroyed the dose curve this run could have given free
+
+**Decision:** For any run whose question is about dose, checkpoints must be retained (`save_total_limit=None`). Logged as a standing lesson, not yet a code change.
+
+**Reasoning:** The full-canon run wrote checkpoints every 10 steps but `save_total_limit=3` in `train_lora.py` kept only 80/90/100, and the Kaggle session then wiped those. Had all ten survived, measuring closure at each would have produced the entire dose-response curve as a by-product of a run that had already been paid for — steps 10 through 100, ten points, zero extra GPU time. Instead the curve now costs a second 4.5-hour run. **For a dose question, the checkpoints ARE the experiment.**
+
+---
+
+### 2026-08-06 — The augmentation's instruction framings are flattened to raw text at training time
+
+**Decision:** Recorded as a defect; the fix is deferred until the dose curve is known.
+
+**Reasoning:** The corpus holds **7,853 of 12,999 examples in instruction shape** — QA 2,208, CHAIN 2,208, WATSON 3,437 — built in June explicitly as the Biderman et al. mitigation for LoRA underperforming on raw-text continued pretraining. But `load_texts` reads only the `text` field and `pack_into_blocks` concatenates everything into flat 2,048-token blocks for causal LM. The chat template is never applied, so the model sees Victorian prose with `PASSAGE:` / `Q:` / `A:` headers embedded in it rather than a conversation. **The augmentation's stated purpose has therefore never been exercised at the training step**, and this is a plausible contributor to the format collapse above.
+
+**Caveat on the obvious fix:** naively chat-formatting these examples could make things *worse*. The template ends with `<think>\n`, so an assistant turn that goes straight to the answer teaches "after `<think>`, do not think" — accelerating the collapse. Chat-formatted rehearsal only helps if the assistant turns genuinely contain think blocks, which returns to the constraint that those blocks must not be human-authored.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

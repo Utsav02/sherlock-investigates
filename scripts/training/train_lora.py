@@ -177,11 +177,20 @@ def _load_standard(cfg: dict):
     if not _HAS_PEFT:
         sys.exit("ERROR: peft not installed. Run: pip install peft bitsandbytes")
 
+    # Compute dtype must match the GPU. bfloat16 needs Ampere (SM 8.0+); the
+    # Kaggle free tier is a Tesla T4 (Turing, SM 7.5) which has NO bf16 support,
+    # so a hardcoded bfloat16 here either errors or silently degrades. Detect it.
+    # float16 is the correct choice on T4 and costs nothing in quality at 4-bit.
+    use_bf16 = torch.cuda.is_available() and torch.cuda.is_bf16_supported()
+    compute_dtype = torch.bfloat16 if use_bf16 else torch.float16
+    print(f"  4-bit compute dtype: {compute_dtype} "
+          f"({'bf16 supported' if use_bf16 else 'no bf16 on this GPU — using fp16'})")
+
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_use_double_quant=True,
-        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_compute_dtype=compute_dtype,
     )
     tokenizer = AutoTokenizer.from_pretrained(cfg["base_model"], trust_remote_code=True)
 

@@ -1,0 +1,157 @@
+# Stage 0 — Kaggle T4 pipeline validation.
+#
+# WHAT THIS RUN IS FOR, and what it is NOT for.
+#
+#   IS:  proving the fine-tuning path executes end to end on free hardware, and
+#        that the resulting adapter still emits <think>…</think> blocks that
+#        agent.py can extract. That is the only question this run answers.
+#   NOT: measuring a behavioural effect. At this corpus size the run is ~29
+#        optimizer steps — far too few to shift a reasoning prior. Do not read
+#        the loss curve as evidence about the experiment's hypothesis.
+#
+# Every gate in EXPERIMENT_DESIGN.md (perplexity, WikiText, MMLU, probe
+# separation) is for the REAL training run on better hardware. Running them
+# against this adapter would produce a meaningless negative.
+#
+# Hardware: Kaggle Tesla T4, 16GB VRAM, free tier, 9-hour session cap.
+# Expected wall-clock: ~20-40 min including model download.
+# Cost: $0.
+
+# --- Model ------------------------------------------------------------------
+base_model: unsloth/DeepSeek-R1-Distill-Qwen-7B
+  # 7B, not 14B: 14B in 4-bit is ~9GB of weights before optimizer state and
+  # activations, which does not leave room on a single 16GB T4. 7B in 4-bit is
+  # ~4.5GB and leaves comfortable headroom.
+  # Unsloth checkpoint over the raw DeepSeek one: it ships a corrected chat
+  # template and tokenizer config. Chat-template bugs are the most common cause
+  # of think blocks silently disappearing, which is exactly what this run tests.
+
+adapter_method: qlora
+
+# --- Quantization -----------------------------------------------------------
+quantization:
+  load_in_4bit: true
+    # Non-negotiable on 16GB. fp16 weights for 7B are ~14GB, leaving nothing
+    # for gradients, optimizer state or activations.
+  bnb_4bit_quant_type: nf4
+    # NF4 over plain int4: Dettmers et al. (QLoRA, 2023) show NF4 is
+    # information-theoretically optimal for normally-distributed weights, which
+    # is what transformer weights approximately are. Free accuracy.
+  bnb_4bit_use_double_quant: true
+    # Quantizes the quantization constants themselves. Saves ~0.4 bits per
+    # parameter (~350MB at 7B) for negligible compute. Worth it at 16GB.
+  bnb_4bit_compute_dtype: float16
+    # float16, NOT bfloat16. The T4 is Turing (SM 7.5) and has no bf16 support.
+    # train_lora.py now auto-detects this, but the config states the intended
+    # value for the target hardware so the two cannot silently disagree.
+
+# --- LoRA adapter -----------------------------------------------------------
+lora_rank: 32
+  # LoRA Land (Predibase, 2024), 310 Mistral-7B adapters: rank 16-32 is the
+  # empirical sweet spot. Below 16 underfits; above 32 adds parameters without
+  # measurable gain on most tasks. 32 is the top of that band, chosen because
+  # Biderman et al. (2024) show LoRA underperforms on raw-text continued
+  # pretraining — which is this project's regime — so we want the extra
+  # capacity. Trainable params at rank 32 across 7 modules: ~40M (~0.5% of 7B).
+lora_alpha: 64
+  # alpha = 2 x rank, the LoRA Land consensus. Effective scaling is alpha/rank
+  # = 2.0. Keeping the ratio fixed means changing rank does not silently change
+  # the effective learning rate of the adapter.
+lora_dropout: 0.05
+  # Light regularisation. QLoRA's 4-bit quantization noise already acts as a
+  # mild regulariser, so heavy dropout on top tends to underfit. 0.05-0.1 is
+  # the usual range; 0.05 for a short run where underfitting is the bigger risk.
+
+target_modules:
+  # All seven linear projections, not attention-only. Dettmers et al. found
+  # targeting every linear layer is what closes the gap to full fine-tuning;
+  # attention-only (q,v) is the older default and measurably worse. The MLP
+  # projections matter especially here — Geva et al. (2021) show FFN layers are
+  # where factual and stylistic associations live, and style is what we are
+  # trying to move.
+  - q_proj      # attention query
+  - k_proj      # attention key
+  - v_proj      # attention value
+  - o_proj      # attention output
+  - gate_proj   # MLP gate  (SwiGLU)
+  - up_proj     # MLP up-projection
+  - down_proj   # MLP down-projection
+
+# modules_to_save is DELIBERATELY ABSENT.
+#   The main configs set modules_to_save: [embed_tokens, lm_head]. On Qwen2.5-7B
+#   (vocab 152,064 x hidden 3,584) that is ~545M parameters each, ~1.1B trainable
+#   in fp32 plus optimizer state — several times the entire 4-bit base model, and
+#   a guaranteed OOM on a 16GB T4. It also defeats the point of QLoRA.
+#   Omitted here. If a new pad token is added, train_lora.py resizes embeddings
+#   without making them trainable, which is what we want.
+
+# --- Training objective -----------------------------------------------------
+# Causal LM over packed raw text. No synthetic <think> blocks are injected into
+# the training data: the model's RL-trained reasoning behaviour supplies the
+# format at inference time, and we are only changing what it reasons about.
+# Injecting fake think blocks would teach it to imitate our formatting rather
+# than to think, and would contaminate the very channel we measure.
+
+# --- Optimizer & schedule ---------------------------------------------------
+learning_rate: 1.0e-4
+  # LoRA Land consensus for 7B LoRA. Note this is ~10x a typical full
+  # fine-tuning LR (1e-5): the adapter is small and randomly initialised, so it
+  # needs a larger step to move at all. Too low and 29 steps changes nothing.
+lr_scheduler: cosine
+  # Cosine decay to ~0 over the run. Standard, and it means the final steps
+  # make small refinements rather than large jumps — useful when the total
+  # number of steps is small and a late large step could undo earlier progress.
+warmup_ratio: 0.05
+  # 5% of steps ramping the LR from 0. Prevents the first few large gradients
+  # (on a freshly-initialised adapter) from destabilising training. At ~29 steps
+  # this is ~1-2 warmup steps, which is the practical minimum.
+
+# --- Batch size -------------------------------------------------------------
+per_device_train_batch_size: 1
+  # 1, not 2. At 2048 tokens on a 16GB T4 with a 7B model, batch 2 risks OOM
+  # during the backward pass. Batch 1 is the safe choice for a validation run
+  # whose only job is to not crash. Throughput does not matter here.
+gradient_accumulation_steps: 16
+  # Effective batch = 1 x 16 = 16, matching the main configs. Gradient
+  # accumulation buys the same optimizer behaviour as a larger batch at the
+  # cost of wall-clock, trading time (which is free) for memory (which is not).
+
+# --- Sequence & packing -----------------------------------------------------
+num_epochs: 3
+  # LoRA Land: 1-3 epochs, beyond which LoRA overfits. 3 because the corpus here
+  # is small and this is a plumbing test, not a generalisation test.
+max_seq_length: 2048
+  # Long enough to hold a full Holmes passage with its surrounding context, so
+  # packed blocks contain coherent reasoning chains rather than fragments.
+  # 4096 would double activation memory for no benefit on a T4.
+packing: true
+  # Concatenate documents and chunk into exactly-2048-token blocks rather than
+  # padding each document. Removes wasted compute on pad tokens — typically
+  # 30-50% of tokens in an unpacked short-document corpus.
+
+# --- Reproducibility --------------------------------------------------------
+seed: 42
+
+# --- Data -------------------------------------------------------------------
+training_corpus_path: data/augmented/train.jsonl
+  # PILOT corpus: 1,168 examples, ~325K tokens -> ~158 blocks -> ~29 optimizer
+  # steps at effective batch 16 over 3 epochs.
+  # NOT full_canon_train.jsonl (12,999 examples, ~3.44M tokens, ~314 steps).
+  # The full canon is the corpus for the real run; using it here would turn a
+  # 30-minute plumbing check into a multi-hour job that still proves only that
+  # the plumbing works.
+heldout_corpus_path: data/processed/heldout/speckled_band.txt
+  # Not used during training. Recorded so the eval scripts pick up the same
+  # held-out text, and so the config alone documents the split.
+
+# --- Output -----------------------------------------------------------------
+output_dir: outputs/kaggle_t4_validation_seed42
+run_name: kaggle-t4-validation-seed42
+
+# --- Logging ----------------------------------------------------------------
+logging_steps: 1
+  # 1, not 10. With only ~29 total steps, logging every 10 gives 3 data points
+  # and no usable loss curve. Every step is cheap at this scale.
+save_steps: 10
+  # 10, not 50. save_steps=50 exceeds the total step count, so NO checkpoint
+  # would ever be written and a session timeout would lose everything.

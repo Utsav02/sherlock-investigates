@@ -26,3 +26,11 @@ pyyaml>=6                 # config loading
 #             on Kaggle and the one that runs on RunPod.
 #   wandb     set WANDB_API_KEY to enable; train_lora.py honours WANDB_DISABLED
 #             and WANDB_MODE, and reports to stdout only when absent.
+
+# --- Experiment tracking (optional but recommended for long runs) -----------
+# Metrics live on W&B's servers, so a killed Kaggle session still leaves the
+# loss curve — the local tee'd log does not survive /kaggle/working being wiped.
+# Needs WANDB_API_KEY in the environment (Kaggle: Add-ons -> Secrets).
+# train_lora.py degrades to stdout if the key is absent rather than hanging on
+# an interactive login prompt.
+wandb>=0.18

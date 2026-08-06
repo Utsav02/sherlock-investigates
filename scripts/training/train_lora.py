@@ -66,8 +66,17 @@ try:
         _os.environ.get("WANDB_DISABLED", "").lower() in ("true", "1")
         or _os.environ.get("WANDB_MODE", "").lower() in ("disabled", "offline", "dryrun")
     )
-    _HAS_WANDB = not _wandb_disabled
-    del _os, _wandb_disabled
+    # An installed wandb with NO API key prompts for interactive login and
+    # HANGS a headless run — the exact failure that made WANDB_DISABLED=true a
+    # standing workaround. Degrade to stdout instead of blocking.
+    _wandb_no_key = not (
+        _os.environ.get("WANDB_API_KEY") or (Path.home() / ".netrc").exists()
+    )
+    if _wandb_no_key and not _wandb_disabled:
+        print("NOTE: wandb installed but WANDB_API_KEY is unset — logging to "
+              "stdout only. Set the key (Kaggle: Add-ons -> Secrets) to enable.")
+    _HAS_WANDB = not (_wandb_disabled or _wandb_no_key)
+    del _os, _wandb_disabled, _wandb_no_key
 except ImportError:
     _HAS_WANDB = False
 
@@ -336,6 +345,30 @@ def main() -> None:
     if not _HAS_WANDB:
         print("W&B not installed — logging to stdout only")
     print()
+
+    if _HAS_WANDB:
+        # Log the FULL config plus derived quantities. A W&B run whose
+        # hyperparameters are not recorded cannot be compared against another
+        # one, which is most of the reason to use W&B at all. The derived
+        # fields matter more than the raw ones: "unique tokens" is the axis the
+        # threshold literature measures, and steps/effective-batch are what
+        # actually determine whether a run could show an effect.
+        import os as _os
+        wandb.init(
+            project=_os.environ.get("WANDB_PROJECT", "sherlock-investigates"),
+            name=cfg["run_name"],
+            config={
+                **cfg,
+                "derived/n_blocks": len(dataset),
+                "derived/unique_tokens": len(dataset) * cfg["max_seq_length"],
+                "derived/effective_batch": eff_batch,
+                "derived/optimizer_steps":
+                    len(dataset) * cfg["num_epochs"] // eff_batch,
+                "derived/gpu": torch.cuda.get_device_name(0)
+                    if torch.cuda.is_available() else "cpu",
+                "derived/native_bf16": native_bf16(),
+            },
+        )
 
     trainer = Trainer(
         model=model,

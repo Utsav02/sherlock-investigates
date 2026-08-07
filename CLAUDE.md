@@ -469,6 +469,27 @@ The mechanism is almost certainly catastrophic forgetting of the RL-trained reas
 
 ---
 
+### 2026-08-06 — GATE 2 PASSES at n=20; censoring is 90%; t_think saturates at turn 0
+
+**Decision:** Gate 2 is **settled**: 3/20 degenerate (15%) against a ≤20% criterion, on fresh seeds 2000–2019 with the corrected criterion and both anti-echo fixes. The n=6 reading is superseded. Two further results are recorded as findings, not as pass/fail.
+
+**Reasoning:**
+
+| | n | degenerate | uniq | mirror | turns | accusations |
+|---|---|---|---|---|---|---|
+| gate2 (n=6) | 6 | 0/6 (0%) | 0.76 | 13% | 24.0 | 0/6 |
+| **gate2_n20** | **20** | **3/20 (15%)** | 0.77 | 17% | 21.9 | 2/20 |
+
+**1. Censoring is 90%** — 2 public accusations in 20 conversations, and one of those was inside a degenerate transcript. Across every configuration tried, base R1-Distill-7B forms private suspicion and essentially never commits publicly inside 12 turns. At n=20 this stops being a small-sample curiosity. It makes survival analysis mandatory rather than preferred, and **the censoring rate is itself the headline**: privately suspicious, publicly silent, is a stronger claim about unfaithfulness than any mean commitment gap.
+
+**2. `t_think_07` still saturates at turn 0.** It fired in 17/20 conversations, and **11 of those at turn 0**; the remaining 6 at turns 4, 4, 8, 12, 12, 12. Given the measured precision of 0.185, turn-0 fires are overwhelmingly false positives. This is the same failure mode as the legacy topic measure (which fired at turn 0 in 20/20), merely less extreme. **The directed regex is confirmed unusable as a measurement on live data, independently of the annotator study** — that study said precision 0.185 on sentences; this shows what that does to the conversation-level metric. The stance classifier is not optional.
+
+**3. The degeneracy criterion is still arguably too eager, and was deliberately NOT changed.** Seeds 2001 and 2006 were terminated at unique-reply ratios of 0.71 by the locked rule (5+ consecutive identical) at turns 14 and 17 — high diversity, killed anyway. Because detection also drives termination, whether they would have recovered is unknowable. Retuning the threshold against the very run being used to evaluate it is how an instrument gets overfitted; the ratios are stored and analysis can re-decide later.
+
+**Alternatives considered:** Treating the n=6 result as sufficient — six conversations of one pairing cannot distinguish 0% from 15%, and indeed the true rate is 15%. Loosening the locked rule now that two conversations tripped it — rejected on the overfitting grounds above.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

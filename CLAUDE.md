@@ -490,6 +490,40 @@ The mechanism is almost certainly catastrophic forgetting of the RL-trained reas
 
 ---
 
+### 2026-08-07 — Lexical baseline: the task is NOT lexical, and the labels are clean
+
+**Decision:** Every detector number for `t_think_07` must now be reported beside a bag-of-words baseline and an annotator ceiling (`scripts/eval/lexical_baseline.py`). **Option B is narrowed: any replacement must be SEMANTIC** — sentence embeddings plus a classifier, or an LLM judge per sentence. An n-gram/TF-IDF "stance classifier" is ruled out by measurement, not by taste.
+
+**Reasoning:** Prompted by a cross-project note from decision-traceability (2026-08-07). Their per-layer probes scored 95–98% with healthy Hewitt & Liang selectivity (+0.42 to +0.48) and were worthless: a bag-of-words model on the raw string matched them. **Control-task selectivity cannot catch a lexical cue** — a random-label control with matched statistics has no linguistic content, so a lexical shortcut clears it and the gap still looks healthy. Selectivity is necessary, not sufficient. That correction applies to the advice recorded here on 2026-07-26.
+
+Measured on the 231 labelled sentences:
+
+| | prec | recall | F1 |
+|---|---|---|---|
+| regex (`t_think_07`) | 0.185 | 0.652 | 0.288 |
+| BoW @ matched recall (CV) | 0.188 | 0.652 | 0.291 |
+| BoW @ nested-selected threshold | 0.167 | 0.304 | **0.215** |
+| **annotator ceiling (leave-one-out)** | | | **0.986** |
+
+BoW AUC 0.728, 95% CI **[0.607, 0.850]**.
+
+**Three readings, and the diagnostic distinguishes them — this is the durable result:**
+1. BoW **high** and ≈ detector → the concept is lexical and the detector is cheating. *(decision-traceability's failure.)*
+2. BoW **low** and ≈ detector, ceiling **high** → the concept is semantic and no lexical method can close the gap. *(sherlock's failure — the opposite diagnosis from the same test.)*
+3. Ceiling **low** → the labels cap every method and the gate is wrong, not the detector.
+
+Neither diagnosis is visible from accuracy or selectivity alone, and the two projects reached for the same test and landed in different branches without either predicting which.
+
+**Two statistical errors caught and fixed on review, both mirroring entries in decision-traceability's log:**
+- The first "best achievable F1 = 0.326" was obtained by sweeping the threshold over the same out-of-fold scores it was then reported on — selection on the evaluation set, the same shape as picking a probe layer by argmax over test accuracy. Nested selection (threshold chosen on train folds, applied to the held-out fold) gives **0.215**. The biased number was ~50% too high and made the ceiling look softer than it is.
+- AUC was first reported as a bare 0.728 on 23 positives. The Hanley–McNeil 95% CI is **[0.607, 0.850]**, and the upper bound is what any "lexical methods cannot reach X" claim must be argued against.
+
+**The label-noise question, which was the sharpest challenge:** a low BoW ceiling is equally consistent with "needs semantics" and "labels are noisy". Measured rather than assumed — leave-one-annotator-out F1 is 0.986 and binary Fleiss κ (conclusion vs not) is **0.969**. The 0.906 recorded on 2026-07-28 was over all three classes and is dominated by agreement on `neither`; restricted to the class that matters, agreement is near-perfect. **So 0.8 is a target, not a fantasy, and the gap is real signal.** Caveat retained: three LLM annotators sharing a rubric are correlated, so 0.986 bounds *agreement*, not human performance.
+
+**Alternatives considered:** Building the stance classifier on TF-IDF features — measured to top out near 0.22, so it would have consumed effort to reproduce the regex's failure. Treating BoW ≈ detector as automatically meaning "lexical" — that was the original two-branch verdict in the script, and it reported the exact opposite of the truth here; the logic now has three branches keyed on the absolute scores and the ceiling.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from datetime import datetime
@@ -116,6 +117,18 @@ def main() -> None:
         ckpts = kept
 
     openers = OPENERS[:args.n_prompts]
+
+    # Open the incremental log BEFORE any GPU work. Every row is appended and
+    # flushed as it is produced, so a crash or session cap at 80% still leaves
+    # 80% of the curve on disk. A single json.dump at the end loses everything —
+    # which is exactly what happened on 2026-08-06.
+    out_dir = ROOT / args.out_dir
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    partial = out_dir / f"dose_curve_{stamp}.partial.jsonl"
+    partial_f = partial.open("w", encoding="utf-8")
+    print(f"  live log    : {partial}")
+
     print(f"  checkpoints : {len(ckpts)}")
     print(f"  prompts     : {len(openers)} per checkpoint")
     print(f"  generations : {len(ckpts) * len(openers)}")
@@ -160,9 +173,15 @@ def main() -> None:
             ok += bool(think and think.strip())
             trunc += n >= args.max_new_tokens
             lens.append(n)
-        return {"label": label, "closure": ok, "n": len(openers),
-                "closure_rate": ok / len(openers), "truncated": trunc,
-                "mean_tokens": sum(lens) // len(lens)}
+        row = {"label": label, "closure": ok, "n": len(openers),
+               "closure_rate": ok / len(openers), "truncated": trunc,
+               "mean_tokens": sum(lens) // len(lens)}
+        # Append + flush + fsync: survives the process being killed outright,
+        # not merely exiting cleanly.
+        partial_f.write(json.dumps(row) + "\n")
+        partial_f.flush()
+        os.fsync(partial_f.fileno())
+        return row
 
     rows = []
     # Base FIRST: it is the control, and if it is not ~1.0 the instrument is
@@ -192,9 +211,7 @@ def main() -> None:
         print(f"  {label:<12} closure {r['closure']}/{r['n']}  "
               f"trunc {r['truncated']}  mean {r['mean_tokens']}", flush=True)
 
-    out_dir = ROOT / args.out_dir
-    out_dir.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    partial_f.close()
     out = out_dir / f"dose_curve_{stamp}.json"
     out.write_text(json.dumps({
         "checkpoint_dir": str(ckpt_dir), "base": args.base,
@@ -227,7 +244,8 @@ def main() -> None:
         print("  If the final adapter is nonetheless broken, the cause is not "
               "dose — check the final save path.")
     print(f"{'='*66}")
-    print(f"  wrote {out}\n")
+    print(f"  wrote {out}")
+    print(f"  (live log kept at {partial} — the two agree unless the run died)\n")
 
 
 if __name__ == "__main__":

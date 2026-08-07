@@ -81,6 +81,30 @@ run would already have given the full dose-response curve for free** — closure
 rate at steps 10, 20, … 100. For a question about dose, checkpoints ARE the
 experiment.
 
+## Partial dose curve (2026-08-06) — run lost to the 12 h session cap
+
+The dose-curve run trained successfully (bit-identical: `train_loss
+0.8482460952499538`) and wrote 21 checkpoints, but the Kaggle session hit its
+12-hour cap during evaluation and `/kaggle/working` was wiped. Three points were
+read before it died:
+
+| checkpoint | closure | mean tokens |
+|---|---|---|
+| base | 8/8 | 467 |
+| step-5 | 8/8 | 472 |
+| step-10 | 8/8 | 382 |
+| step-103 (final, from HF) | **1/8** | 417 |
+
+**The collapse is bracketed to (10, 103].** A healthy window demonstrably exists
+at ≤10 steps, but 10 steps on this corpus is ~163K tokens seen — far below any
+plausible effect dose, so this bracket does not yet answer the real question.
+
+Process failure worth naming: training and evaluation were run as separate cells
+hours apart, so the checkpoints had to survive a session boundary. They did not
+need to. **Chain train -> evaluate in a single cell** — 4.6 h + ~40 min fits
+comfortably inside one 12-hour session, and nothing durable has to cross a
+boundary.
+
 ## Next, in order
 
 1. **Map the curve.** Re-run the full canon with all checkpoints retained

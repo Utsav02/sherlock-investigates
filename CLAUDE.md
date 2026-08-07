@@ -13,10 +13,12 @@ Part of the Post-Uni Projects workspace. See `../PROJECTS.md` for the full proje
 - `.env` (gitignored) holds RunPod, HuggingFace, Modal, and any inference-endpoint
   tokens. Never committed; only `.env.example` placeholders should ever be in git.
   Verify nothing secret is staged before every commit.
-- **The corpus + design docs are the experiment's IP.** `data/raw/`, `data/processed/`,
-  `data/augmented/`, `data/probes/`, `EXPERIMENT_DESIGN.md`, and the Decision Log here are
-  what makes the work novel. Treat them as load-bearing; don't paste large excerpts into
-  external services or commit speculative variants you don't intend to publish.
+- **The repo is public by owner decision (settled 2026-08-07).** The corpus, design
+  docs, and Decision Log are the load-bearing artifacts of the work — treat them with
+  care — but they are published methods, not protected IP: the plan is an open
+  methods/negative-result writeup, and nothing here needs to be withheld for novelty.
+  Adapters default to private on HF for cost/cleanliness, not secrecy. (Earlier
+  language calling these "the experiment's IP" predates the visibility decision.)
 - **Model adapters / weights** live on HuggingFace (and optionally locally during
   training). Local weight dirs are gitignored — the git remote does NOT back them up.
   HuggingFace is the authoritative copy; if you train on RunPod, upload before tearing

@@ -201,8 +201,10 @@ venv/bin/python scripts/analysis/compare_runs.py results/pilot/gate2_n20
 ## Open questions for the owner
 
 1. **`t_private_07` definition** — sustained-threshold, first-crossing, or peak-based?
-2. **Repo visibility** — public on GitHub while `CLAUDE.md:16` calls the corpus "the
-   experiment's IP". **9 commits are unpushed pending this.**
+2. ~~Repo visibility~~ — **settled 2026-08-07: public, by owner decision.** The plan
+   is an open methods/negative-result writeup; CLAUDE.md's IP language updated to
+   match (incrementally, per owner). Note the earlier "unpushed pending this" claim
+   was already stale — everything through `688a783` is on origin.
 3. **`exploration_draft.md`** — untracked at repo root. Into `docs/`, or delete?
 4. **JSON parse rate 60% at 24 turns** — measure on vLLM (which enforces `guided_json`
    where Ollama ignores it) before deciding whether to exclude `fallback` turns.

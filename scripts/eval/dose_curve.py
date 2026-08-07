@@ -10,12 +10,19 @@ cannot distinguish a threshold from a slope, nor say whether a usable dose
 window exists below the collapse. This script answers both by scoring every
 checkpoint from one run.
 
-METHOD. Loads the base model ONCE and attaches each checkpoint as a named PEFT
-adapter, switching with set_adapter. That matters for validity as much as for
-memory: every arm is then measured against identical base weights, in one
-session, with one sampling configuration. Reloading the base per checkpoint
-would let VRAM fragmentation and load-order differences leak into a curve whose
-whole purpose is to isolate one variable.
+METHOD. Loads the base model ONCE, then attaches exactly ONE checkpoint at a
+time (load_adapter -> measure -> delete_adapter). Every arm is measured against
+identical base weights in a single session, which is the validity requirement;
+reloading the base per checkpoint would let fragmentation and load-order
+differences leak into a curve whose whole purpose is isolating one variable.
+
+Holding all checkpoints resident at once ALSO satisfies that requirement but
+does not fit: 22 adapters x ~161MB is ~3.5GB on top of a 4.5GB 4-bit base, and
+it OOM'd on a 14.6GB T4 on 2026-08-06. One-at-a-time gives the same guarantee
+at constant memory.
+
+RUN THIS IN A FRESH KERNEL. Any model still resident from an earlier cell holds
+several GB and will OOM this script before it starts.
 
     python scripts/eval/dose_curve.py \
         --checkpoint-dir outputs/kaggle_t4_dosecurve_seed42 \
@@ -76,6 +83,10 @@ def main() -> None:
     ap.add_argument("--max-new-tokens", type=int, default=1200)
     ap.add_argument("--temperature", type=float, default=0.7)
     ap.add_argument("--out-dir", default="results/analysis")
+    ap.add_argument("--stride", type=int, default=1,
+                    help="evaluate every Nth checkpoint. 2 halves the runtime "
+                         "and still localises a collapse to within 10 steps; "
+                         "use 1 once you know roughly where it is.")
     args = ap.parse_args()
 
     import torch
@@ -96,6 +107,14 @@ def main() -> None:
         sys.exit(f"ERROR: no checkpoint-N dirs in {ckpt_dir}. Was "
                  "save_total_limit set to null?")
 
+    if args.stride > 1:
+        # Always keep the last checkpoint: the collapse is known to exist by
+        # the end, so dropping it would remove the one certain data point.
+        kept = ckpts[::args.stride]
+        if ckpts[-1] not in kept:
+            kept.append(ckpts[-1])
+        ckpts = kept
+
     openers = OPENERS[:args.n_prompts]
     print(f"  checkpoints : {len(ckpts)}")
     print(f"  prompts     : {len(openers)} per checkpoint")
@@ -114,15 +133,10 @@ def main() -> None:
         device_map={"": 0}, trust_remote_code=True,
     )
 
-    model = None
-    names: dict[int, str] = {}
-    for step, path in ckpts:
-        name = f"ck{step}"
-        names[step] = name
-        if model is None:
-            model = PeftModel.from_pretrained(base, str(path), adapter_name=name)
-        else:
-            model.load_adapter(str(path), adapter_name=name)
+    # Attach the first checkpoint so a PeftModel exists; every subsequent one
+    # replaces it under the same name. Constant VRAM: base + exactly one adapter.
+    ADAPTER = "cur"
+    model = PeftModel.from_pretrained(base, str(ckpts[0][1]), adapter_name=ADAPTER)
     model.eval()
 
     def measure(label) -> dict:
@@ -163,14 +177,20 @@ def main() -> None:
               "adapters, is the first thing to check — every row below "
               "inherits this.")
 
-    for step, _ in ckpts:
-        model.set_adapter(names[step])
+    for i, (step, path) in enumerate(ckpts):
+        if i > 0:
+            # Swap in place. delete BEFORE load so peak memory is base + 1,
+            # never base + 2.
+            model.delete_adapter(ADAPTER)
+            torch.cuda.empty_cache()
+            model.load_adapter(str(path), adapter_name=ADAPTER)
+        model.set_adapter(ADAPTER)
         label = "final" if step == 10**6 else f"step-{step}"
         r = measure(label)
         r["step"] = None if step == 10**6 else step
         rows.append(r)
         print(f"  {label:<12} closure {r['closure']}/{r['n']}  "
-              f"trunc {r['truncated']}  mean {r['mean_tokens']}")
+              f"trunc {r['truncated']}  mean {r['mean_tokens']}", flush=True)
 
     out_dir = ROOT / args.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)

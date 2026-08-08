@@ -34,11 +34,15 @@ from transformers import (
     AutoTokenizer,
     DataCollatorForLanguageModeling,
     Trainer,
+    TrainerCallback,
     TrainingArguments,
     set_seed,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import hf_persist  # noqa: E402 — needs the path insert above
 
 # ---------------------------------------------------------------------------
 # Optional dependency detection
@@ -79,6 +83,44 @@ try:
     del _os, _wandb_disabled, _wandb_no_key
 except ImportError:
     _HAS_WANDB = False
+
+
+class HFCheckpointUploader(TrainerCallback):
+    """Upload every checkpoint to the HF Hub the instant Trainer writes it.
+
+    This is the fix for the failure class that has now cost three runs: a
+    checkpoint that exists only under /kaggle/working is gone the moment the
+    session ends. `on_save` fires immediately after each checkpoint-N dir is
+    written, so the adapter is off-machine within seconds of being produced —
+    not at the end of the run, and not when someone remembers to copy it.
+
+    For a dose-response question the checkpoints ARE the experiment
+    (Decision Log 2026-08-06), so EVERY one is pushed under its own
+    path_in_repo. Uploads go through hf_persist.upload_path, which retries with
+    backoff and, on final failure, prints loudly and returns False WITHOUT
+    raising — a flaky uplink on checkpoint-40 must never kill the run that is
+    about to write checkpoint-45.
+    """
+
+    def __init__(self, repo_id: str, token: str, output_dir: Path,
+                 private: bool = True):
+        self.repo_id = repo_id
+        self.token = token
+        self.output_dir = Path(output_dir)
+        self.private = private
+        self.failures: list[str] = []
+
+    def on_save(self, args, state, control, **kwargs):  # noqa: D401
+        ckpt = self.output_dir / f"checkpoint-{state.global_step}"
+        if not ckpt.exists():
+            return
+        ok = hf_persist.upload_path(
+            ckpt, self.repo_id, self.token,
+            path_in_repo=ckpt.name, repo_type="model",
+            private=self.private, label=ckpt.name,
+        )
+        if not ok:
+            self.failures.append(ckpt.name)
 
 
 def native_bf16() -> bool:
@@ -375,11 +417,40 @@ def main() -> None:
             },
         )
 
+    # Per-checkpoint off-machine persistence. Enabled when a repo id is
+    # configured (env HF_REPO_ID wins, else the `hf_repo_id` config key) AND a
+    # token is found. Absent either, training proceeds unpersisted with a loud
+    # warning rather than failing — but on ephemeral compute that warning is the
+    # difference between a saved dose curve and a fourth lost run.
+    import os as _os
+    hf_repo_id = _os.environ.get("HF_REPO_ID") or cfg.get("hf_repo_id")
+    hf_private = cfg.get("hf_private", True)
+    callbacks: list[TrainerCallback] = []
+    uploader: HFCheckpointUploader | None = None
+    if hf_repo_id:
+        token = hf_persist.find_hf_token()
+        if token:
+            uploader = HFCheckpointUploader(
+                hf_repo_id, token, output_dir, private=hf_private)
+            callbacks.append(uploader)
+            print(f"Per-checkpoint HF upload ENABLED → {hf_repo_id} "
+                  f"({'private' if hf_private else 'PUBLIC'})")
+        else:
+            print("WARNING: hf_repo_id is set but NO HF token found "
+                  "(env HF_TOKEN / HUGGINGFACE_TOKEN, or Kaggle Secret HF_TOKEN).")
+            print("         Checkpoints will NOT be persisted off-machine — "
+                  "on Kaggle they are LOST at session end. Set the token.")
+    else:
+        print("NOTE: no hf_repo_id configured — checkpoints stay on this "
+              "machine only. Set `hf_repo_id` in the config (or env HF_REPO_ID) "
+              "to persist each checkpoint to the Hub as it is written.")
+
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=dataset,
         data_collator=collator,
+        callbacks=callbacks,
     )
 
     trainer.train(resume_from_checkpoint=args.resume_from)
@@ -389,9 +460,26 @@ def main() -> None:
     model.save_pretrained(str(adapter_path))
     tokenizer.save_pretrained(str(adapter_path))
     print(f"\nFinal adapter saved → {adapter_path.relative_to(ROOT)}")
-    print(f"Upload to HuggingFace Hub:")
-    print(f"  huggingface-cli upload <username>/sherlock-investigates-{cfg['run_name']} "
-          f"{adapter_path}")
+
+    # Persist the final adapter the same way as the checkpoints. This is the one
+    # artifact the eval gates actually load, so it must reach the Hub even if
+    # some mid-run checkpoint uploads failed.
+    if uploader is not None:
+        hf_persist.upload_path(
+            adapter_path, hf_repo_id, uploader.token,
+            path_in_repo="final_adapter", repo_type="model",
+            private=hf_private, label="final_adapter",
+        )
+        if uploader.failures:
+            print(f"\n  WARNING: {len(uploader.failures)} checkpoint upload(s) "
+                  f"failed and were NOT retried past their backoff: "
+                  f"{', '.join(uploader.failures)}")
+            print("  These exist only on this machine. Re-upload them before "
+                  "the session ends, or the dose curve has holes.")
+    else:
+        print("Upload to HuggingFace Hub (no repo was configured for auto-upload):")
+        print(f"  python scripts/training/upload_adapter.py --adapter {adapter_path} "
+              f"--repo-id <username>/sherlock-investigates-{cfg['run_name']}")
 
 
 if __name__ == "__main__":

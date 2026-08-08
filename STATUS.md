@@ -1,5 +1,5 @@
 # STATUS — sherlock-investigates
-Updated: 2026-07-28 (session ended on rate limit; resets 11pm America/Vancouver)
+Updated: 2026-08-07 (persistence + dose-curve stats reframe landed)
 
 ## Goal
 Get the first real experimental result. Everything below the fine-tune is instrument
@@ -41,6 +41,23 @@ Shakedown writeup: `results/analysis/shakedown_20260727_writeup.md`
 - [ ] 11b-old. full canon x 1 epoch, ~4.5 h,
       free. The stage-0 adapter is 311K unique tokens / 30 steps and CANNOT
       show an effect — do not run the eval gates against it.
+- [x] 11c. **Persistence made part of the run path (2026-08-07).** Third loss of
+      a run to /kaggle/working being wiped at session end (dose curve: 12
+      checkpoints incl. step-35, final adapter, results JSON). Now:
+      `train_lora.py` uploads each checkpoint to HF on `on_save` (config
+      `hf_repo_id`, token from env/Kaggle Secret); `dose_curve.py` uploads the
+      results JSON + `.partial.jsonl` as rows are written and has `--push-results`
+      to git-push the small JSON; both via `scripts/training/hf_persist.py`
+      (retry+backoff, never raises). Driver notebook committed:
+      `notebooks/kaggle_t4_dosecurve.py` (clones into /kaggle/working/si,
+      chains train→eval). Decision Log 2026-08-07.
+- [x] 11d. **Dose-curve stats reframed (2026-08-07).** Wilson 95% CI per
+      checkpoint + pooled early(≤35) vs late(≥45) Fisher exact, replacing the
+      "COLLAPSE at step N / usable window at ~35" headline. Eval is now seeded
+      (`--seed`, logged) and logs sampling params. Dry-parsed on the logged
+      2026-08-07 numbers: early 0.84 [0.68,0.93] vs late 0.50 [0.37,0.63],
+      Fisher p=0.0014. `make test` green (74 tests, +13 in `test_dose_stats.py`).
+      **The 5.5 h Kaggle re-run is owner-triggered — NOT run here.**
 - [ ] 12. Eval gates (perplexity / WikiText / MMLU / probe separation) — against
       the 11b adapter, never the stage-0 one.
       **probe_eval.py was fixed 2026-07-28** (it scored the think block instead
@@ -102,7 +119,20 @@ matters. It is what motivated the stratified redesign.
 
 ## Resume
 
-### NEXT: Kaggle T4 stage-0 validation (free, ~30 min)
+### NEXT (owner-triggered): dose-curve re-run, ~5.5 h on a Kaggle T4, free
+
+The run path is now reproducible from git and persists off-machine as it goes,
+so the 2026-08-07 loss cannot recur. Open a Kaggle notebook (GPU T4 x2,
+Internet ON), add the `HF_TOKEN` secret (WRITE scope; and `GITHUB_TOKEN` if you
+want `--push-results`), then paste cells from `notebooks/kaggle_t4_dosecurve.py`
+in order. It clones into `/kaggle/working/si`, trains with
+`configs/kaggle_t4_dosecurve.yaml` (every checkpoint uploaded to HF as written),
+then scores closure per checkpoint (Wilson CIs + early/late Fisher, seeded).
+Durable copies land at `hf.co/utsvsngh/sherlock-r1distill-7b-dosecurve` and
+`hf.co/datasets/utsvsngh/sherlock-dosecurve-results`. **Do NOT run it from this
+session — it is the owner's paid/quota'd GPU trigger.**
+
+### Kaggle T4 stage-0 validation (free, ~30 min) — DONE, kept for reference
 
 Repo is ready. Open a Kaggle notebook, set Accelerator = **GPU T4 x2** and
 Internet = **ON**, then paste cells from `notebooks/kaggle_t4_validation.py`
@@ -201,8 +231,10 @@ venv/bin/python scripts/analysis/compare_runs.py results/pilot/gate2_n20
 ## Open questions for the owner
 
 1. **`t_private_07` definition** — sustained-threshold, first-crossing, or peak-based?
-2. **Repo visibility** — public on GitHub while `CLAUDE.md:16` calls the corpus "the
-   experiment's IP". **9 commits are unpushed pending this.**
+2. ~~Repo visibility~~ — **settled 2026-08-07: public, by owner decision.** The plan
+   is an open methods/negative-result writeup; CLAUDE.md's IP language updated to
+   match (incrementally, per owner). Note the earlier "unpushed pending this" claim
+   was already stale — everything through `688a783` is on origin.
 3. **`exploration_draft.md`** — untracked at repo root. Into `docs/`, or delete?
 4. **JSON parse rate 60% at 24 turns** — measure on vLLM (which enforces `guided_json`
    where Ollama ignores it) before deciding whether to exclude `fallback` turns.

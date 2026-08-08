@@ -272,6 +272,16 @@ This structure enables decomposition: Sherlock vs base = gross effect; Sherlock 
 QLoRA with 4-bit NF4 quantization. Rank 32, alpha 64, dropout 0.05. Targets all seven linear modules: q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj. All-linears is described in the original QLoRA paper as crucial for matching full fine-tuning performance.
 
 ### Training objective
+> ⚠️ **Superseded in part (2026-08-07, owner-confirmed).** The raw-text "purity"
+> prescription below was written for the original non-thinking bases (Qwen2.5 /
+> Mistral) and was not revisited after the 2026-06-24 switch to R1-distills. On a
+> thinking model it is the *mechanism of the observed format collapse*: packed raw
+> prose contains zero `<think>`/chat-template tokens, so every gradient step pushes
+> mass away from the format Phase 2 measures (see the 2026-08-06 "format collapse"
+> Decision Log entry and `results/analysis/format_collapse_20260806.md`). The
+> Decision Log governs; the next training design must include rehearsal/format
+> data alongside canon text. Kept unedited below for provenance.
+
 Causal language modeling on raw text. No instruction formatting during training. Chat template applied only at inference time. Augmented data is presented as continued narrative (not instruction pairs) to keep the training manipulation pure.
 
 ### Hyperparameters

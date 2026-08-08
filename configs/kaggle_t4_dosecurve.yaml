@@ -88,3 +88,16 @@ save_steps: 5
 save_total_limit: null
   # null = keep EVERY checkpoint. THE POINT OF THIS RUN. The default of 3 is
   # what destroyed the free dose curve on 2026-08-06.
+
+# --- Off-machine persistence — the fix for the THREE lost runs ---------------
+# train_lora.py uploads each checkpoint to this repo the instant Trainer writes
+# it (on_save), so a checkpoint is on the Hub within seconds of being produced
+# rather than at session end — which is when /kaggle/working is wiped. Every
+# checkpoint lands under its own checkpoint-N/ path; the final adapter under
+# final_adapter/. Token comes from env HF_TOKEN or the Kaggle Secret HF_TOKEN,
+# never from the config or argv. Set HF_REPO_ID in the env to override without
+# editing this file.
+hf_repo_id: utsvsngh/sherlock-r1distill-7b-dosecurve
+hf_private: true
+  # Adapters default private on HF for cost/cleanliness, not secrecy
+  # (CLAUDE.md). Flip to false only if you deliberately want them public.

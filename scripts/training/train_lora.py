@@ -318,6 +318,26 @@ def main() -> None:
     cfg = load_config(config_path)
     set_seed(cfg["seed"])
 
+    # FAIL CLOSED on persistence, BEFORE the multi-hour burn. If a repo is
+    # configured but no token is reachable, refuse to start rather than warn and
+    # train unpersisted — three runs were lost and a fourth (2026-08-08, this
+    # exact path) trained 5 h and was wiped because a missing token was only a
+    # warning. Escape hatch for a deliberate local-only run: ALLOW_UNPERSISTED=1.
+    import os as _os_pf
+    _repo_pf = _os_pf.environ.get("HF_REPO_ID") or cfg.get("hf_repo_id")
+    if _repo_pf and not hf_persist.find_hf_token() \
+            and _os_pf.environ.get("ALLOW_UNPERSISTED") != "1":
+        sys.exit(
+            f"ERROR: hf_repo_id is set ({_repo_pf}) but NO HF token is reachable\n"
+            "       (env HF_TOKEN / HUGGINGFACE_TOKEN, or Kaggle Secret HF_TOKEN).\n"
+            "       Refusing to start: this run's checkpoints would NOT be\n"
+            "       persisted, and on ephemeral compute they are lost at session\n"
+            "       end — this has already happened four times.\n"
+            "       Fix: set the token (Kaggle: Add-ons -> Secrets -> HF_TOKEN,\n"
+            "       then ATTACH it to the notebook). Deliberate local-only run:\n"
+            "       set ALLOW_UNPERSISTED=1."
+        )
+
     print(f"\n{'='*60}")
     print(f"  Sherlock Investigates — LoRA fine-tuning")
     print(f"  Config : {config_path.name}")

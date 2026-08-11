@@ -184,10 +184,15 @@ assert cfg["save_steps"] <= est_steps, "save_steps > est steps: too few checkpoi
 assert cfg.get("hf_repo_id"), (
     "hf_repo_id is unset — checkpoints would not be persisted off-machine. "
     "Set it in the config so train_lora.py uploads each checkpoint as written.")
-if not os.environ.get("HF_TOKEN"):
-    print("\n  WARNING: HF_TOKEN not in env — persistence is DISABLED. Fix CELL 3 "
-          "before spending 5 hours, or this is a fourth lost run.")
-print("\n  preflight OK")
+# HARD STOP, not a warning. On 2026-08-08 this was a warning, the run trained 5h
+# with no token, and the session wipe destroyed all 22 checkpoints. Fail closed.
+assert os.environ.get("HF_TOKEN"), (
+    "HF_TOKEN is NOT in the environment — persistence would be disabled and this "
+    "~5h run would be LOST at session end (as it was on 2026-08-08). Add HF_TOKEN "
+    "in Add-ons -> Secrets, ATTACH it to this notebook, then re-run CELL 3. "
+    "Deliberate local-only run only: set os.environ['ALLOW_UNPERSISTED']='1' and "
+    "delete this assert.")
+print("\n  preflight OK — persistence is configured (HF_TOKEN present)")
 
 
 # =============================================================================
@@ -237,10 +242,16 @@ ev = subprocess.run(eval_cmd)
 print(f"\n  eval exit code: {ev.returncode}")
 
 print("\n" + "=" * 70)
-print("  DONE. Durable copies (survive session end):")
-print(f"    checkpoints + final adapter : https://huggingface.co/{cfg['hf_repo_id']}")
-print(f"    results JSON + partial jsonl: https://huggingface.co/datasets/{RESULTS_REPO}")
-if PUSH_RESULTS:
-    print("    results JSON also pushed to the git repo (results/analysis/).")
-print("  Safe to close the session — nothing durable lives only on this machine.")
+if os.environ.get("HF_TOKEN"):
+    print("  DONE. Durable copies (survive session end):")
+    print(f"    checkpoints + final adapter : https://huggingface.co/{cfg['hf_repo_id']}")
+    print(f"    results JSON + partial jsonl: https://huggingface.co/datasets/{RESULTS_REPO}")
+    if PUSH_RESULTS:
+        print("    results JSON also pushed to the git repo (results/analysis/).")
+    print("  Verify the HF repos above actually populated before closing the tab.")
+else:
+    print("  DONE — but HF_TOKEN was NOT set, so NOTHING was persisted off-machine.")
+    print("  Everything is on /kaggle/working ONLY and will be LOST at session end.")
+    print("  Set the token now and re-upload outputs/ + results/analysis/ before")
+    print("  closing (see the recovery snippet in the PR discussion).")
 print("=" * 70)

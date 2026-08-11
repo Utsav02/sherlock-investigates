@@ -475,16 +475,30 @@ def main() -> None:
     print(f"  (live log kept at {partial} — the two agree unless the run died)")
 
     # Persist the final JSON off-machine immediately: HF Hub, then optional git.
+    persisted = False
     if hf_results_repo and hf_token:
-        hf_persist.upload_path(
+        persisted = hf_persist.upload_path(
             out, hf_results_repo, hf_token,
             path_in_repo=out.name, repo_type="dataset",
             private=True, label=out.name)
     if args.push_results:
-        git_push_results(
+        persisted = git_push_results(
             [out, partial],
-            f"results: dose curve {stamp} (Wilson CIs + early/late Fisher)")
-    print()
+            f"results: dose curve {stamp} (Wilson CIs + early/late Fisher)") or persisted
+
+    # HONEST close. Do NOT print "safe to close" when nothing left the machine —
+    # that false reassurance is exactly what preceded the 2026-08-08 loss.
+    if persisted:
+        print("\n  results persisted off-machine — safe to close the session.")
+    else:
+        print("\n  " + "!" * 68)
+        print("  RESULTS ARE LOCAL ONLY — NOT persisted off-machine.")
+        print(f"  {out}")
+        print(f"  {partial}")
+        print("  On ephemeral compute (Kaggle/Colab) these are LOST at session "
+              "end. Download them now, or set HF_TOKEN and re-upload before "
+              "closing.")
+        print("  " + "!" * 68)
 
 
 def checkpoint_steps(d: Path) -> list[tuple[int, Path]]:

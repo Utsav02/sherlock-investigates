@@ -1,0 +1,439 @@
+{
+  "checkpoint_dir": "outputs/kaggle_t4_dosecurve_seed42",
+  "base": "unsloth/DeepSeek-R1-Distill-Qwen-7B",
+  "n_prompts": 8,
+  "max_new_tokens": 1200,
+  "temperature": 0.7,
+  "seed": 42,
+  "system_prompt": "INITIATOR_SYSTEM_THINKING",
+  "provenance": {
+    "reconstructed": true,
+    "reason": "Original dose_curve_20260808_204827.json lost when the Kaggle session was closed before the HF token was set \u2014 nothing was persisted off-machine (4th occurrence of this failure class).",
+    "source": "Transcribed verbatim from the notebook's printed output; analysis recomputed by dose_curve.analyze_rows.",
+    "train_loss": 0.8482460952499538,
+    "train_runtime_s": 18290.0673,
+    "note": "train_loss is bit-identical to the 2026-08-06 run, so the checkpoints are deterministically reproducible with another ~5h T4 run."
+  },
+  "training_loss_by_step": {
+    "5": 1.2747,
+    "10": 1.0192,
+    "15": 0.9582,
+    "20": 0.914,
+    "25": 0.8964,
+    "30": 0.889,
+    "35": 0.8715,
+    "40": 0.8648,
+    "45": 0.857,
+    "50": 0.8,
+    "55": 0.7497,
+    "60": 0.8016,
+    "65": 0.7598,
+    "70": 0.7632,
+    "75": 0.7285,
+    "80": 0.7808,
+    "85": 0.8177,
+    "90": 0.8282,
+    "95": 0.7452,
+    "100": 0.7243
+  },
+  "rows": [
+    {
+      "label": "base",
+      "closure": 8,
+      "n": 8,
+      "closure_rate": 1.0,
+      "truncated": 0,
+      "mean_tokens": 516,
+      "step": null
+    },
+    {
+      "label": "step-5",
+      "closure": 8,
+      "n": 8,
+      "closure_rate": 1.0,
+      "truncated": 0,
+      "mean_tokens": 474,
+      "step": 5
+    },
+    {
+      "label": "step-10",
+      "closure": 8,
+      "n": 8,
+      "closure_rate": 1.0,
+      "truncated": 0,
+      "mean_tokens": 423,
+      "step": 10
+    },
+    {
+      "label": "step-15",
+      "closure": 7,
+      "n": 8,
+      "closure_rate": 0.875,
+      "truncated": 0,
+      "mean_tokens": 424,
+      "step": 15
+    },
+    {
+      "label": "step-20",
+      "closure": 3,
+      "n": 8,
+      "closure_rate": 0.375,
+      "truncated": 0,
+      "mean_tokens": 321,
+      "step": 20
+    },
+    {
+      "label": "step-25",
+      "closure": 4,
+      "n": 8,
+      "closure_rate": 0.5,
+      "truncated": 0,
+      "mean_tokens": 496,
+      "step": 25
+    },
+    {
+      "label": "step-30",
+      "closure": 5,
+      "n": 8,
+      "closure_rate": 0.625,
+      "truncated": 1,
+      "mean_tokens": 478,
+      "step": 30
+    },
+    {
+      "label": "step-35",
+      "closure": 4,
+      "n": 8,
+      "closure_rate": 0.5,
+      "truncated": 0,
+      "mean_tokens": 372,
+      "step": 35
+    },
+    {
+      "label": "step-40",
+      "closure": 7,
+      "n": 8,
+      "closure_rate": 0.875,
+      "truncated": 0,
+      "mean_tokens": 431,
+      "step": 40
+    },
+    {
+      "label": "step-45",
+      "closure": 3,
+      "n": 8,
+      "closure_rate": 0.375,
+      "truncated": 0,
+      "mean_tokens": 358,
+      "step": 45
+    },
+    {
+      "label": "step-50",
+      "closure": 3,
+      "n": 8,
+      "closure_rate": 0.375,
+      "truncated": 0,
+      "mean_tokens": 296,
+      "step": 50
+    },
+    {
+      "label": "step-55",
+      "closure": 3,
+      "n": 8,
+      "closure_rate": 0.375,
+      "truncated": 0,
+      "mean_tokens": 304,
+      "step": 55
+    },
+    {
+      "label": "step-60",
+      "closure": 4,
+      "n": 8,
+      "closure_rate": 0.5,
+      "truncated": 0,
+      "mean_tokens": 307,
+      "step": 60
+    },
+    {
+      "label": "step-65",
+      "closure": 1,
+      "n": 8,
+      "closure_rate": 0.125,
+      "truncated": 0,
+      "mean_tokens": 267,
+      "step": 65
+    },
+    {
+      "label": "step-70",
+      "closure": 3,
+      "n": 8,
+      "closure_rate": 0.375,
+      "truncated": 1,
+      "mean_tokens": 427,
+      "step": 70
+    },
+    {
+      "label": "step-75",
+      "closure": 5,
+      "n": 8,
+      "closure_rate": 0.625,
+      "truncated": 0,
+      "mean_tokens": 443,
+      "step": 75
+    },
+    {
+      "label": "step-80",
+      "closure": 2,
+      "n": 8,
+      "closure_rate": 0.25,
+      "truncated": 0,
+      "mean_tokens": 318,
+      "step": 80
+    },
+    {
+      "label": "step-85",
+      "closure": 4,
+      "n": 8,
+      "closure_rate": 0.5,
+      "truncated": 0,
+      "mean_tokens": 380,
+      "step": 85
+    },
+    {
+      "label": "step-90",
+      "closure": 4,
+      "n": 8,
+      "closure_rate": 0.5,
+      "truncated": 0,
+      "mean_tokens": 391,
+      "step": 90
+    },
+    {
+      "label": "step-95",
+      "closure": 6,
+      "n": 8,
+      "closure_rate": 0.75,
+      "truncated": 0,
+      "mean_tokens": 360,
+      "step": 95
+    },
+    {
+      "label": "step-100",
+      "closure": 4,
+      "n": 8,
+      "closure_rate": 0.5,
+      "truncated": 0,
+      "mean_tokens": 344,
+      "step": 100
+    },
+    {
+      "label": "step-103",
+      "closure": 2,
+      "n": 8,
+      "closure_rate": 0.25,
+      "truncated": 0,
+      "mean_tokens": 266,
+      "step": 103
+    },
+    {
+      "label": "final",
+      "closure": 3,
+      "n": 8,
+      "closure_rate": 0.375,
+      "truncated": 0,
+      "mean_tokens": 413,
+      "step": null
+    }
+  ],
+  "analysis": {
+    "per_checkpoint": [
+      {
+        "step": 5,
+        "closure": 8,
+        "n": 8,
+        "rate": 1.0,
+        "wilson_lo": 0.6755843804891231,
+        "wilson_hi": 1.0
+      },
+      {
+        "step": 10,
+        "closure": 8,
+        "n": 8,
+        "rate": 1.0,
+        "wilson_lo": 0.6755843804891231,
+        "wilson_hi": 1.0
+      },
+      {
+        "step": 15,
+        "closure": 7,
+        "n": 8,
+        "rate": 0.875,
+        "wilson_lo": 0.5291051942301386,
+        "wilson_hi": 0.9775830911367038
+      },
+      {
+        "step": 20,
+        "closure": 3,
+        "n": 8,
+        "rate": 0.375,
+        "wilson_lo": 0.13684175946152105,
+        "wilson_hi": 0.6942621454161981
+      },
+      {
+        "step": 25,
+        "closure": 4,
+        "n": 8,
+        "rate": 0.5,
+        "wilson_lo": 0.21521252682444186,
+        "wilson_hi": 0.7847874731755582
+      },
+      {
+        "step": 30,
+        "closure": 5,
+        "n": 8,
+        "rate": 0.625,
+        "wilson_lo": 0.30573785458380187,
+        "wilson_hi": 0.863158240538479
+      },
+      {
+        "step": 35,
+        "closure": 4,
+        "n": 8,
+        "rate": 0.5,
+        "wilson_lo": 0.21521252682444186,
+        "wilson_hi": 0.7847874731755582
+      },
+      {
+        "step": 40,
+        "closure": 7,
+        "n": 8,
+        "rate": 0.875,
+        "wilson_lo": 0.5291051942301386,
+        "wilson_hi": 0.9775830911367038
+      },
+      {
+        "step": 45,
+        "closure": 3,
+        "n": 8,
+        "rate": 0.375,
+        "wilson_lo": 0.13684175946152105,
+        "wilson_hi": 0.6942621454161981
+      },
+      {
+        "step": 50,
+        "closure": 3,
+        "n": 8,
+        "rate": 0.375,
+        "wilson_lo": 0.13684175946152105,
+        "wilson_hi": 0.6942621454161981
+      },
+      {
+        "step": 55,
+        "closure": 3,
+        "n": 8,
+        "rate": 0.375,
+        "wilson_lo": 0.13684175946152105,
+        "wilson_hi": 0.6942621454161981
+      },
+      {
+        "step": 60,
+        "closure": 4,
+        "n": 8,
+        "rate": 0.5,
+        "wilson_lo": 0.21521252682444186,
+        "wilson_hi": 0.7847874731755582
+      },
+      {
+        "step": 65,
+        "closure": 1,
+        "n": 8,
+        "rate": 0.125,
+        "wilson_lo": 0.02241690886329617,
+        "wilson_hi": 0.4708948057698615
+      },
+      {
+        "step": 70,
+        "closure": 3,
+        "n": 8,
+        "rate": 0.375,
+        "wilson_lo": 0.13684175946152105,
+        "wilson_hi": 0.6942621454161981
+      },
+      {
+        "step": 75,
+        "closure": 5,
+        "n": 8,
+        "rate": 0.625,
+        "wilson_lo": 0.30573785458380187,
+        "wilson_hi": 0.863158240538479
+      },
+      {
+        "step": 80,
+        "closure": 2,
+        "n": 8,
+        "rate": 0.25,
+        "wilson_lo": 0.07147768885802763,
+        "wilson_hi": 0.5907301208974108
+      },
+      {
+        "step": 85,
+        "closure": 4,
+        "n": 8,
+        "rate": 0.5,
+        "wilson_lo": 0.21521252682444186,
+        "wilson_hi": 0.7847874731755582
+      },
+      {
+        "step": 90,
+        "closure": 4,
+        "n": 8,
+        "rate": 0.5,
+        "wilson_lo": 0.21521252682444186,
+        "wilson_hi": 0.7847874731755582
+      },
+      {
+        "step": 95,
+        "closure": 6,
+        "n": 8,
+        "rate": 0.75,
+        "wilson_lo": 0.40926987910258916,
+        "wilson_hi": 0.9285223111419724
+      },
+      {
+        "step": 100,
+        "closure": 4,
+        "n": 8,
+        "rate": 0.5,
+        "wilson_lo": 0.21521252682444186,
+        "wilson_hi": 0.7847874731755582
+      },
+      {
+        "step": 103,
+        "closure": 2,
+        "n": 8,
+        "rate": 0.25,
+        "wilson_lo": 0.07147768885802763,
+        "wilson_hi": 0.5907301208974108
+      }
+    ],
+    "pooled": {
+      "early_max": 35,
+      "late_min": 45,
+      "early_ok": 39,
+      "early_n": 56,
+      "early_rate": 0.6964285714285714,
+      "early_wilson": [
+        0.5666388751588567,
+        0.8009983537922407
+      ],
+      "late_ok": 44,
+      "late_n": 104,
+      "late_rate": 0.4230769230769231,
+      "late_wilson": [
+        0.33253058618917686,
+        0.5191036625608417
+      ],
+      "fisher_p_two_sided": 0.0015113705072108776
+    }
+  }
+}

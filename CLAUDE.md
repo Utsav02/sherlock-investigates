@@ -546,6 +546,16 @@ Neither diagnosis is visible from accuracy or selectivity alone, and the two pro
 
 ---
 
+### 2026-08-08 — Confound separator: one pilot@103 run, not two, and it is the LAST diagnostic before rehearsal-or-writeup
+
+**Decision:** Build (not yet run) a single-run experiment to separate the two knobs the format-collapse finding still confounds — optimizer STEPS vs UNIQUE-TOKEN BREADTH. `configs/kaggle_t4_confound_pilot103.yaml` trains the **pilot corpus (311K unique) to ~103 steps by re-reading it 11×** — identical model/LoRA/optimizer/schedule to the full-canon dose curve, so the only difference from that curve is corpus breadth (1/11th). `scripts/eval/confound_analysis.py` overlays the two dose-curve JSONs into a 2×2 (pilot/canon × early≤35/late≥45), reports four Fisher+Wilson contrasts, and prints a mechanism verdict. Driver: `notebooks/kaggle_t4_confound.py` (fail-closed, chains train→eval→analysis). Owner-triggered; ~4.5 h, free.
+
+**Reasoning:** The original sketch (2026-08-06) was "pilot@103 vs full-canon@30" — two runs. But stage-0 (pilot ~30 steps, 8/8) and the full-canon curve (~30 and ~103 steps) already exist, so only **one** cell of the 2×2 is missing (pilot at high steps). Running just that fills it. The design also fixes the flaw that stops *existing* data from answering this: stage-0 vs full-canon-step-30 hints at breadth (8/8 vs 5/8 at matched 30 steps) but is confounded by the **LR schedule** — stage-0's cosine ends at step 30 while full-canon's is near-peak, so full-canon's weights have moved farther. The pilot@103 run puts the pilot on its *own* ~103-step cosine, so step-for-step its LR position matches full canon and breadth is the clean sole difference. The verdict is decision-relevant: BREADTH-drives → low-LR/rank cannot open a window (you need the breadth for the effect) and rehearsal is mandatory; STEPS-drive → low-LR/low-rank/early-stop are worth trying first. `confound_analysis.analyze_confound` is pure and unit-tested against the real full-canon numbers with both synthetic pilot branches (`tests/test_confound_analysis.py`), so the verdict is trustworthy the instant the pilot JSON lands.
+
+**Alternatives considered:** *Two runs (pilot@103 AND canon@30)* — rejected; canon@30 is already the full-canon curve's step-30 point, so the second run is redundant. *Answer it from existing data with no run* — rejected as the sole approach; the LR-schedule confound above makes the existing comparison suggestive but not clean, though it is recorded as the prior. *Skip the confound and build rehearsal directly* — genuinely tempting, because **rehearsal (base-model-generated think blocks mixed into the corpus) is the mitigation that works under either branch**, so the confound is not on the critical path to *rescuing* the experiment. Kept anyway because it is cheap, it is a clean publishable methods result (which axis drives catastrophic forgetting of RL-distilled format under QLoRA), and it targets the rehearsal design. But it is explicitly logged as the **last diagnostic**: after this, the fork is rehearsal or a negative-results writeup, not another characterization run. *Low-LR/low-rank sweeps now* — premature; the confound verdict says whether they can possibly help before spending on them.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

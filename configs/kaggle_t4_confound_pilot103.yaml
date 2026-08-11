@@ -1,0 +1,91 @@
+# Confound separator — is the format collapse driven by STEPS or by UNIQUE-TOKEN
+# BREADTH?
+#
+# THE QUESTION. The 2026-08-06 collapse compared stage-0 (30 steps, 311K unique)
+# against full canon (103 steps, 3.36M unique) — two knobs moved at once. The
+# dose curve can't separate them either: within one epoch, steps and
+# unique-tokens-seen are perfectly collinear.
+#
+# THE DESIGN. This run fills the one missing cell of a 2x2. stage-0 (pilot,
+# ~30 steps, 8/8) and full canon (~30 and ~103 steps, ~5/8 and ~2/8) already
+# exist. Running the PILOT corpus to ~103 steps — same step count as full canon,
+# but 1/11th the unique-token breadth (311K re-read 11x, vs 3.36M seen once) —
+# completes it:
+#
+#                    ~30 steps      ~103 steps
+#   311K (pilot)     stage-0 8/8    THIS RUN  <- the unknown
+#   3.36M (canon)    ~5/8           ~2/8
+#
+# Overlay this run's closure curve on the full-canon curve (both under a matched
+# ~103-step cosine, so the ONLY difference is corpus breadth):
+#   pilot stays HIGH while canon decays  -> BREADTH drives collapse
+#                                           (rehearsal mandatory; low-LR/rank won't help)
+#   pilot ALSO decays with steps         -> WEIGHT MOVEMENT drives it
+#                                           (low-LR / low-rank / early-stop worth trying)
+#
+# Analysis: scripts/eval/confound_analysis.py overlays the two dose-curve JSONs.
+# Cost: ~4.5 h on a Kaggle T4, free.
+
+# --- Model (IDENTICAL to the dose-curve run) --------------------------------
+base_model: unsloth/DeepSeek-R1-Distill-Qwen-7B
+adapter_method: qlora
+
+quantization:
+  load_in_4bit: true
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: float16   # T4 is Turing (SM 7.5) — no native bf16
+
+# --- LoRA adapter (IDENTICAL) -----------------------------------------------
+# Held identical to the full-canon dose-curve run. Changing rank/alpha/modules
+# would confound "breadth vs steps" with "different adapter" — the whole point
+# is that corpus breadth is the ONLY thing that differs between the two curves.
+lora_rank: 32
+lora_alpha: 64
+lora_dropout: 0.05
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+# --- Optimizer & schedule (IDENTICAL) ---------------------------------------
+learning_rate: 1.0e-4
+lr_scheduler: cosine
+warmup_ratio: 0.05
+
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 16
+
+# --- THE ONLY DELIBERATE DELTAS: corpus + epochs ----------------------------
+# Pilot corpus: 311,252 unique tokens -> 151 blocks -> ~10 optimizer steps/epoch
+# at effective batch 16. 11 epochs -> ~103-110 steps, matching the full-canon
+# run's 103 within schedule tolerance. The cosine runs over this run's own step
+# count, so step-30 here and step-30 of full canon sit at near-identical LR
+# positions (30/~110 vs 30/103) — the schedule confound that existing data could
+# NOT control is controlled here.
+training_corpus_path: data/augmented/train.jsonl   # PILOT (311K unique)
+num_epochs: 11                                      # -> ~103 steps by re-reading
+max_seq_length: 2048
+packing: true
+seed: 42                # same seed as the collapsed/dose runs
+
+heldout_corpus_path: data/processed/heldout/speckled_band.txt
+
+# --- Output -----------------------------------------------------------------
+output_dir: outputs/kaggle_t4_confound_pilot103_seed42
+run_name: kaggle-t4-confound-pilot103-seed42
+
+# --- Logging & checkpointing (same as the dose curve) -----------------------
+logging_steps: 5
+save_steps: 5           # ~20+ checkpoints; overlaps full-canon's 5,10,...,103
+save_total_limit: null  # keep EVERY checkpoint — the checkpoints ARE the curve
+
+# --- Off-machine persistence — FAIL CLOSED (see train_lora.py) --------------
+# train_lora.py aborts before training if this is set and no HF token is
+# reachable, so a no-token run cannot burn 4.5 h and vanish (as on 2026-08-08).
+hf_repo_id: utsvsngh/sherlock-r1distill-7b-confound-pilot103
+hf_private: true

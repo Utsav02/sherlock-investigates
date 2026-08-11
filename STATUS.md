@@ -19,6 +19,22 @@ was never attached, so NOTHING persisted, and the session wipe destroyed all
   token; closing banners are honest about "local only." (Decision Log
   2026-08-08.)
 
+## NEXT (owner-triggered, free ~4.5h): confound separator — the LAST diagnostic
+Steps vs unique-token breadth. `notebooks/kaggle_t4_confound.py` +
+`configs/kaggle_t4_confound_pilot103.yaml`: trains the PILOT corpus (311K
+unique) to ~103 steps by re-reading 11×, then `scripts/eval/confound_analysis.py`
+overlays its closure curve on the full-canon curve
+(`results/analysis/dose_curve_20260808_204827.json`, ships with the repo). Reads:
+- pilot stays HIGH while canon decays → BREADTH drives it → **rehearsal mandatory**
+- pilot ALSO decays with steps → weight movement contributes → low-LR/rank worth trying
+
+After this, the fork is **rehearsal (base-model-generated think blocks) OR a
+negative-results writeup** — not another characterization run. Rehearsal works
+under either branch, so the confound is diagnostic, not on the critical path to
+rescuing the experiment; it's kept because it's cheap, publishable, and targets
+the rehearsal design. Analysis logic is unit-tested (`tests/test_confound_analysis.py`,
+`make test` green at 79).
+
 ## Goal
 Get the first real experimental result. Everything below the fine-tune is instrument
 work; the fine-tune itself has **never run** (zero GPU hours since 2026-06-10).

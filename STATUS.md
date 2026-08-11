@@ -1,5 +1,23 @@
 # STATUS — sherlock-investigates
-Updated: 2026-08-07 (persistence + dose-curve stats reframe landed)
+Updated: 2026-08-08 (dose curve replicated at n=22; 4th run lost to no-token
+session wipe; persistence now FAIL-CLOSED)
+
+## Most recent event (2026-08-08)
+The full 22-checkpoint dose-curve run completed on Kaggle (5h train + eval,
+$0) and **replicated the format-collapse finding**: pooled early(≤35) 0.70
+[0.57,0.80] vs late(≥45) 0.42 [0.33,0.52], Fisher p=0.0015. But the HF token
+was never attached, so NOTHING persisted, and the session wipe destroyed all
+22 checkpoints + final adapter — the 4th loss of this class.
+- **Measurement SURVIVED** — captured from stdout into
+  `results/analysis/dose_curve_20260808_204827.json` (+ writeup), analysis
+  recomputed by the real code (pooled numbers reproduce exactly).
+- **Weights LOST but reproducible** — train_loss bit-identical to 2026-08-06,
+  so a fresh ~5h run regenerates them. Not worth re-running just to hold
+  weights; the science is answered twice now.
+- **Fixed so it can't recur:** persistence is now FAIL-CLOSED — `train_lora.py`
+  aborts before training with no token; the notebook preflight asserts the
+  token; closing banners are honest about "local only." (Decision Log
+  2026-08-08.)
 
 ## Goal
 Get the first real experimental result. Everything below the fine-tune is instrument

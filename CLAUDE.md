@@ -556,6 +556,16 @@ Neither diagnosis is visible from accuracy or selectivity alone, and the two pro
 
 ---
 
+### 2026-08-12 — Confound RESOLVED: steps/weight-movement, not breadth; and re-reading a narrow corpus is worse
+
+**Decision:** The confound separator ran (pilot corpus → 110 steps, 11×, matched schedule; persistence worked end-to-end, every checkpoint + results on HF). The verdict is **STEPS / cumulative weight movement, NOT unique-token breadth.** Recorded as `results/analysis/dose_curve_20260812_104622.json` + `confound_pilot103_vs_fullcanon.json` + `confound_20260812_writeup.md` (reconstructed into git from the notebook output, which persisted to HF but not to git; analysis recomputed by the real code). The next action is a **single low-rank mitigation run** (constrain the adapter subspace to protect the base weights), with low-LR/early-stop as weaker secondary levers, and the negative-results writeup started in parallel. This retires the "last diagnostic"; low-rank is a *mitigation attempt* (part of the rescue fork), not another characterization.
+
+**Reasoning:** The 2×2 is unambiguous. At matched low dose, pilot and canon are **identical** (early 0.70 vs 0.70, Fisher p=1.0) despite 11× different unique tokens — breadth does nothing. The pilot collapses hard with steps at 1/11th the breadth (0.70 → 0.21, p=2.7e-09). And the unexpected, sharp finding: at matched high steps the **low-breadth pilot is worse** than the broad canon (0.21 vs 0.42, p=0.0012) — re-reading a narrow 311K corpus 11× damages the format *more* than one pass over 3.36M diverse tokens, because the repeated, concentrated gradient drives the weights further into "complete Victorian prose" and away from "emit/close `<think>`". This refutes the breadth guess (mine included) cleanly and reframes the mitigation: the lever is *less weight movement / a constrained subspace* (low rank, fewer modules), not a smaller or curated corpus. Honest caveat kept in the writeup: this identifies the lever, it does not prove a usable window exists — format damage tracks weight movement, and the movement needed to shift a reasoning prior may inherently damage the format; low-rank is a principled bet, rehearsal the robust fallback. Standalone, this is a publishable methods result: catastrophic forgetting of RL-distilled format under QLoRA is driven by optimizer steps, not training-distribution breadth.
+
+**Alternatives considered:** *Read the printed verdict as final ("steps → low-LR/rank will fix it")* — overclaims; the verdict names the lever, and the "pilot worse at high steps" result specifically warns that low-LR may only rescale the same damaging trajectory, which is why low-*rank* (subspace constraint) is preferred over low-LR (speed). *Skip low-rank, go straight to rehearsal* — defensible (rehearsal works regardless), but low-rank is one cheap now-crash-safe run that could rescue the experiment without the rehearsal pipeline, so it is worth trying first while the writeup proceeds in parallel. *Not writing the negative result until a mitigation is tried* — rejected; the finding is solid twice over and the confound is now cleanly separated, so the writeup is valuable independent of any rescue.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

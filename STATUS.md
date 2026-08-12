@@ -1,6 +1,22 @@
 # STATUS — sherlock-investigates
-Updated: 2026-08-08 (dose curve replicated at n=22; 4th run lost to no-token
-session wipe; persistence now FAIL-CLOSED)
+Updated: 2026-08-12 (confound RESOLVED — steps/weight-movement, not breadth;
+persistence worked end-to-end for the first time)
+
+## Most recent event (2026-08-12) — confound separator ran, verdict = STEPS
+The pilot@110 run completed and **persistence worked end to end** — every
+checkpoint uploaded to HF as written (`[persist] checkpoint-5 -> ... (9s)`),
+results too; nothing lost. The fail-closed gate + attached token did their job.
+- **Verdict: optimizer STEPS / weight movement, NOT unique-token breadth.**
+  At matched low dose pilot==canon (0.70 vs 0.70, p=1.0); pilot collapses with
+  steps at 1/11th the breadth (0.70→0.21, p=2.7e-09); and pilot is *worse* than
+  canon at high steps (0.21 vs 0.42, p=0.0012) — re-reading a narrow corpus is
+  MORE destructive than diverse tokens.
+- Captured in git: `results/analysis/dose_curve_20260812_104622.json`,
+  `confound_pilot103_vs_fullcanon.json`, `confound_20260812_writeup.md`.
+- **Next fork:** (1) one cheap low-RANK mitigation run (constrain the subspace,
+  protect base weights) — the lever the verdict points to; (2) rehearsal
+  (robust fallback); (3) negative-results writeup (solid regardless). Recommend
+  (1) + start (3) in parallel. Decision Log 2026-08-12.
 
 ## Most recent event (2026-08-08)
 The full 22-checkpoint dose-curve run completed on Kaggle (5h train + eval,

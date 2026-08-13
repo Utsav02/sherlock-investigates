@@ -18,6 +18,21 @@ results too; nothing lost. The fail-closed gate + attached token did their job.
   (robust fallback); (3) negative-results writeup (solid regardless). Recommend
   (1) + start (3) in parallel. Decision Log 2026-08-12.
 
+## NEXT (owner-triggered, free ~5.5h): low-rank mitigation — the DUAL run
+`notebooks/kaggle_t4_lowrank.py` + `configs/kaggle_t4_lowrank_r8.yaml`. Rank 8
+(vs 32), full canon, one variable changed so its closure curve overlays the r32
+curve. Measures BOTH per checkpoint:
+- **(a) closure** — `dose_curve.py` (does the `<think>` format survive?)
+- **(b) effect** — `effect_curve.py`, held-out Speckled Band perplexity drop vs
+  base (did it learn Holmes?)
+`mitigation_analysis.py` overlays them → **RESCUED** (closure ≥0.75 AND PPL drop
+≥5% at one checkpoint → rehearsal NOT needed) / **COUPLED** (effect only after
+closure collapses → rehearsal needed) / **TOO_WEAK** (no PPL drop anywhere →
+rehearsal needed). This triple decides whether rehearsal happens at all.
+Analysis logic unit-tested on all three branches (`make test` green at 84).
+**Writeup (3) is HELD until this result is in** (owner decision 2026-08-12).
+Honest odds: ~1-in-3 that low rank delivers both closure and effect.
+
 ## Most recent event (2026-08-08)
 The full 22-checkpoint dose-curve run completed on Kaggle (5h train + eval,
 $0) and **replicated the format-collapse finding**: pooled early(≤35) 0.70

@@ -1,0 +1,152 @@
+{
+  "checkpoint_dir": "outputs/kaggle_t4_lowrank_r8_seed42",
+  "base": "unsloth/DeepSeek-R1-Distill-Qwen-7B",
+  "heldout": "data/processed/heldout/speckled_band.txt",
+  "base_heldout_ppl": 32.538,
+  "h1_gate_pct": 5.0,
+  "provenance": {
+    "reconstructed": true,
+    "reason": "Transcribed verbatim from the 2026-08-14 Kaggle output (dose_curve_20260814_042400 / effect_curve_20260814_065854); persisted to HF (utsvsngh/sherlock-dosecurve-results) not git. Analysis recomputed by the real code. WikiText (H2) PPL was computed in the run but not printed \u2014 pull from the HF JSON.",
+    "run": "rank 8, alpha 16, full canon, seed 42, 103 steps"
+  },
+  "rows": [
+    {
+      "label": "base",
+      "heldout_ppl": 32.538,
+      "heldout_drop_pct": 0.0,
+      "step": null
+    },
+    {
+      "label": "step-5",
+      "heldout_ppl": 30.854,
+      "heldout_drop_pct": 5.2,
+      "step": 5
+    },
+    {
+      "label": "step-10",
+      "heldout_ppl": 23.986,
+      "heldout_drop_pct": 26.3,
+      "step": 10
+    },
+    {
+      "label": "step-15",
+      "heldout_ppl": 21.191,
+      "heldout_drop_pct": 34.9,
+      "step": 15
+    },
+    {
+      "label": "step-20",
+      "heldout_ppl": 20.257,
+      "heldout_drop_pct": 37.7,
+      "step": 20
+    },
+    {
+      "label": "step-25",
+      "heldout_ppl": 19.781,
+      "heldout_drop_pct": 39.2,
+      "step": 25
+    },
+    {
+      "label": "step-30",
+      "heldout_ppl": 19.459,
+      "heldout_drop_pct": 40.2,
+      "step": 30
+    },
+    {
+      "label": "step-35",
+      "heldout_ppl": 19.173,
+      "heldout_drop_pct": 41.1,
+      "step": 35
+    },
+    {
+      "label": "step-40",
+      "heldout_ppl": 18.956,
+      "heldout_drop_pct": 41.7,
+      "step": 40
+    },
+    {
+      "label": "step-45",
+      "heldout_ppl": 18.818,
+      "heldout_drop_pct": 42.2,
+      "step": 45
+    },
+    {
+      "label": "step-50",
+      "heldout_ppl": 18.718,
+      "heldout_drop_pct": 42.5,
+      "step": 50
+    },
+    {
+      "label": "step-55",
+      "heldout_ppl": 18.664,
+      "heldout_drop_pct": 42.6,
+      "step": 55
+    },
+    {
+      "label": "step-60",
+      "heldout_ppl": 18.583,
+      "heldout_drop_pct": 42.9,
+      "step": 60
+    },
+    {
+      "label": "step-65",
+      "heldout_ppl": 18.493,
+      "heldout_drop_pct": 43.2,
+      "step": 65
+    },
+    {
+      "label": "step-70",
+      "heldout_ppl": 18.428,
+      "heldout_drop_pct": 43.4,
+      "step": 70
+    },
+    {
+      "label": "step-75",
+      "heldout_ppl": 18.383,
+      "heldout_drop_pct": 43.5,
+      "step": 75
+    },
+    {
+      "label": "step-80",
+      "heldout_ppl": 18.346,
+      "heldout_drop_pct": 43.6,
+      "step": 80
+    },
+    {
+      "label": "step-85",
+      "heldout_ppl": 18.319,
+      "heldout_drop_pct": 43.7,
+      "step": 85
+    },
+    {
+      "label": "step-90",
+      "heldout_ppl": 18.299,
+      "heldout_drop_pct": 43.8,
+      "step": 90
+    },
+    {
+      "label": "step-95",
+      "heldout_ppl": 18.29,
+      "heldout_drop_pct": 43.8,
+      "step": 95
+    },
+    {
+      "label": "step-100",
+      "heldout_ppl": 18.289,
+      "heldout_drop_pct": 43.8,
+      "step": 100
+    },
+    {
+      "label": "step-103",
+      "heldout_ppl": 18.288,
+      "heldout_drop_pct": 43.8,
+      "step": 103
+    },
+    {
+      "label": "final",
+      "heldout_ppl": 18.288,
+      "heldout_drop_pct": 43.8,
+      "step": null
+    }
+  ]
+}

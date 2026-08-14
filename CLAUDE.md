@@ -576,6 +576,16 @@ Neither diagnosis is visible from accuracy or selectivity alone, and the two pro
 
 ---
 
+### 2026-08-14 — Low-rank (r8) RESCUES the format; rehearsal shelved, but perplexity is a proxy
+
+**Decision:** The rank-8 mitigation run returned **RESCUED** — closure is far better preserved (early 0.96 [0.88,0.99] / late 0.73 [0.64,0.81], vs r32's 0.70/0.42) AND held-out Speckled Band perplexity drops +43.8% (H1 gate is ≥5%), with a comfortable window (step ~50: closure 8/8 AND drop +42.6%). **Rehearsal is shelved** (not deleted) and the negative-results writeup is **reframed, not shipped**. Recorded as `results/analysis/dose_curve_20260814_042400.json` + `effect_curve_20260814_065854.json` + `mitigation_lowrank_r8.json` + `mitigation_lowrank_20260814_writeup.md` (reconstructed into git from the Kaggle output; analysis recomputed by the real code). Next actions: (1) pull the WikiText H2 drift from the effect JSON on HF; (2) run the **behavioural** effect check (probe separation / think-block inspection on deduction prompts) on the step-50 checkpoint — the real reasoning-shift signal; (3) if it holds, proceed to the conversation arm on step-50.
+
+**Reasoning:** The result is coherent with the confound verdict — the collapse tracks weight movement, and rank 8 moves the weights in 1/4 the directions, so the format survives much better at the same steps/corpus. That part is a clean, verified success and it clears the blocker that stopped the whole experiment. **But three caveats are logged so "RESCUED" is not over-read.** (a) *Perplexity is a proxy and saturates by step ~15 (~500–650K tokens, below the ~1M reasoning-shift threshold)* — most of the +44% is fast surface adaptation to Doyle's style, not proof the model *reasons* like Holmes; the experiment's DV (deduction behaviour / commitment gap) still needs the behavioural measure, so this rescues the precondition, not the hypothesis. (b) *H2 (WikiText drift) was computed but not printed* — until it is checked, the effect could partly be general-LM degradation rather than Holmes-specific learning. (c) *The final adapter's closure is 3/8, much worse than step-103's 7/8* — operate at a mid checkpoint (~step 50), never `final`. The verification house rule applies squarely here: a proxy metric passing spectacularly is not the same as the real path working, and the real path (reasoning shift, then the three-level commitment gap) has not yet been measured.
+
+**Alternatives considered:** *Declare the experiment rescued outright and jump to the 1000-conversation arm* — rejected; perplexity is a distributional proxy and the behavioural shift is unverified, so that would be reporting "working" without the real path, the exact error CLAUDE.md's verification rule forbids. *Ship the negative-results writeup anyway* — rejected; the honest finding is no longer "the design cannot work," it is "standard rank destroys the format, low rank rescues it," which is a different and better paper. *Keep the writeup fully shelved* — no; the format-collapse + confound + rescue arc is itself the methods contribution and should be drafted once the behavioural check lands. *Use the final adapter (simplest)* — rejected on the closure anomaly above.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

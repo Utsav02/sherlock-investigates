@@ -1,6 +1,25 @@
 # STATUS — sherlock-investigates
-Updated: 2026-08-12 (confound RESOLVED — steps/weight-movement, not breadth;
-persistence worked end-to-end for the first time)
+Updated: 2026-08-14 (low-rank r8 RESCUES the format — first positive result;
+rehearsal shelved; perplexity is a proxy, behavioural check still pending)
+
+## Most recent event (2026-08-14) — low-rank mitigation = RESCUED
+Rank 8 (vs 32), full canon. **Closure far better preserved** (early 0.96 / late
+0.73 vs r32's 0.70 / 0.42) AND **held-out Speckled Band PPL drops +43.8%** (H1
+gate ≥5%). Wide window; sweet spot **step ~50: closure 8/8 AND +42.6%**.
+Verdict: **RESCUED → rehearsal NOT needed.** Persistence worked end to end.
+- Captured in git: `dose_curve_20260814_042400.json`,
+  `effect_curve_20260814_065854.json`, `mitigation_lowrank_r8.json`,
+  `mitigation_lowrank_20260814_writeup.md`.
+- **CAVEATS (do not over-read):** (1) perplexity is a PROXY — saturates by
+  step ~15 (~600K tokens), so most of the +44% is surface style, NOT proof the
+  model *reasons* like Holmes; the behavioural DV is unverified. (2) H2 WikiText
+  drift computed but not printed — pull from HF JSON. (3) final adapter closure
+  3/8 — use step ~50, not final.
+- **Next:** (1) check H2 from HF effect JSON; (2) run the BEHAVIOURAL effect
+  check on step-50 (probe separation / think-block inspection) — the real
+  reasoning-shift signal; (3) if it holds, the conversation arm is unblocked on
+  the step-50 adapter. Writeup reframed to "standard rank destroys format, low
+  rank rescues it" — drafted once (2) lands. Decision Log 2026-08-14.
 
 ## Most recent event (2026-08-12) — confound separator ran, verdict = STEPS
 The pilot@110 run completed and **persistence worked end to end** — every

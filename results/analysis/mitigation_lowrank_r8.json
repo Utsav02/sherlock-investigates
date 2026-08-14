@@ -1,0 +1,278 @@
+{
+  "closure": "dose_curve_20260814_042400.json",
+  "effect": "effect_curve_20260814_065854.json",
+  "provenance": {
+    "reconstructed": true,
+    "reason": "Transcribed verbatim from the 2026-08-14 Kaggle output (dose_curve_20260814_042400 / effect_curve_20260814_065854); persisted to HF (utsvsngh/sherlock-dosecurve-results) not git. Analysis recomputed by the real code. WikiText (H2) PPL was computed in the run but not printed \u2014 pull from the HF JSON.",
+    "run": "rank 8, alpha 16, full canon, seed 42, 103 steps"
+  },
+  "analysis": {
+    "closure_ok_threshold": 0.75,
+    "effect_min_pct": 5.0,
+    "joined": [
+      {
+        "step": 5,
+        "closure_rate": 1.0,
+        "drop_pct": 5.2,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 10,
+        "closure_rate": 1.0,
+        "drop_pct": 26.3,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 15,
+        "closure_rate": 1.0,
+        "drop_pct": 34.9,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 20,
+        "closure_rate": 1.0,
+        "drop_pct": 37.7,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 25,
+        "closure_rate": 0.875,
+        "drop_pct": 39.2,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 30,
+        "closure_rate": 1.0,
+        "drop_pct": 40.2,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 35,
+        "closure_rate": 0.875,
+        "drop_pct": 41.1,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 40,
+        "closure_rate": 1.0,
+        "drop_pct": 41.7,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 45,
+        "closure_rate": 0.75,
+        "drop_pct": 42.2,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 50,
+        "closure_rate": 1.0,
+        "drop_pct": 42.5,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 55,
+        "closure_rate": 1.0,
+        "drop_pct": 42.6,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 60,
+        "closure_rate": 0.625,
+        "drop_pct": 42.9,
+        "closure_ok": false,
+        "effect_present": true
+      },
+      {
+        "step": 65,
+        "closure_rate": 0.5,
+        "drop_pct": 43.2,
+        "closure_ok": false,
+        "effect_present": true
+      },
+      {
+        "step": 70,
+        "closure_rate": 0.75,
+        "drop_pct": 43.4,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 75,
+        "closure_rate": 0.75,
+        "drop_pct": 43.5,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 80,
+        "closure_rate": 0.625,
+        "drop_pct": 43.6,
+        "closure_ok": false,
+        "effect_present": true
+      },
+      {
+        "step": 85,
+        "closure_rate": 0.625,
+        "drop_pct": 43.7,
+        "closure_ok": false,
+        "effect_present": true
+      },
+      {
+        "step": 90,
+        "closure_rate": 0.75,
+        "drop_pct": 43.8,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 95,
+        "closure_rate": 0.5,
+        "drop_pct": 43.8,
+        "closure_ok": false,
+        "effect_present": true
+      },
+      {
+        "step": 100,
+        "closure_rate": 0.75,
+        "drop_pct": 43.8,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 103,
+        "closure_rate": 0.875,
+        "drop_pct": 43.8,
+        "closure_ok": true,
+        "effect_present": true
+      }
+    ],
+    "window": [
+      {
+        "step": 5,
+        "closure_rate": 1.0,
+        "drop_pct": 5.2,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 10,
+        "closure_rate": 1.0,
+        "drop_pct": 26.3,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 15,
+        "closure_rate": 1.0,
+        "drop_pct": 34.9,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 20,
+        "closure_rate": 1.0,
+        "drop_pct": 37.7,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 25,
+        "closure_rate": 0.875,
+        "drop_pct": 39.2,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 30,
+        "closure_rate": 1.0,
+        "drop_pct": 40.2,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 35,
+        "closure_rate": 0.875,
+        "drop_pct": 41.1,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 40,
+        "closure_rate": 1.0,
+        "drop_pct": 41.7,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 45,
+        "closure_rate": 0.75,
+        "drop_pct": 42.2,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 50,
+        "closure_rate": 1.0,
+        "drop_pct": 42.5,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 55,
+        "closure_rate": 1.0,
+        "drop_pct": 42.6,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 70,
+        "closure_rate": 0.75,
+        "drop_pct": 43.4,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 75,
+        "closure_rate": 0.75,
+        "drop_pct": 43.5,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 90,
+        "closure_rate": 0.75,
+        "drop_pct": 43.8,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 100,
+        "closure_rate": 0.75,
+        "drop_pct": 43.8,
+        "closure_ok": true,
+        "effect_present": true
+      },
+      {
+        "step": 103,
+        "closure_rate": 0.875,
+        "drop_pct": 43.8,
+        "closure_ok": true,
+        "effect_present": true
+      }
+    ],
+    "verdict_key": "RESCUED",
+    "verdict": "RESCUED. A window exists at step 90: closure 0.75 (>= 0.75) AND held-out PPL drop +43.8% (>= 5.0% H1 gate). Low rank keeps the format intact at a dose that also produces the effect -> REHEARSAL IS NOT NEEDED. Confirm with the full eval gates on the step-90 checkpoint."
+  }
+}

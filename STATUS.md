@@ -1,6 +1,34 @@
 # STATUS — sherlock-investigates
-Updated: 2026-08-14 (low-rank r8 RESCUES the format — first positive result;
-rehearsal shelved; perplexity is a proxy, behavioural check still pending)
+Updated: 2026-08-14 (behavioural check = NULL: no reasoning shift at step-50;
+low rank preserves format but the format-safe dose doesn't shift reasoning)
+
+## Most recent event (2026-08-14) — thinking-shift check came back NULL
+Read the actual base-vs-step-50 `<think>` blocks (transcript pulled from HF,
+now in git). **Base and fine-tuned reason the same way** — cue-by-cue, hedged,
+no confident deduction, no Holmes voice. Phase-1 precondition (distinguishable
+reasoning prior) NOT met at step-50. Behaviourally this is TOO_WEAK despite
+perplexity's RESCUED.
+- Three signals agree: H2 decomposition (~10pp Holmes-specific), markers
+  (flat/generic + a no-think-block artifact inflating the hedging drop), and the
+  transcripts (decisive).
+- **Cause:** corpus is the Holmes canon (Watson NARRATING deduction, prose) —
+  not reasoning transcripts. Trains prose prediction (PPL drops), not the
+  model's own private reasoning. Channel mismatch.
+- Evidence in git: `thinking_shift_20260814_171042_transcript.md` +
+  `thinking_shift_20260814_writeup.md`. Decision Log 2026-08-14 (4th entry).
+- **Conversation arm stays BLOCKED** — two base-equivalent reasoners would
+  measure noise.
+
+## Fork now
+1. Cheap: check **step-103** (highest Holmes-specific excess; closure 7/8) —
+   free ~15 min, low expected payoff, closes the "higher dose?" question.
+2. **Rehearsal** — base-model-generated think blocks (reasoning traces in the
+   right channel) mixed into training; the one rescue with a mechanism for a
+   behavioural shift. More involved; contamination caution.
+3. **Reframed writeup** — the full arc is a clean methods story (standard rank
+   destroys format; low rank preserves it but the format-safe dose yields only
+   generic prose recovery, no reasoning shift, because raw prose is the wrong
+   channel). Recommend (1) + draft (3) in parallel; (2) if a shift is still wanted.
 
 ## Most recent event (2026-08-14) — low-rank mitigation = RESCUED
 Rank 8 (vs 32), full canon. **Closure far better preserved** (early 0.96 / late

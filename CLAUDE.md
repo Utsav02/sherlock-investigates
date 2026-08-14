@@ -606,6 +606,16 @@ Neither diagnosis is visible from accuracy or selectivity alone, and the two pro
 
 ---
 
+### 2026-08-14 — Behavioural check comes back NULL: no reasoning shift at step-50; the corpus is the wrong channel
+
+**Decision:** The thinking-shift run executed (base vs low-rank step-50, 30 probe prompts, greedy). Reading the actual `<think>` blocks, **base and fine-tuned reason the same way — no visible Holmes reasoning shift.** The Phase-1 precondition (a distinguishable reasoning prior) is **not met** at step-50; behaviourally this is the mitigation's TOO_WEAK branch, despite perplexity's RESCUED. Recorded as `results/analysis/thinking_shift_20260814_171042_transcript.md` (evidence, in git) + `thinking_shift_20260814_writeup.md`. Next: (1) cheaply check step-103 for completeness (free, low expected payoff); (2) rehearsal is the one remaining rescue with a mechanism; (3) draft the reframed negative-results writeup in parallel. The conversation arm stays blocked — a commitment-gap run on two base-equivalent reasoners would measure noise.
+
+**Reasoning:** Three independent signals now agree the effect is not a reasoning shift: the H2 decomposition (~34pp generic prose recovery, ~10pp Holmes-specific), the register markers (hedging drop ≈ equal on control and deduction, deduction markers flat), and — decisively — the transcripts. Where both models produce a block (prompts 10–13), the fine-tuned trace is near-identical to base: cue-by-cue, hedged, no confident deduction (prompt 10 base ends "I'll let him be", fine-tuned ends "I can't be sure without asking" — the fine-tuned one drifts *toward* concern/helping, away from the detective register). A caught instrument artifact matters here: the register table's "hedging drop" on deduction prompts is partly fine-tuned **no-think-block** cases (16, 18) scoring 0.0 hedging — absence miscounted as confidence — so even the mild marker signal is weaker than it looked. **Mechanistic cause:** the corpus is the Holmes canon — Watson *narrating* deduction, prose and dialogue — not step-by-step reasoning transcripts, so continued-pretraining teaches the model to *predict detective prose* (perplexity drops) but supplies no signal for shifting the model's *own* private reasoning. Training on descriptions of deduction ≠ training the model to deduce. This vindicates the verification house rule twice over: perplexity "RESCUED" would have been reported as success, but the real path (reading the reasoning) shows a null.
+
+**Alternatives considered:** *Trust the RESCUED verdict and start the conversation arm* — rejected; that reports "working" on a proxy the transcripts refute. *Call the whole approach dead now* — premature by one cheap step (step-103) and it ignores that rehearsal directly addresses the diagnosed channel mismatch. *Blame the detector/markers* — no; the markers were only ever a compass, the transcripts are the evidence, and they are unambiguous. *Read more than ~5 of 10 deduction prompts before concluding* — the sampled prompts, the aggregate marker table over all 10, and the perplexity decomposition all converge, so the conclusion is safe; the full transcript is committed for anyone to re-read.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+"""Reverse-construction scenario generator — step 1 of the SFT pivot.
+
+Starts from a KNOWN identity/occupation/situation and asks the model to invent
+concrete observable CUES that imply it (without naming it), then phrases a
+forensic scenario. This gives what raw prompts could not (viability probe,
+2026-08-14):
+  - forensic flavor (cues -> hidden identity), the right reasoning type;
+  - a CRISP answer by construction, so confident deduction is appropriate (not
+    over-reach) — the ambiguity that made the base model hedge is removed;
+  - a GROUND TRUTH to filter generated traces against downstream (a trace is a
+    keeper if its conclusion matches the seed identity) — automatic rejection
+    sampling.
+
+Fully self-sourced: our seed identities + our model's cues. No external dataset,
+no license question (see docs/data_strategy.md — ART/ROCStories dropped from the
+critical path for exactly this reason).
+
+Runs LOCALLY against Ollama (deepseek-r1:7b, same family as the training base).
+
+    python scripts/data_prep/reverse_scenarios.py --limit 5
+    python scripts/data_prep/reverse_scenarios.py            # all seeds
+
+Downstream: generate a Holmes-style deductive <think> trace for each
+`scenario_prompt`, keep only traces whose conclusion matches `ground_truth`,
+then SFT on the survivors (+ an OpenThoughts format anchor).
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import re
+from datetime import datetime
+from pathlib import Path
+
+import requests
+
+ROOT = Path(__file__).resolve().parents[2]
+OLLAMA = "http://localhost:11434/api/chat"
+
+# Seed identities — deliberately diverse (occupation, condition, situation).
+# Public, trivially self-authored; expand freely. These are the ground truths.
+SEED_IDENTITIES = [
+    "a retired sergeant of the Royal Marines",
+    "a night-shift hospital nurse coming off a long shift",
+    "a long-haul lorry driver",
+    "a professional concert violinist",
+    "a practised pickpocket",
+    "a deep-sea trawler fisherman",
+    "a new mother of a very young infant, badly sleep-deprived",
+    "a medical student in the week before final exams",
+    "a bookbinder",
+    "a watchmaker",
+    "a farmhand at harvest time",
+    "an amateur boxer",
+    "a gambler on a long losing streak",
+    "a man recently released from prison",
+    "a head chef in a busy kitchen",
+    "a tailor",
+    "a mountaineer just back from a climb",
+    "a heavy smoker who has just quit",
+    "a professional gardener",
+    "a competitive long-distance swimmer",
+    "a locksmith",
+    "a beekeeper",
+    "a coal miner",
+    "a forger of documents",
+    "a widower in early mourning",
+    "someone who has just emigrated from a hot country to a cold one",
+    "a church organist",
+    "a diamond setter (jeweller)",
+    "a ballet dancer",
+    "a bus conductor near the end of a double shift",
+]
+
+SYSTEM = (
+    "You design observation puzzles in the style of Sherlock Holmes. You are "
+    "given a HIDDEN ANSWER: a person's identity, occupation, or situation. Invent "
+    "3 to 5 concrete, specific, OBSERVABLE cues — physical marks, wear on clothes "
+    "or hands, posture, habits, small behaviours — that a keen observer could "
+    "notice and that together point clearly to that answer.\n"
+    "HARD RULES for the cues and the scenario:\n"
+    "- INDIRECT ONLY. Never state or name the answer, the job title, or the "
+    "profession's signature tools/instruments by name (e.g. for a violinist do "
+    "NOT mention a violin or violin case; use the chin/jaw mark, calloused "
+    "fingertips, the way they hold things). The reader must INFER it.\n"
+    "- No dialogue that reveals the answer (do not have the person say what they "
+    "do or where they work).\n"
+    "- Each cue must be something physically visible, not an interpretation.\n"
+    "Then write one short scenario (2-3 sentences) describing a stranger showing "
+    "those cues, ending with the question 'What do you make of them?'. Output "
+    "EXACTLY this format and nothing else:\n"
+    "CUES:\n- <cue>\n- <cue>\n- <cue>\nSCENARIO: <2-3 sentences ending with 'What "
+    "do you make of them?'>"
+)
+
+
+def ollama_chat(messages: list[dict], num_predict: int, seed: int) -> str:
+    r = requests.post(OLLAMA, json={
+        "model": "deepseek-r1:7b", "messages": messages, "stream": False,
+        "options": {"num_predict": num_predict, "temperature": 0.8, "seed": seed},
+    }, timeout=600)
+    r.raise_for_status()
+    msg = r.json().get("message", {})
+    content = msg.get("content") or ""
+    if "<think>" in content:  # strip any inline reasoning
+        content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL)
+    return content.strip()
+
+
+def parse(out: str) -> tuple[list[str], str]:
+    """Best-effort extraction of cue bullets and the scenario sentence."""
+    cues = [re.sub(r"^[-*]\s*", "", ln).strip()
+            for ln in out.splitlines() if re.match(r"^\s*[-*]\s+", ln)]
+    m = re.search(r"SCENARIO:\s*(.+)", out, re.DOTALL | re.IGNORECASE)
+    scenario = m.group(1).strip() if m else ""
+    # keep only up to the question if the model rambled past it
+    q = scenario.lower().find("what do you make of them?")
+    if q != -1:
+        scenario = scenario[:q + len("what do you make of them?")]
+    return cues, scenario
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--limit", type=int, default=None, help="first N seeds")
+    ap.add_argument("--num-predict", type=int, default=600)
+    ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--out", default=None)
+    args = ap.parse_args()
+
+    seeds = SEED_IDENTITIES[:args.limit] if args.limit else SEED_IDENTITIES
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    out = Path(args.out) if args.out else ROOT / "data" / "sft" / f"reverse_scenarios_{stamp}.jsonl"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    f = out.open("w", encoding="utf-8")
+
+    kept = 0
+    for i, identity in enumerate(seeds):
+        raw = ollama_chat(
+            [{"role": "system", "content": SYSTEM},
+             {"role": "user", "content": f"HIDDEN ANSWER: {identity}"}],
+            args.num_predict, args.seed)
+        cues, scenario = parse(raw)
+        ok = len(cues) >= 2 and scenario.endswith("What do you make of them?")
+        row = {"id": i, "ground_truth": identity, "cues": cues,
+               "scenario_prompt": scenario, "parse_ok": ok, "raw": raw}
+        f.write(json.dumps(row) + "\n")
+        f.flush()
+        kept += ok
+        print(f"[{i:>2}] {'OK ' if ok else 'BAD'} {identity}", flush=True)
+        if ok:
+            print(f"      cues: {len(cues)} | {scenario[:90]}", flush=True)
+    f.close()
+    print(f"\n{kept}/{len(seeds)} parsed cleanly -> {out}", flush=True)
+
+
+if __name__ == "__main__":
+    main()

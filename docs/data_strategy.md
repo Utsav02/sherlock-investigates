@@ -134,17 +134,41 @@ resolves in Sherlock's favour on domain; it only ever failed on format.
 7. **Use social-deduction + detective benchmarks as held-out *evaluation*** of
    whether deductive reasoning improved — never as training.
 
-## 8. Open decisions / next steps
+## 8. Decision (2026-08-14) — self-source via reverse construction
 
-1. **Confirm the deductive-generation is cleanly sourceable** — either confirm
-   ROCStories/ART terms, or commit to self-authored scenario prompts in the ART
-   shape. (License gate before any pipeline.)
-2. **Sharpen the viability probe** (harder commit-or-nothing instruction, crisper
-   cue→answer prompts) to confirm the base model can produce keeper traces at an
-   acceptable yield; if yield is too low, decide on a stronger generator (logged
-   provenance decision).
-3. **Then** build: generate → filter → SFT (with the OpenThoughts format anchor) →
-   re-run the existing thinking_shift check on held-out prompts.
+The license gate is **resolved: self-source the scenarios; ART/ROCStories dropped
+from the critical path.** Rationale (see Decision Log 2026-08-14): confirming
+ROCStories terms is slower, uncertain (research datasets are often
+non-commercial/no-redistribution), and — decisively — ART's *content* is mundane
+everyday-story abduction, not forensic profiling, so it is a weak fit even if the
+licence clears. Self-sourcing is easier, unconditionally feasible, and a *better
+content fit*, via **reverse construction**:
+
+> Start from a KNOWN answer (identity/occupation/situation) → have the model
+> invent the observable CUES that imply it → the cues become the scenario, the
+> known answer is the ground truth.
+
+This gives forensic scenarios, **crisp answers by construction** (removing the
+ambiguity that made the base model hedge in the viability probe), and a
+**ground-truth target to filter traces against** (automatic rejection sampling).
+Built as `scripts/data_prep/reverse_scenarios.py` (local Ollama, self-contained).
+OpenThoughts (Apache-2.0) stays as the format anchor. ART is optional future
+diversity only, never a blocker.
+
+## 9. Build order (unblocked)
+
+1. **`scripts/data_prep/reverse_scenarios.py`** — reverse-construct seed scenarios
+   (identity → cues → scenario + ground truth). ✅ built.
+2. **Trace generation** — for each `scenario_prompt`, generate a Holmes-style
+   deductive `<think>` trace (base model, few-shot; the viability probe's harder
+   commit-or-nothing instruction).
+3. **Filter (rejection sampling)** — keep only traces whose conclusion matches
+   `ground_truth`. This is the quality signal (§2: SFT has no other one).
+4. **SFT** on survivors, mixing ~10–20% OpenThoughts R1 traces as a format anchor.
+   Optional **DPO** (confident keeper vs the base model's hedgy trace) to sharpen
+   commitment — cautiously (§2).
+5. **Verify** — re-run the existing `thinking_shift` check on held-out prompts
+   (generalisation, not memorisation), then — only if it holds — Phase 2.
 
 ---
 

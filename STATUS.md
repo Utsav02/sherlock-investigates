@@ -20,10 +20,25 @@ Verdict: **RESCUED → rehearsal NOT needed.** Persistence worked end to end.
   Holmes-specific and distributional — NOT proof the model *reasons* like
   Holmes. (2) final adapter closure 3/8 — use step ~50.
 - **Next (behavioural check now REQUIRED, not optional):** run the behavioural
-  effect on step-50 (probe separation / think-block inspection on deduction
-  prompts) — perplexity is confirmed inadequate. If a real reasoning shift
-  shows, the conversation arm is unblocked on step-50; if null, points back to
-  rehearsal or a reframed writeup. Decision Log 2026-08-14 (both entries).
+  effect on step-50 (think-block inspection on deduction prompts) — perplexity
+  is confirmed inadequate. If a real reasoning shift shows, the conversation arm
+  is unblocked on step-50; if null, points back to rehearsal or a reframed
+  writeup. Decision Log 2026-08-14 (three entries).
+
+## NEXT (owner-triggered, free ~15-25 min, NO training): thinking-shift check
+`notebooks/kaggle_t4_thinking_shift.py` + `scripts/eval/thinking_shift.py`.
+Runs the probe set (10 deduction + 10 reasoning + 10 neutral) through BASE and
+the low-rank **step-50** adapter on identical prompts, GREEDY-decoded, and writes
+a side-by-side `<think>`-block transcript + a descriptive register profile by
+category. NEUTRAL is the control (should move less than deduction prompts).
+- **The transcript markdown is the deliverable — READ IT.** Marker numbers are
+  descriptive only (task is not lexical; markers saturate R1 traces).
+- This is the Phase-1 precondition (did fine-tuning shift the *reasoning*?), NOT
+  the Phase-2 headline (commitment gap in conversations). Keep that distinction.
+- Adapter pulled from HF (needs HF_TOKEN); CELL 3 checks out the feature branch
+  explicitly (fixes the clone-of-main FileNotFoundError). `make test` green (90).
+- If a real shift shows on deduction prompts → conversation arm unblocked on
+  step-50. If null → rehearsal or reframed writeup. Decision Log 2026-08-14.
 
 ## Most recent event (2026-08-12) — confound separator ran, verdict = STEPS
 The pilot@110 run completed and **persistence worked end to end** — every

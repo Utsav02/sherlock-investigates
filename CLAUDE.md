@@ -596,6 +596,16 @@ Neither diagnosis is visible from accuracy or selectivity alone, and the two pro
 
 ---
 
+### 2026-08-14 — Behavioural effect check built: paired base-vs-fine-tuned think blocks (the real reasoning-shift measure)
+
+**Decision:** Build `scripts/eval/thinking_shift.py` (+ `tests/test_thinking_shift.py`, `notebooks/kaggle_t4_thinking_shift.py`) — the behavioural verification perplexity cannot give. It runs the committed probe set (10 DEDUCTION_INVITING + 10 REASONING_REQUIRED + 10 NEUTRAL) through the **base model and the low-rank step-50 adapter on identical prompts, greedy-decoded**, and writes a side-by-side transcript of their `<think>` blocks plus a *descriptive* register profile (deduction/hedging marker rates per 1k words) by category. NEUTRAL is the built-in control: a genuine reasoning shift should move the deduction prompts more than the small-talk. The **primary deliverable is the transcript for human reading**; the marker numbers are explicitly labelled descriptive-only. Owner-triggered on Kaggle; no training, ~15–25 min, free.
+
+**Reasoning:** This is a precondition check for Phase 1 (did fine-tuning produce a *distinguishable reasoning prior*?), not the headline Phase-2 measurement (the commitment gap in adversarial conversations) — recorded here so the project's novel claim is not quietly redefined down to "the model thinks a bit more like Holmes." Greedy decoding makes the base-vs-fine-tuned difference attributable to the weights rather than sampling, which is what a clean paired comparison needs (unlike the closure/dose curves, which sampled at temp 0.7 to estimate a rate). The register profile deliberately does NOT gate anything: the project has already established this task is not lexical (stance-detector precision 0.185; DEDUCTION/HEDGING markers saturate R1 traces — 2026-08-07 log, and probe_eval.py's own comments), so a marker-count "Holmes-ness score" would repeat that error. The markers are kept only as a rough compass and a within-run control contrast (deduction categories vs NEUTRAL); the decision comes from reading the reasoning. Step-50 is the target because it is the closure sweet spot (8/8) at a real dose. The driver checks out the feature branch explicitly (CELL 3), fixing the plain-clone-of-main FileNotFoundError that the low-rank run hit.
+
+**Alternatives considered:** *probe_eval.py as-is* — it produces a single marker score and no transcript, and marker scores are the discredited-lexical instrument; thinking_shift reuses its marker lists but demotes them to descriptive and adds the paired transcript that actually answers the question. *Sampling at temp 0.7* — rejected for the paired comparison; it injects dice noise into a base-vs-fine-tuned diff (kept as a `--temperature` option for robustness). *An LLM-judge Holmes-ness rating* — deferred; it puts a second model inside the instrument (the project's standing caution) and is unnecessary for a first read a human can do directly. *Skip straight to the conversation arm* — rejected; without confirming a reasoning shift exists, a commitment-gap run could measure nothing, and perplexity does not confirm it.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

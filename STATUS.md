@@ -10,16 +10,20 @@ Verdict: **RESCUED → rehearsal NOT needed.** Persistence worked end to end.
 - Captured in git: `dose_curve_20260814_042400.json`,
   `effect_curve_20260814_065854.json`, `mitigation_lowrank_r8.json`,
   `mitigation_lowrank_20260814_writeup.md`.
-- **CAVEATS (do not over-read):** (1) perplexity is a PROXY — saturates by
-  step ~15 (~600K tokens), so most of the +44% is surface style, NOT proof the
-  model *reasons* like Holmes; the behavioural DV is unverified. (2) H2 WikiText
-  drift computed but not printed — pull from HF JSON. (3) final adapter closure
-  3/8 — use step ~50, not final.
-- **Next:** (1) check H2 from HF effect JSON; (2) run the BEHAVIOURAL effect
-  check on step-50 (probe separation / think-block inspection) — the real
-  reasoning-shift signal; (3) if it holds, the conversation arm is unblocked on
-  the step-50 adapter. Writeup reframed to "standard rank destroys format, low
-  rank rescues it" — drafted once (2) lands. Decision Log 2026-08-14.
+- **H2 PULLED (from HF) — effect is mostly GENERIC.** WikiText PPL dropped ~34%
+  alongside Holmes's +44%: the base reasoning-model is poor at raw prose, so
+  training on any prose restores prose-LM and drops PPL on everything. Only
+  ~10pp is Holmes-specific (the excess; Holmes/Wiki ratio 1.122 → 0.956). The
+  RESCUED verdict stands FOR CLOSURE (measured directly); the effect half is
+  confounded. Genuine effect JSON (with WikiText) now in git.
+- **CAVEATS:** (1) perplexity effect is mostly generic prose recovery, ~10pp
+  Holmes-specific and distributional — NOT proof the model *reasons* like
+  Holmes. (2) final adapter closure 3/8 — use step ~50.
+- **Next (behavioural check now REQUIRED, not optional):** run the behavioural
+  effect on step-50 (probe separation / think-block inspection on deduction
+  prompts) — perplexity is confirmed inadequate. If a real reasoning shift
+  shows, the conversation arm is unblocked on step-50; if null, points back to
+  rehearsal or a reframed writeup. Decision Log 2026-08-14 (both entries).
 
 ## Most recent event (2026-08-12) — confound separator ran, verdict = STEPS
 The pilot@110 run completed and **persistence worked end to end** — every

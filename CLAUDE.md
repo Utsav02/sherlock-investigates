@@ -586,6 +586,16 @@ Neither diagnosis is visible from accuracy or selectivity alone, and the two pro
 
 ---
 
+### 2026-08-14 — H2 pulled: the effect is MOSTLY GENERIC prose-LM recovery, not Holmes learning
+
+**Decision:** The WikiText (H2) numbers, computed in the run but not printed, were pulled from the HF effect-curve JSON (`effect_curve_20260814_065854.json`, now saved into git with WikiText included, superseding the reconstruction). **WikiText perplexity dropped ~34%** alongside the +44% on held-out Holmes. The effect is therefore reinterpreted: ~34 of the 44 points are **generic prose-LM recovery**, only ~10 points are **Holmes-specific** (the excess; equivalently the Holmes/WikiText PPL ratio fell 1.122 → 0.956, a ~15% relative specialisation). The mitigation's RESCUED verdict stands **for closure** (format preservation is measured directly and is unaffected) but the "effect present" half is now known to be **confounded** — the PPL≥5% gate fires mostly on generic recovery. The behavioural check on step-50 is therefore promoted from recommended to **required** before any claim that the fine-tune shifts reasoning.
+
+**Reasoning:** The mechanism is clean and was hiding in plain sight: base R1-Distill is an RL-reasoning model that is *poor at raw next-token prose prediction* (it is optimised to emit reasoning, not continue Victorian prose), so continued-pretraining on any prose restores strong prose LM and drops perplexity on *everything* — WikiText and Holmes alike, in near-lockstep, both saturating by step ~20. The H1 gate (Speckled-Band drop ≥5%) was only ever a valid proxy for Holmes learning **under the assumption H2 stays flat**, and H2 did not stay flat — it moved 34%. So the headline "+44% effect" massively overstates Holmes-specific learning. The honest Holmes signal is the *excess* Holmes-over-WikiText drop (~10pp) and, unlike the generic part, it keeps climbing slowly with dose (excess +5% at step 20 → +9.7% at step 103), which is consistent with distributional specialisation being the slow/expensive component. This is exactly the "confidently wrong reading" failure the house rules warn against: had we reported "+44% ⇒ learned Holmes," it would have been wrong; pulling the guardrail number caught it. Whether a ~10pp / ratio-1.12→0.96 distributional shift is enough to move *reasoning behaviour* is unknown and perplexity cannot answer it — hence the behavioural check is now the gating step, and it could still come back null.
+
+**Alternatives considered:** *Trust the +44% as the effect and proceed* — rejected; that is the wrong reading H2 just corrected. *Call H2 a FAIL and the mitigation dead* — wrong in the other direction; H2 "failed" the ≤±5% band by *improvement*, not degradation, and closure — the thing that was actually blocked — is genuinely rescued. *Re-run with a Holmes-vs-control perplexity design baked in* — unnecessary; the WikiText arm already provides the control, and the excess/ratio decomposition extracts the Holmes-specific signal from the existing data. *Edit the prior 2026-08-14 entry to fold this in* — rejected; the log is append-only, so this is a follow-up entry, and the sequence (claimed effect → pulled guardrail → corrected) is itself the useful record.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

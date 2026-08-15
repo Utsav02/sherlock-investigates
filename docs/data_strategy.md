@@ -170,10 +170,20 @@ diversity only, never a blocker.
    committed JSONL *is* the reproducible artifact (generate once, version it,
    stamp the generator); LLM sampling need not be deterministic.
 2. **Trace generation** — for each `scenario_prompt`, generate a Holmes-style
-   deductive `<think>` trace (base model, few-shot; the viability probe's harder
-   commit-or-nothing instruction).
-3. **Filter (rejection sampling)** — keep only traces whose conclusion matches
-   `ground_truth`. This is the quality signal (§2: SFT has no other one).
+   deductive `<think>` trace. **Source: a STRONGER model (Claude), not the base
+   7B** — a base self-distillation demo scored **0/6 keepers** (confident-wrong
+   generic answers), so the base cannot bootstrap deduction it lacks (Decision
+   Log 2026-08-15). This is standard **reasoning distillation + STaR / RFT**: our
+   own base (R1-Distill) was made this way; s1/Sky-T1/Bespoke show it is cheap and
+   data-efficient at our scale. Extend `generate_traces.py` with a `--backend
+   claude` path mirroring the scenario generator.
+3. **Filter (rejection sampling / STaR)** — keep only traces whose conclusion
+   matches `ground_truth` (the quality signal; §2). Keyword match ships first;
+   upgrade to an LLM-judge verifier (V-STaR style) if too lossy on semantic
+   answers. **Load-bearing caveat:** distillation can teach reasoning FORM over
+   SUBSTANCE — and faithfulness IS our DV — so the filter (checks the *answer*)
+   is necessary but NOT sufficient; the thinking-shift audit (checks the
+   *reasoning* on held-out prompts, step 5) is the second, non-negotiable gate.
 4. **SFT** on survivors, mixing ~10–20% OpenThoughts R1 traces as a format anchor.
    Optional **DPO** (confident keeper vs the base model's hedgy trace) to sharpen
    commitment — cautiously (§2).

@@ -28,9 +28,13 @@ then SFT on the survivors (+ an OpenThoughts format anchor).
 from __future__ import annotations
 
 import argparse
+import glob
 import json
+import os
 import re
+import shutil
 import subprocess
+import tempfile
 from datetime import datetime
 from pathlib import Path
 
@@ -109,25 +113,72 @@ def ollama_chat(messages: list[dict], num_predict: int, seed: int) -> str:
     return content.strip()
 
 
-def claude_chat(system: str, user: str, timeout: int = 180) -> str:
-    """Generate via the Claude Code CLI in headless/print mode — the same pattern
-    other projects use to call `claude` non-interactively. The base 7B is too
-    weak a scenario generator (30-seed run: 7/30 usable, code-switching, nonsense
-    cues); a stronger model here is PROVENANCE-SAFE because scenarios are prompts
-    (inputs), not the reasoning traces we distill (those stay base-model).
+def resolve_claude_bin() -> str | None:
+    """CLAUDE_BIN env -> PATH -> newest CLI bundled with the Claude desktop app.
 
-    Requires `claude` on PATH and authenticated (uses whatever model Claude Code
-    is configured with). The prompt is piped on stdin to avoid arg-escaping on
-    long text. NOTE: built but NOT executed in the build sandbox (no `claude`
-    there) — verify the flags match your own working invocation.
+    The desktop-app fallback is the load-bearing branch on this machine: the CLI
+    is NOT on PATH here, so the original PATH-only lookup raised FileNotFoundError
+    and no `--backend claude` call could ever have run. Mirrors the resolver in
+    the French project's `journal/app/main.py`, which is the working invocation
+    this pattern was copied from.
     """
-    prompt = f"{system}\n\nHIDDEN ANSWER context:\n{user}"
-    r = subprocess.run(["claude", "-p", "--output-format", "text"],
-                       input=prompt, capture_output=True, text=True, timeout=timeout)
+    env_bin = os.environ.get("CLAUDE_BIN")
+    if env_bin and Path(env_bin).is_file():
+        return env_bin
+    on_path = shutil.which("claude")
+    if on_path:
+        return on_path
+    bundled = glob.glob(str(
+        Path.home() / "Library/Application Support/Claude/claude-code"
+                      "/*/claude.app/Contents/MacOS/claude"))
+    if bundled:
+        # newest by numeric version, e.g. 2.1.229
+        return max(bundled, key=lambda p: [
+            int(x) if x.isdigit() else 0 for x in Path(p).parts[-4].split(".")])
+    return None
+
+
+def claude_cli(prompt: str, timeout: int = 300) -> str:
+    """Run one headless `claude -p` generation and return stdout.
+
+    Two deliberate choices, both measured on 2026-08-15:
+
+    * **Runs in an empty temp cwd.** The CLI loads the project's CLAUDE.md as
+      context when invoked inside the repo; this repo's is large enough that a
+      trivial call cost $0.34 vs $0.072 from a clean directory — a ~4.7x saving
+      per call, and the project context is irrelevant to trace generation anyway.
+    * **Drops ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN**, so the CLI uses the
+      interactive subscription auth rather than silently billing an API key that
+      happens to be in the environment. Same guard as the French project.
+
+    The prompt goes on stdin to avoid arg-escaping on long text.
+    """
+    claude_bin = resolve_claude_bin()
+    if claude_bin is None:
+        raise RuntimeError(
+            "Claude Code CLI not found. Set CLAUDE_BIN, put `claude` on PATH, "
+            "or install the desktop app.")
+    env = dict(os.environ)
+    env.pop("ANTHROPIC_API_KEY", None)
+    env.pop("ANTHROPIC_AUTH_TOKEN", None)
+    with tempfile.TemporaryDirectory() as cwd:
+        r = subprocess.run([claude_bin, "-p", "--output-format", "text"],
+                           input=prompt, capture_output=True, text=True,
+                           timeout=timeout, cwd=cwd, env=env)
     if r.returncode != 0:
         raise RuntimeError(f"claude CLI failed ({r.returncode}): "
                            f"{r.stderr.strip()[:300]}")
     return r.stdout.strip()
+
+
+def claude_chat(system: str, user: str, timeout: int = 300) -> str:
+    """Scenario generation via the Claude Code CLI. The base 7B is too weak a
+    scenario generator (30-seed run: 7/30 usable, code-switching, nonsense cues);
+    a stronger model here is PROVENANCE-SAFE because scenarios are prompts
+    (inputs). Trace provenance is a separate decision (2026-08-15: traces are
+    also Claude-distilled, STaR-style).
+    """
+    return claude_cli(f"{system}\n\nHIDDEN ANSWER context:\n{user}", timeout)
 
 
 def parse(out: str) -> tuple[list[str], str]:

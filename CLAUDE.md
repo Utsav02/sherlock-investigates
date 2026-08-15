@@ -636,6 +636,22 @@ Neither diagnosis is visible from accuracy or selectivity alone, and the two pro
 
 ---
 
+### 2026-08-15 — Claude trace source VALIDATED; the keyword verifier is now the binding constraint
+
+**Decision:** The Claude teacher is validated as the trace source and scaling to ~100–200 scenarios is unblocked. Two changes land with it: (1) the ground-truth filter is scheduled for upgrade to an **LLM judge** before the scaled run — the keyword matcher is now the limiting factor, not the teacher; (2) scenarios must pass a **disambiguation check**, because under-determined cue sets are a defective training item under any verifier. Full writeup: `results/analysis/claude_trace_validation_20260815.md`.
+
+**Reasoning:** First real execution of `--backend claude` (18 scenarios × 1 sample, claude-sonnet-5 via the headless CLI). Keeper rate **13/18** against base self-distillation's **0/10**, and format compliance was perfect on the first prompt attempt — 18/18 outputs opened with `<think>`, 18/18 answers opened with "This is" — so the format-enforcement prompt is not tuned to its own test set. **The form-vs-substance gate was executed as specified, by reading five traces in full**, and they are genuine cue→mechanism→identity deductions with explicit negative evidence ("not a desk, not a shop counter"), not fluent filler. Supporting measurements over all 18: pairwise vocab Jaccard **0.062** (not one template reskinned), **1** hedge word total (the base model's failure mode absent), **0/18** answers copied verbatim into the think block, think length 713–1801 chars (mean 1109) against the ~1293 measured on the student. The sharpest single piece of evidence is a *miss*: on the church-organist scenario the teacher reasoned from limb independence and heel-toe pedal wear to **drummer** — a defensible answer the scenario's author did not intend, which a model rationalising backwards from a known label could not produce.
+
+**Why the verifier is now the constraint:** all five misses were read and **none is a reasoning failure**. Two are correct deductions the keyword matcher cannot see (`detect_leak("a retired sergeant of the Royal Marines", [], "This is a former soldier turned commissionaire…") -> (False, [])`; likewise emigrated/"newly returned"), and three are scenarios whose cues admit more than one valid answer (gambler/ruined-man, organist/drummer, conductor/roundsman). True keeper rate is ~**15/18 on substance** vs 13/18 as scored. This is precisely the contingency the 2026-08-15 provenance entry reserved — "upgrade to an LLM-judge verifier (V-STaR style) if it proves too lossy on semantic answers" — and it has now been measured rather than assumed.
+
+**Also fixed, and it had never been executed:** `reverse_scenarios.claude_chat` resolved the CLI on **PATH only**. The `claude` binary is not on PATH on this machine, so every `--backend claude` call — including the scenario generation path committed on 2026-08-14 — would have raised `FileNotFoundError`. Replaced with `resolve_claude_bin()` (CLAUDE_BIN → PATH → desktop-app bundle), mirroring the working resolver in the French project. Calls also now run in an empty temp cwd: invoked inside the repo the CLI ingests this large `CLAUDE.md` as context, measured at **$0.34/call vs $0.072** from a clean directory.
+
+**What this does NOT establish:** these are all *teacher* outputs. Whether SFT transfers substance or only form is settled by the thinking-shift held-out audit after training — the second prescribed guardrail, still outstanding and still mandatory. n=18 at one sample validates a source; it does not characterise one.
+
+**Alternatives considered:** *Loosen the keyword filter to recover the two near-misses* — rejected outright; widening a matcher until it accepts the answers you already believe are right is how an instrument gets fitted to its test set, and the same 2026-07-28 lesson that ended the regex-patching of `t_think_07` applies here. *Give the teacher the ground truth as a hint (STaR "rationalization")* — legitimate and precedented, but it would mask exactly the forward-reasoning evidence that miss [14] provides, and it is unnecessary while unhinted generation scores 13/18. Kept in reserve for genuinely hard scenarios. *Declare the source validated on keeper rate alone and skip reading the traces* — rejected; the filter checks the answer and only reading checks the reasoning, which is the whole point of the gate.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

@@ -1,23 +1,40 @@
 # STATUS — sherlock-investigates
-Updated: 2026-08-15 (SFT pivot; trace source = STaR-distil from Claude)
+Updated: 2026-08-15 (trace source VALIDATED — cleared to scale)
 
-## NEXT SESSION (focus: VALIDATE Claude traces only — do NOT scale yet)
-Base self-distillation of traces FAILED: `generate_traces.py` on the 18 Claude
-scenarios scored **0/10 keepers** (`data/sft/traces_demo.jsonl` — base
-deepseek-r1:7b commits to confident-WRONG generic answers). Decision Log
-2026-08-15 settled: distil traces from a STRONGER model (Claude CLI), the
-mainstream STaR/RFT recipe. Next session's ONE job:
-1. Add `--backend claude` to `scripts/data_prep/generate_traces.py` mirroring
-   `reverse_scenarios.py::claude_chat` (built but UNTESTED — no claude CLI in the
-   build sandbox; the user's Mac has it). **The prompt MUST make Claude output
-   R1 format — `<think>` deductive reasoning `</think>` then "This is <answer>"** —
-   since Claude doesn't emit `<think>` by default; parse that.
-2. Run on `data/sft/scenarios_seed_claude.jsonl` (18, usable), --samples 1.
-3. Judge on TWO axes: keeper rate (filter) AND — the form-vs-substance gate —
-   READ ~5 traces: are they genuine cue→inference→identity deductions, or hollow
-   fluent form? Only reading checks the reasoning that gets SFT'd in.
-4. Verdict: high keepers + genuine reasoning → next session scales (~100-200) +
-   assembles the SFT set. Hollow → fix the prompt before scaling.
+## DONE THIS SESSION — Claude trace source is VALIDATED
+`--backend claude` built, executed, and judged on both axes. Writeup:
+`results/analysis/claude_trace_validation_20260815.md`; Decision Log 2026-08-15
+(second entry). Data: `data/sft/traces_claude_validation.jsonl` (18 rows).
+
+- **Keeper rate 13/18** vs base self-distillation's 0/10.
+- **Format 18/18** — every output opened `<think>`, every answer "This is",
+  correct on the FIRST prompt attempt (not tuned to its own test set).
+- **Form-vs-substance gate PASSED by reading 5 traces in full** — genuine
+  cue→mechanism→identity deductions with explicit negative evidence. Support:
+  vocab Jaccard 0.062, 1 hedge word in 18, 0/18 answers copied into `think`.
+  Best evidence: on the organist scenario the teacher reasoned to *drummer* —
+  forward reasoning, not backward rationalisation from a known label.
+- Fixed: `claude_chat` resolved the CLI on PATH only and could never have run
+  (binary is not on PATH here) → `resolve_claude_bin()` + clean-cwd calls
+  ($0.34 → $0.072 per call). 106 tests OK.
+
+## NEXT SESSION (cleared to scale — still no GPU)
+1. **Upgrade the verifier to an LLM judge before scaling.** The keyword matcher
+   is now the binding constraint, not the teacher: 2 of the 5 misses are correct
+   deductions it cannot see (`"former soldier turned commissionaire"` vs ground
+   truth `"retired sergeant of the Royal Marines"` scores no-match). True keeper
+   rate ~15/18 on substance.
+2. **Add a disambiguation check to scenario generation.** 3 of 5 misses are
+   scenarios whose cues admit two valid answers (gambler/ruined-man,
+   organist/drummer, conductor/roundsman) — defective items under any verifier.
+3. Then scale scenarios + traces to ~100–200 and assemble the SFT set
+   (+ OpenThoughts format anchor).
+4. Re-read a trace sample from every batch; watch whether the "taken together…"
+   closer (8/18 here) hardens into a tic at scale.
+
+Still mandatory and NOT addressed by this session: the **thinking-shift held-out
+audit after training**. Everything validated so far is teacher output; whether
+SFT transfers substance or only form is unsettled until the student is read.
 Keep local/Claude, no GPU. Full plan: `docs/data_strategy.md`.
 
 ## Most recent event (2026-08-14) — thinking-shift check came back NULL

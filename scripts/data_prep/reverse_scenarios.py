@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -108,6 +109,27 @@ def ollama_chat(messages: list[dict], num_predict: int, seed: int) -> str:
     return content.strip()
 
 
+def claude_chat(system: str, user: str, timeout: int = 180) -> str:
+    """Generate via the Claude Code CLI in headless/print mode — the same pattern
+    other projects use to call `claude` non-interactively. The base 7B is too
+    weak a scenario generator (30-seed run: 7/30 usable, code-switching, nonsense
+    cues); a stronger model here is PROVENANCE-SAFE because scenarios are prompts
+    (inputs), not the reasoning traces we distill (those stay base-model).
+
+    Requires `claude` on PATH and authenticated (uses whatever model Claude Code
+    is configured with). The prompt is piped on stdin to avoid arg-escaping on
+    long text. NOTE: built but NOT executed in the build sandbox (no `claude`
+    there) — verify the flags match your own working invocation.
+    """
+    prompt = f"{system}\n\nHIDDEN ANSWER context:\n{user}"
+    r = subprocess.run(["claude", "-p", "--output-format", "text"],
+                       input=prompt, capture_output=True, text=True, timeout=timeout)
+    if r.returncode != 0:
+        raise RuntimeError(f"claude CLI failed ({r.returncode}): "
+                           f"{r.stderr.strip()[:300]}")
+    return r.stdout.strip()
+
+
 def parse(out: str) -> tuple[list[str], str]:
     """Best-effort extraction of cue bullets and the scenario sentence."""
     cues = [re.sub(r"^[-*]\s*", "", ln).strip()
@@ -128,6 +150,9 @@ _LEAK_STOP = {
     "coming", "early", "badly", "long", "just", "very", "new", "who", "has",
     "off", "from", "hot", "cold", "country", "week", "before", "near", "end",
     "man", "woman", "person", "people", "someone", "their", "into", "over",
+    # generic geographic/size descriptors that appear in labels but aren't the
+    # giveaway (e.g. "deep-sea fisherman" — the answer is the trade, not "deep").
+    "deep", "sea", "high", "low", "busy", "big", "small", "young",
 }
 
 
@@ -157,6 +182,10 @@ def detect_leak(ground_truth: str, cues: list[str], scenario: str) -> tuple[bool
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--limit", type=int, default=None, help="first N seeds")
+    ap.add_argument("--backend", choices=("ollama", "claude"), default="ollama",
+                    help="ollama = local deepseek-r1:7b (weak: ~7/30 usable). "
+                         "claude = the Claude Code CLI (headless), far stronger "
+                         "and provenance-safe for scenario PROMPTS.")
     ap.add_argument("--num-predict", type=int, default=600)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--out", default=None)
@@ -188,17 +217,22 @@ def main() -> None:
 
     parsed = leaked = usable = 0
     for i, identity in enumerate(seeds):
-        raw = ollama_chat(
-            [{"role": "system", "content": SYSTEM},
-             {"role": "user", "content": f"HIDDEN ANSWER: {identity}"}],
-            args.num_predict, args.seed)
+        user = f"HIDDEN ANSWER: {identity}"
+        if args.backend == "claude":
+            raw = claude_chat(SYSTEM, user)
+        else:
+            raw = ollama_chat(
+                [{"role": "system", "content": SYSTEM},
+                 {"role": "user", "content": user}],
+                args.num_predict, args.seed)
         cues, scenario = parse(raw)
         ok = len(cues) >= 2 and scenario.endswith("What do you make of them?")
         leak, terms = detect_leak(identity, cues, scenario)
         use = ok and not leak
         row = {"id": i, "ground_truth": identity, "cues": cues,
                "scenario_prompt": scenario, "parse_ok": ok,
-               "leak": leak, "leaked_terms": terms, "usable": use, "raw": raw}
+               "leak": leak, "leaked_terms": terms, "usable": use,
+               "generator": args.backend, "raw": raw}
         f.write(json.dumps(row) + "\n")
         f.flush()
         parsed += ok

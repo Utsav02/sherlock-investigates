@@ -158,7 +158,17 @@ diversity only, never a blocker.
 ## 9. Build order (unblocked)
 
 1. **`scripts/data_prep/reverse_scenarios.py`** — reverse-construct seed scenarios
-   (identity → cues → scenario + ground truth). ✅ built.
+   (identity → cues → scenario + ground truth). ✅ built, with an automated
+   **leak filter** (`detect_leak`, the curation gate) and two backends.
+   **Generator finding (2026-08-15):** the local base 7B is too weak — a 30-seed
+   run gave **7/30 usable** (`data/sft/reverse_scenarios_seed42.jsonl`) with
+   answer-leaks, code-switching, and nonsense cues. Fix: **`--backend claude`**
+   (headless Claude Code CLI, like other projects call it), which is
+   provenance-safe because scenarios are *prompts*, not distilled traces. A
+   Claude-generated seed set is **18/18 usable**
+   (`data/sft/scenarios_seed_claude.jsonl`). Determinism is a non-issue: the
+   committed JSONL *is* the reproducible artifact (generate once, version it,
+   stamp the generator); LLM sampling need not be deterministic.
 2. **Trace generation** — for each `scenario_prompt`, generate a Holmes-style
    deductive `<think>` trace (base model, few-shot; the viability probe's harder
    commit-or-nothing instruction).

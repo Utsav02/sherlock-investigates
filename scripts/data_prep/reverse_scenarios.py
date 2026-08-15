@@ -121,13 +121,64 @@ def parse(out: str) -> tuple[list[str], str]:
     return cues, scenario
 
 
+# Generic words in the seed identities that are NOT giveaways — ignore them when
+# checking for answer leakage.
+_LEAK_STOP = {
+    "professional", "amateur", "competitive", "head", "retired", "recently",
+    "coming", "early", "badly", "long", "just", "very", "new", "who", "has",
+    "off", "from", "hot", "cold", "country", "week", "before", "near", "end",
+    "man", "woman", "person", "people", "someone", "their", "into", "over",
+}
+
+
+def detect_leak(ground_truth: str, cues: list[str], scenario: str) -> tuple[bool, list[str]]:
+    """Flag a scenario that GIVES AWAY its answer — the core curation check,
+    since plain SFT has no good-vs-bad signal other than what we keep.
+
+    A leak = a content word of the ground-truth identity (or a morphological
+    variant of it) appearing in the cues/scenario. Catches the observed failures:
+    'she mentions working night shifts' (night/shift), 'a violin case' (violin ~
+    violinist). Returns (is_leak, leaked_terms). This flags the direct case;
+    signature-tool leaks not derived from the answer string still need human
+    curation, so `leak=False` is 'no OBVIOUS leak', not a guarantee.
+    """
+    content = [w for w in re.findall(r"[a-z]+", ground_truth.lower())
+               if len(w) >= 4 and w not in _LEAK_STOP]
+    text_tokens = set(re.findall(r"[a-z]+", (" ".join(cues) + " " + scenario).lower()))
+    leaked = []
+    for w in content:
+        hit = w in text_tokens or (
+            len(w) >= 5 and any(t.startswith(w[:4]) for t in text_tokens))
+        if hit:
+            leaked.append(w)
+    return (bool(leaked), leaked)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--limit", type=int, default=None, help="first N seeds")
     ap.add_argument("--num-predict", type=int, default=600)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--flag", default=None,
+                    help="re-score an EXISTING jsonl for leaks in place, then exit "
+                         "(no generation). Use to apply the leak filter to a run "
+                         "produced before the filter existed.")
     args = ap.parse_args()
+
+    # --flag: curation-only pass over an existing file.
+    if args.flag:
+        p = Path(args.flag)
+        rows = [json.loads(l) for l in p.read_text().splitlines() if l.strip()]
+        for r in rows:
+            leak, terms = detect_leak(r["ground_truth"], r.get("cues", []),
+                                      r.get("scenario_prompt", ""))
+            r["leak"], r["leaked_terms"] = leak, terms
+            r["usable"] = bool(r.get("parse_ok")) and not leak
+        p.write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+        print(f"re-scored {len(rows)}: {sum(r['leak'] for r in rows)} leaked, "
+              f"{sum(r['usable'] for r in rows)} usable -> {p}", flush=True)
+        return
 
     seeds = SEED_IDENTITIES[:args.limit] if args.limit else SEED_IDENTITIES
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -135,7 +186,7 @@ def main() -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     f = out.open("w", encoding="utf-8")
 
-    kept = 0
+    parsed = leaked = usable = 0
     for i, identity in enumerate(seeds):
         raw = ollama_chat(
             [{"role": "system", "content": SYSTEM},
@@ -143,16 +194,24 @@ def main() -> None:
             args.num_predict, args.seed)
         cues, scenario = parse(raw)
         ok = len(cues) >= 2 and scenario.endswith("What do you make of them?")
+        leak, terms = detect_leak(identity, cues, scenario)
+        use = ok and not leak
         row = {"id": i, "ground_truth": identity, "cues": cues,
-               "scenario_prompt": scenario, "parse_ok": ok, "raw": raw}
+               "scenario_prompt": scenario, "parse_ok": ok,
+               "leak": leak, "leaked_terms": terms, "usable": use, "raw": raw}
         f.write(json.dumps(row) + "\n")
         f.flush()
-        kept += ok
-        print(f"[{i:>2}] {'OK ' if ok else 'BAD'} {identity}", flush=True)
-        if ok:
-            print(f"      cues: {len(cues)} | {scenario[:90]}", flush=True)
+        parsed += ok
+        leaked += leak
+        usable += use
+        tag = "USABLE" if use else ("LEAK  " if leak else "BADFMT")
+        print(f"[{i:>2}] {tag} {identity}"
+              + (f"  (leaked: {','.join(terms)})" if leak else ""), flush=True)
+        if ok and not leak:
+            print(f"      cues: {len(cues)} | {scenario[:88]}", flush=True)
     f.close()
-    print(f"\n{kept}/{len(seeds)} parsed cleanly -> {out}", flush=True)
+    print(f"\n{parsed}/{len(seeds)} parsed, {leaked} leaked -> "
+          f"{usable} USABLE  ->  {out}", flush=True)
 
 
 if __name__ == "__main__":

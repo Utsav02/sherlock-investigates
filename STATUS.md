@@ -1,6 +1,26 @@
 # STATUS — sherlock-investigates
-Updated: 2026-08-14 (behavioural check = NULL: no reasoning shift at step-50;
-low rank preserves format but the format-safe dose doesn't shift reasoning)
+Updated: 2026-08-15 (SFT pivot; trace source = STaR-distil from Claude)
+
+## NEXT SESSION (focus: VALIDATE Claude traces only — do NOT scale yet)
+Base self-distillation of traces FAILED: `generate_traces.py` on the 18 Claude
+scenarios scored **0/10 keepers** (`data/sft/traces_demo.jsonl` — base
+deepseek-r1:7b commits to confident-WRONG generic answers). Decision Log
+2026-08-15 settled: distil traces from a STRONGER model (Claude CLI), the
+mainstream STaR/RFT recipe. Next session's ONE job:
+1. Add `--backend claude` to `scripts/data_prep/generate_traces.py` mirroring
+   `reverse_scenarios.py::claude_chat` (built but UNTESTED — no claude CLI in the
+   build sandbox; the user's Mac has it). **The prompt MUST make Claude output
+   R1 format — `<think>` deductive reasoning `</think>` then "This is <answer>"** —
+   since Claude doesn't emit `<think>` by default; parse that.
+2. Run on `data/sft/scenarios_seed_claude.jsonl` (18, usable), --samples 1.
+3. Judge on TWO axes: keeper rate (filter) AND — the form-vs-substance gate —
+   READ ~5 traces: are they genuine cue→inference→identity deductions, or hollow
+   fluent form? Only reading checks the reasoning that gets SFT'd in.
+4. Verdict: high keepers + genuine reasoning → next session scales (~100-200) +
+   assembles the SFT set. Hollow → fix the prompt before scaling.
+Keep local/Claude, no GPU. Full plan: `docs/data_strategy.md`.
+
+## Most recent event (2026-08-14) — thinking-shift check came back NULL
 
 ## Most recent event (2026-08-14) — thinking-shift check came back NULL
 Read the actual base-vs-step-50 `<think>` blocks (transcript pulled from HF,

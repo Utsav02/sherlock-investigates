@@ -652,6 +652,24 @@ Neither diagnosis is visible from accuracy or selectivity alone, and the two pro
 
 ---
 
+### 2026-08-15 — Judge + disambiguation land; the by-eye scenario diagnosis was wrong; yield is 50%
+
+**Decision:** The LLM judge (`--judge` / `--rejudge`) is the keeper **gate**; the keyword `answer_matches` is retained per row as a cross-check only. Scenario disambiguation (`--disambiguate`) gates scenario usability. **Scenario generation must be planned at ~2× the target SFT count** — combined yield is 9/18 (50%), not the 13/18 the previous session implied. Full writeup: `results/analysis/instrument_upgrade_20260815.md`.
+
+**Reasoning:** Judge vs keyword on the 18 validated traces: agreement 15/18, 0 unparseable, keepers 13→**14**. It recovered both predicted near-misses (`"former soldier turned commissionaire"` for *retired sergeant of the Royal Marines*; the emigrated/"newly returned" case). **The unpredicted result is the more important one:** it *rejected* `[10]`, which the keyword filter had accepted — the answer was "a former **professional** boxer" against ground truth "an **amateur** boxer", and the rubric permits coarser answers but not contradictory ones. The lexical filter was therefore wrong in **both** directions, and a false accept is the worse failure: it puts a mislabelled example into the SFT set. The rubric was written once from principle and not retuned.
+
+**The disambiguation check corrected the diagnosis it was built from, and that is the headline.** It was built to flag the three scenarios the previous session called under-determined (organist, gambler, conductor). Measured: **6/18 ambiguous, only the gambler among those three.** Shown cues alone, the check names the ground truth as single best for both organist and conductor — on the organist its stated reason is the cue the teacher skipped ("reads a menu straight down like a single column" = multi-stave score reading). **So those two were teacher reasoning errors, not scenario defects**, while four never-suspected scenarios (violinist/violist, fisherman/sailor, medical student/any exam-crammer, watchmaker/jeweler) are genuinely ambiguous. The by-eye diagnosis was wrong in both directions — 2 false positives, 4 false negatives out of 6 — which is the same lesson the `t_think_07` annotator study taught, arriving by a different route.
+
+**Two parser defects found on real replies, both fixed and frozen as regression tests:** the model answered `VERDICT: TIE` (outside the requested vocabulary), and twice wrote `VERDICT: CLEAR` with `BEST: NONE` (the class is clear, no single candidate wins). Resolution: **`BEST` is authoritative and the verdict word corroborates** — the prompt asks "is there ONE clearly best identity?", so `BEST: NONE` is the model answering "no". This fixes the *parse* of the criterion, not the criterion.
+
+**Reported rather than buried:** the added `cues_miss_gt` check (judge the check's own `best` against the ground truth, to catch an unreachable seed label) had 12 opportunities and **fired 0 times** — the case it was built for turned out to be ambiguous, so `best` was `NONE` and it never ran. Retained but unproven, at ~1 extra call per unambiguous scenario; drop it after the first scaled batch if it stays at zero.
+
+**Alternatives considered:** *Loosen `answer_matches` to recover the near-misses* — rejected again, and now unnecessary; it would also not have caught the `[10]` false accept, which is a lexical filter's structural blind spot. *Trust the verdict WORD over `BEST`* — rejected; measured unreliable on 3/18 replies. *Treat organist/conductor as ambiguous because the teacher missed them* — rejected outright: that would fit the instrument to the teacher's errors and delete real training items. *Drop `cues_miss_gt` now* — deferred one batch rather than removed; it targets a real defect in principle.
+
+**Still outstanding:** the judge itself is **unaudited against human labels** — 14/18 is a number from an instrument nobody has scored, and this repo has a precedent for that (`t_think_07`, precision 0.185). Hand-check ~30 judgements at the first scaled batch. Judge and teacher are also the same model family, so shared blind spots are not excluded.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

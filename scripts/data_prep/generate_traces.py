@@ -30,13 +30,24 @@ exemplars are stripped), so the model learns to deduce zero-shot.
     python scripts/data_prep/generate_traces.py --backend claude \
         --scenarios data/sft/scenarios_seed_claude.jsonl --samples 1
 
-CAVEAT the filter cannot see (2026-08-15): `matched` checks the ANSWER only. A
-trace can reach the right answer through hollow or templated reasoning, and it is
-the REASONING that gets SFT'd into the student. The think blocks must be READ on
-a sample of every batch before it is used as training data.
+VERIFIER (2026-08-15): the gate is the LLM judge (`--judge`, V-STaR style), not
+the keyword match. The lexical `answer_matches` scored correct-but-differently-
+worded answers as no-match ("former soldier turned commissionaire" vs ground
+truth "a retired sergeant of the Royal Marines"); it is retained per row as a
+cheap cross-check and the two are reported as a confusion table.
 
-Output: one row per (scenario, sample) with `matched` (keeper) + the think/answer.
-Downstream: matched==True rows, chat-formatted, become the SFT set (+ OpenThoughts
+    python scripts/data_prep/generate_traces.py --backend claude --judge \
+        --scenarios data/sft/scenarios_seed_claude.jsonl --samples 1
+    python scripts/data_prep/generate_traces.py --rejudge data/sft/traces_x.jsonl
+
+CAVEAT NEITHER verifier can see: both check the ANSWER only. A trace can reach
+the right answer through hollow or templated reasoning, and it is the REASONING
+that gets SFT'd into the student. The think blocks must be READ on a sample of
+every batch before it is used as training data.
+
+Output: one row per (scenario, sample) with `keeper`, `matched` (keyword
+cross-check), `judge`/`judge_reason` when judged, and the think/answer.
+Downstream: keeper==True rows, chat-formatted, become the SFT set (+ OpenThoughts
 format anchor).
 """
 from __future__ import annotations
@@ -150,8 +161,139 @@ def answer_matches(ground_truth: str, answer: str) -> tuple[bool, list[str]]:
     """A keeper's answer must name the identity. Reuses the leak-detector's
     word-match (a ground-truth content word / variant appearing in the text) —
     the SAME computation, opposite intent: a hit in a scenario is a leak (bad);
-    a hit in an answer is a correct deduction (good)."""
+    a hit in an answer is a correct deduction (good).
+
+    NOTE (2026-08-15): retained as a cheap CROSS-CHECK, no longer the gate. It is
+    a lexical test on a semantic question and measured too strict — it scored
+    "This is a former soldier turned commissionaire..." as no-match against
+    ground truth "a retired sergeant of the Royal Marines". `judge_answer` is the
+    gate. This function is deliberately NOT loosened to recover such cases:
+    widening a matcher until it accepts the answers you already believe are right
+    is the test-set-fitting that ended the `t_think_07` regex patching.
+    """
     return detect_leak(ground_truth, [], answer)
+
+
+# --- LLM-judge verifier (V-STaR style) ----------------------------------------
+# The rubric is written ONCE, from the principle, and deliberately not retuned
+# against the 18-scenario validation set. The distinction it must draw:
+#   * a correct answer stated at a coarser grain is CORRECT ("an old soldier" for
+#     "a retired sergeant of the Royal Marines" — the cues cannot encode a
+#     specific service, so demanding it would penalise sound deduction);
+#   * a DIFFERENT identity is INCORRECT ("a professional drummer" for "a church
+#     organist"), however well-argued.
+JUDGE_SYSTEM = """You are grading one answer to an observation puzzle.
+
+You are given the TRUE identity of the person and a CANDIDATE answer written by \
+someone who saw only physical cues. Decide whether the candidate identified the \
+same person.
+
+Judge SUBSTANCE, not wording. Apply these rules:
+- Correct if the candidate names the same trade, station, or situation, even in \
+different words (e.g. "lorry driver" and "long-haul truck driver").
+- Correct if the candidate is MORE GENERAL than the truth but consistent with it \
+(e.g. "an old soldier" for "a retired sergeant of the Royal Marines"). The cues \
+cannot encode every specific, so a correct-but-coarser answer counts.
+- INCORRECT if the candidate names a different identity, however plausibly \
+argued (e.g. "a professional drummer" for "a church organist").
+- INCORRECT if the candidate only describes a mood, a circumstance, or a generic \
+person without reaching the trade or situation.
+- Ignore differences of gender, era, or literary flourish.
+
+Reply in EXACTLY this form, two lines, nothing else:
+VERDICT: YES
+REASON: <one short line>"""
+
+
+def build_judge_prompt(ground_truth: str, answer: str) -> str:
+    return (f"{JUDGE_SYSTEM}\n\nTRUE IDENTITY: {ground_truth}\n"
+            f"CANDIDATE ANSWER: {answer}")
+
+
+_VERDICT_RE = re.compile(r"VERDICT\s*[:\-]\s*(YES|NO)\b", re.I)
+_REASON_RE = re.compile(r"REASON\s*[:\-]\s*(.+)", re.I)
+
+
+def parse_judge(raw: str) -> tuple[bool | None, str]:
+    """Parse a judge reply into (verdict, reason).
+
+    Returns verdict None when no VERDICT line can be found, so an unparseable
+    judgement FAILS CLOSED (the row cannot become a keeper) and is visible in the
+    data as `judge=null` rather than being silently counted either way. Tolerates
+    markdown fences, a bare leading YES/NO, and case variation.
+    """
+    text = re.sub(r"^\s*```[a-z]*\s*|\s*```\s*$", "", (raw or "").strip())
+    m = _VERDICT_RE.search(text)
+    if m:
+        verdict = m.group(1).upper() == "YES"
+    else:
+        # bare "YES"/"NO" on the first line, no VERDICT: label
+        first = text.splitlines()[0].strip() if text.splitlines() else ""
+        if re.fullmatch(r"(YES|NO)\b[.!]?", first, re.I):
+            verdict = first.upper().startswith("YES")
+        else:
+            return None, text[:200].replace("\n", " ").strip()
+    r = _REASON_RE.search(text)
+    reason = r.group(1).strip() if r else ""
+    return verdict, reason
+
+
+def judge_answer(ground_truth: str, answer: str,
+                 timeout: int = 180) -> tuple[bool | None, str, str]:
+    """Ask the Claude judge whether `answer` identifies `ground_truth`.
+    Returns (verdict, reason, raw)."""
+    raw = claude_cli(build_judge_prompt(ground_truth, answer), timeout=timeout)
+    verdict, reason = parse_judge(raw)
+    return verdict, reason, raw
+
+
+def agreement_report(rows: list[dict]) -> str:
+    """Keyword-match vs judge confusion, printed after any judged run. The
+    disagreement cells are the interesting ones: judge-YES/keyword-NO are the
+    semantic answers the lexical filter cannot see."""
+    j_yes_k_yes = sum(r.get("judge") is True and r.get("matched") for r in rows)
+    j_yes_k_no = sum(r.get("judge") is True and not r.get("matched") for r in rows)
+    j_no_k_yes = sum(r.get("judge") is False and r.get("matched") for r in rows)
+    j_no_k_no = sum(r.get("judge") is False and not r.get("matched") for r in rows)
+    unparsed = sum(r.get("judge") is None for r in rows)
+    n = len(rows)
+    agree = j_yes_k_yes + j_no_k_no
+    return (
+        f"\n  judge vs keyword-match (n={n})\n"
+        f"                     keyword YES   keyword NO\n"
+        f"    judge YES        {j_yes_k_yes:>11}   {j_yes_k_no:>10}   <- recovered by the judge\n"
+        f"    judge NO         {j_no_k_yes:>11}   {j_no_k_no:>10}\n"
+        f"    unparseable judge replies: {unparsed}\n"
+        f"    agreement: {agree}/{n}"
+        + (f" ({agree / n:.0%})" if n else ""))
+
+
+def rejudge_file(src: Path, out: Path | None) -> None:
+    """Re-score an existing traces file with the LLM judge, without regenerating.
+
+    Writes an annotated COPY — the input is never modified, so a judged rescore
+    can never destroy the traces it grades.
+    """
+    src = src if src.is_absolute() else ROOT / src
+    rows = [json.loads(l) for l in src.read_text().splitlines() if l.strip()]
+    out = out or src.with_name(src.stem + "_judged.jsonl")
+    out = out if out.is_absolute() else ROOT / out
+    f = out.open("w", encoding="utf-8")
+    for r in rows:
+        verdict, reason, raw = judge_answer(r["ground_truth"], r["answer"])
+        r["judge"], r["judge_reason"], r["judge_raw"] = verdict, reason, raw
+        r["keeper"] = bool(verdict) and bool(r.get("has_think"))
+        f.write(json.dumps(r) + "\n")
+        f.flush()
+        flag = "  <- keyword MISSED it" if verdict and not r.get("matched") else ""
+        vs = {True: "YES", False: "NO ", None: "???"}[verdict]
+        print(f"  [{r.get('scenario_id'):>2}] judge={vs} keyword="
+              f"{'YES' if r.get('matched') else 'NO '} "
+              f"gt={r['ground_truth'][:36]:<36}{flag}", flush=True)
+    f.close()
+    keep = sum(r["keeper"] for r in rows)
+    print(agreement_report(rows), flush=True)
+    print(f"\n{keep}/{len(rows)} keepers by JUDGE -> {out}", flush=True)
 
 
 def main() -> None:
@@ -167,7 +309,19 @@ def main() -> None:
     ap.add_argument("--num-predict", type=int, default=900)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--judge", action="store_true",
+                    help="gate keepers on the Claude LLM judge instead of the "
+                         "keyword match. The keyword match is still recorded per "
+                         "row as a cross-check and their agreement is reported.")
+    ap.add_argument("--rejudge", default=None, metavar="TRACES.JSONL",
+                    help="re-score an EXISTING traces file with the judge, then "
+                         "exit (no generation). Writes an annotated copy; the "
+                         "input file is never modified.")
     args = ap.parse_args()
+
+    if args.rejudge:
+        rejudge_file(Path(args.rejudge), Path(args.out) if args.out else None)
+        return
 
     spath = ROOT / args.scenarios if not Path(args.scenarios).is_absolute() else Path(args.scenarios)
     scenarios = [json.loads(l) for l in spath.read_text().splitlines() if l.strip()]
@@ -183,6 +337,7 @@ def main() -> None:
 
     total = keepers = 0
     scen_with_keeper = 0
+    judged: list[dict] = []
     for s in scenarios:
         gt, prompt = s["ground_truth"], s["scenario_prompt"]
         hit_this = False
@@ -201,17 +356,26 @@ def main() -> None:
                     args.num_predict, seed)
             matched, terms = answer_matches(gt, answer)
             has_think = bool(think and think.strip())
-            keep = matched and has_think
             row = {"scenario_id": s.get("id"), "ground_truth": gt,
                    "scenario_prompt": prompt, "sample": k, "seed": seed,
                    "think": think, "answer": answer,
                    "has_think": has_think, "matched": matched,
-                   "matched_terms": terms, "keeper": keep,
+                   "matched_terms": terms,
                    "generator": GENERATORS[args.backend]}
+            if args.judge:
+                # The judge is the gate; `matched` stays as a cross-check.
+                verdict, reason, jraw = judge_answer(gt, answer)
+                row["judge"], row["judge_reason"], row["judge_raw"] = \
+                    verdict, reason, jraw
+                keep = bool(verdict) and has_think
+            else:
+                keep = matched and has_think
+            row["keeper"] = keep
             if raw is not None:
                 row["raw"] = raw
             f.write(json.dumps(row) + "\n")
             f.flush()
+            judged.append(row)
             total += 1
             keepers += keep
             hit_this = hit_this or keep
@@ -220,7 +384,10 @@ def main() -> None:
                   f"ans={answer[:44].replace(chr(10),' ')}", flush=True)
         scen_with_keeper += hit_this
     f.close()
-    print(f"\n{keepers}/{total} traces kept | "
+    if args.judge:
+        print(agreement_report(judged), flush=True)
+    gate = "JUDGE" if args.judge else "keyword match"
+    print(f"\n{keepers}/{total} traces kept by {gate} | "
           f"{scen_with_keeper}/{len(scenarios)} scenarios have >=1 keeper -> {out}",
           flush=True)
 

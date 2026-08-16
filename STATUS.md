@@ -18,19 +18,40 @@ Updated: 2026-08-15 (trace source VALIDATED — cleared to scale)
   (binary is not on PATH here) → `resolve_claude_bin()` + clean-cwd calls
   ($0.34 → $0.072 per call). 106 tests OK.
 
+## DONE (session 2) — both instruments built, re-validated, and they CORRECTED the diagnosis
+Writeup: `results/analysis/instrument_upgrade_20260815.md`; Decision Log
+2026-08-15 (third entry). Artifacts: `data/sft/traces_claude_validation_judged.jsonl`,
+`data/sft/scenarios_seed_claude_disambig.jsonl`.
+
+- **LLM judge is the gate** (`--judge` during generation, `--rejudge` to rescore).
+  Keepers 13 → **14/18**; judge↔keyword agreement 15/18, 0 unparseable.
+  Recovered the 2 predicted near-misses AND **rejected one the keyword accepted**
+  (`[10]` "former *professional* boxer" vs ground truth "*amateur* boxer") — the
+  lexical filter was wrong in BOTH directions, and a false accept is worse.
+- **Disambiguation: 6/18 ambiguous** — and only ONE is from the three the last
+  session guessed. Organist and conductor are **clear** (the check names the
+  ground truth as best), so those were **teacher errors, not scenario defects**.
+  Four never-suspected scenarios are genuinely ambiguous (violinist/violist,
+  fisherman/sailor, med-student/any-crammer, watchmaker/jeweler). The by-eye
+  diagnosis was 2 false positives + 4 false negatives out of 6.
+- **Combined yield 9/18 (50%)** = keeper ∧ usable scenario. **Plan scenario
+  generation at ~2× the target SFT count** (~300 scenarios for ~150 examples).
+- Two real parser defects fixed and frozen as tests: `VERDICT: TIE`, and
+  `VERDICT: CLEAR` + `BEST: NONE`. Resolution: **BEST is authoritative.**
+- `cues_miss_gt` check: 12 opportunities, **fired 0 times**. Unproven, retained
+  for one batch — drop if it stays at zero. 129 tests OK.
+
 ## NEXT SESSION (cleared to scale — still no GPU)
-1. **Upgrade the verifier to an LLM judge before scaling.** The keyword matcher
-   is now the binding constraint, not the teacher: 2 of the 5 misses are correct
-   deductions it cannot see (`"former soldier turned commissionaire"` vs ground
-   truth `"retired sergeant of the Royal Marines"` scores no-match). True keeper
-   rate ~15/18 on substance.
-2. **Add a disambiguation check to scenario generation.** 3 of 5 misses are
-   scenarios whose cues admit two valid answers (gambler/ruined-man,
-   organist/drummer, conductor/roundsman) — defective items under any verifier.
-3. Then scale scenarios + traces to ~100–200 and assemble the SFT set
+1. **Audit the judge against human labels first (~30 judgements, no compute).**
+   14/18 is a number from an instrument nobody has scored, and this repo has a
+   precedent for skipping that step (`t_think_07`, precision 0.185). Judge and
+   teacher are also the same model family — shared blind spots not excluded.
+2. Scale scenarios to **~300** (not ~150) given the 50% yield, running the
+   disambiguation check as a generation-time gate.
+3. Generate traces with `--backend claude --judge`, then assemble the SFT set
    (+ OpenThoughts format anchor).
 4. Re-read a trace sample from every batch; watch whether the "taken together…"
-   closer (8/18 here) hardens into a tic at scale.
+   closer (8/18 in session 1) hardens into a tic at scale.
 
 Still mandatory and NOT addressed by this session: the **thinking-shift held-out
 audit after training**. Everything validated so far is teacher output; whether

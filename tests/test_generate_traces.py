@@ -89,3 +89,72 @@ class TestClaudePrompt(unittest.TestCase):
         # The rendered demonstration must model the exact target shape.
         p = gt.build_claude_prompt("x")
         self.assertIn("</think>\n", p)
+
+
+class TestParseJudge(unittest.TestCase):
+    """The LLM judge is now the keeper GATE, so a parser regression silently
+    changes which traces enter the SFT set."""
+
+    def test_yes_verdict_with_reason(self):
+        v, reason = gt.parse_judge("VERDICT: YES\nREASON: same trade, other words.")
+        self.assertTrue(v)
+        self.assertEqual(reason, "same trade, other words.")
+
+    def test_no_verdict(self):
+        v, reason = gt.parse_judge("VERDICT: NO\nREASON: a different identity.")
+        self.assertFalse(v)
+        self.assertEqual(reason, "a different identity.")
+
+    def test_lowercase_and_dash_separator(self):
+        v, _ = gt.parse_judge("verdict - yes\nreason - close enough")
+        self.assertTrue(v)
+
+    def test_markdown_fence_tolerated(self):
+        v, _ = gt.parse_judge("```\nVERDICT: YES\nREASON: ok\n```")
+        self.assertTrue(v)
+
+    def test_bare_yes_without_label(self):
+        v, _ = gt.parse_judge("YES")
+        self.assertTrue(v)
+
+    def test_unparseable_fails_closed_as_none(self):
+        # Must be None, not False: an unusable judgement has to be visible in the
+        # data rather than silently counted as a rejection.
+        v, reason = gt.parse_judge("I'm not sure how to grade this one.")
+        self.assertIsNone(v)
+        self.assertIn("not sure", reason)
+
+    def test_empty_input_is_none(self):
+        v, _ = gt.parse_judge("")
+        self.assertIsNone(v)
+
+    def test_verdict_word_in_reason_does_not_flip_it(self):
+        v, _ = gt.parse_judge(
+            "VERDICT: NO\nREASON: the answer says yes to a different trade.")
+        self.assertFalse(v)
+
+
+class TestJudgePrompt(unittest.TestCase):
+    def test_prompt_carries_both_sides_and_demands_the_form(self):
+        p = gt.build_judge_prompt("a beekeeper", "This is a beekeeper.")
+        self.assertIn("a beekeeper", p)
+        self.assertIn("VERDICT:", p)
+        self.assertIn("REASON:", p)
+
+    def test_rubric_states_the_generality_rule(self):
+        # The coarser-but-consistent rule is the whole reason the judge exists.
+        self.assertIn("MORE GENERAL", gt.JUDGE_SYSTEM)
+
+
+class TestAgreementReport(unittest.TestCase):
+    def test_counts_all_four_cells_and_unparsed(self):
+        rows = [
+            {"judge": True, "matched": True},    # agree keep
+            {"judge": True, "matched": False},   # judge recovers
+            {"judge": False, "matched": False},  # agree drop
+            {"judge": None, "matched": False},   # unparseable
+        ]
+        out = gt.agreement_report(rows)
+        self.assertIn("n=4", out)
+        self.assertIn("unparseable judge replies: 1", out)
+        self.assertIn("agreement: 2/4", out)

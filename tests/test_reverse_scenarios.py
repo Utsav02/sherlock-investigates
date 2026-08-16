@@ -152,3 +152,172 @@ class TestParseDisambigRealFailures(unittest.TestCase):
     def test_neither_verdict_nor_best_is_none(self):
         amb, _, _, _ = rs.parse_disambig("I can't tell from these cues.")
         self.assertIsNone(amb)
+
+
+class TestIdentityPool(unittest.TestCase):
+    """Identity-pool expansion: parsing, dedup, and the style filter."""
+
+    def test_parses_plain_lines(self):
+        got = rs.parse_identity_list(
+            "a chimney sweep\na farrier\nsomeone who has just left the navy\n")
+        self.assertEqual(got, ["a chimney sweep", "a farrier",
+                               "someone who has just left the navy"])
+
+    def test_strips_bullets_numbering_and_trailing_punctuation(self):
+        got = rs.parse_identity_list("1. a farrier.\n- an oyster shucker;\n* a drayman")
+        self.assertEqual(got, ["a farrier", "an oyster shucker", "a drayman"])
+
+    def test_drops_commentary_and_headers(self):
+        # Preamble, headers and prose must not enter the pool as identities.
+        got = rs.parse_identity_list(
+            "Here are 3 answers:\nCATEGORY:\na farrier\nThese all rely on cues.")
+        self.assertEqual(got, ["a farrier"])
+
+    def test_exact_duplicate_dropped_ignoring_article_and_case(self):
+        self.assertEqual(rs.dedup_identities(["A Farrier"], ["a farrier"]), [])
+
+    def test_near_duplicate_dropped(self):
+        self.assertEqual(
+            rs.dedup_identities(["a professional concert violinist"],
+                                ["a concert violinist professional"]), [])
+
+    def test_distinct_trades_survive(self):
+        # Two similar-but-different trades must BOTH survive: each scenario is
+        # disambiguated on its own cues, so the pool need not be semantically
+        # spread, only non-redundant.
+        got = rs.dedup_identities(["a watchmaker"], ["a diamond setter"])
+        self.assertEqual(got, ["a watchmaker"])
+
+    def test_dedups_within_the_new_batch(self):
+        got = rs.dedup_identities(["a farrier", "a farrier", "a drayman"], [])
+        self.assertEqual(got, ["a farrier", "a drayman"])
+
+
+class TestClassifyRow(unittest.TestCase):
+    """Terminal status of a ledger row — the report reads only this."""
+
+    def _row(self, **kw):
+        base = {"parse_ok": True, "leak": False, "ambiguous": False}
+        base.update(kw)
+        return base
+
+    def test_usable(self):
+        self.assertEqual(rs.classify_row(self._row()), "usable")
+
+    def test_error_outranks_everything(self):
+        self.assertEqual(
+            rs.classify_row(self._row(error="RuntimeError: boom")), "error")
+
+    def test_badfmt_before_leak(self):
+        self.assertEqual(rs.classify_row(self._row(parse_ok=False, leak=True)),
+                         "badfmt")
+
+    def test_leak(self):
+        self.assertEqual(rs.classify_row(self._row(leak=True)), "leak")
+
+    def test_ambiguous(self):
+        self.assertEqual(rs.classify_row(self._row(ambiguous=True)), "ambiguous")
+
+    def test_unreadable_disambig_fails_closed(self):
+        # ambiguous=None must NOT be silently kept — it gets its own status.
+        self.assertEqual(rs.classify_row(self._row(ambiguous=None)),
+                         "unparsed_disambig")
+
+
+class TestResumeAndSummary(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+        self.tmp = tempfile.TemporaryDirectory()
+        self.p = Path(self.tmp.name) / "ledger.jsonl"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_load_done_missing_file_is_empty(self):
+        self.assertEqual(rs.load_done(self.p), set())
+
+    def test_load_done_reads_every_attempted_identity(self):
+        # Dropped rows count as DONE — otherwise a resume re-pays for every
+        # identity the gates already rejected.
+        self.p.write_text(
+            '{"ground_truth": "a farrier", "status": "usable"}\n'
+            '{"ground_truth": "a drayman", "status": "leak"}\n')
+        self.assertEqual(rs.load_done(self.p), {"a farrier", "a drayman"})
+
+    def test_load_done_survives_a_torn_final_line(self):
+        # A kill mid-append leaves a partial line; it must cost one identity,
+        # not the whole resume.
+        self.p.write_text('{"ground_truth": "a farrier"}\n{"ground_tru')
+        self.assertEqual(rs.load_done(self.p), {"a farrier"})
+
+    def test_summary_rates_use_the_right_denominators(self):
+        rows = [{"status": "usable"}, {"status": "usable"},
+                {"status": "ambiguous"}, {"status": "leak"},
+                {"status": "badfmt"}]
+        s = rs.summarize(rows)
+        self.assertEqual(s["tried"], 5)
+        self.assertEqual(s["usable"], 2)
+        # Ambiguity rate is over scenarios that REACHED the check (3), not all 5:
+        # a leaked or malformed scenario was never disambiguated.
+        self.assertEqual(s["reached_disambig"], 3)
+        self.assertAlmostEqual(s["ambiguous_rate"], 1 / 3)
+        self.assertAlmostEqual(s["overall_yield"], 2 / 5)
+
+    def test_summary_counts_regenerations_and_rescues(self):
+        rows = [{"status": "usable", "attempts": 2},
+                {"status": "ambiguous", "attempts": 2},
+                {"status": "usable", "attempts": 1}]
+        s = rs.summarize(rows)
+        self.assertEqual(s["regenerated"], 2)
+        self.assertEqual(s["regen_rescued"], 1)
+
+    def test_summary_empty_is_safe(self):
+        s = rs.summarize([])
+        self.assertIsNone(s["ambiguous_rate"])
+        self.assertIsNone(s["overall_yield"])
+
+
+class TestLeakVariantMatching(unittest.TestCase):
+    """Regression tests for the prefix rule that rejected clean scenarios.
+
+    Measured on a real generation (2026-08-15): a blacksmith scenario that never
+    names the trade was rejected because a cue said "blackened" creases and the
+    old rule asked whether any TEXT token starts with the answer's first four
+    letters ('blac'). The direction of the test was wrong.
+    """
+
+    def test_blackened_does_not_leak_blacksmith(self):
+        leak, terms = rs.detect_leak(
+            "a blacksmith",
+            ["Deep, blackened creases in the pads and knuckles",
+             "Forearms noticeably thicker and more corded"],
+            "His knuckles are etched with dark lines. What do you make of them?")
+        self.assertFalse(leak, f"false positive on {terms}")
+
+    def test_lock_still_leaks_locksmith(self):
+        # A signature tool naming the answer's first component must still trip.
+        leak, terms = rs.detect_leak("a locksmith", ["holds a lockpick"],
+                                     "He fiddles with a lock. What do you make of them?")
+        self.assertTrue(leak)
+        self.assertIn("locksmith", terms)
+
+    def test_violin_still_leaks_violinist(self):
+        leak, terms = rs.detect_leak("a professional concert violinist",
+                                     ["a violin case in one hand"],
+                                     "They carry it close. What do you make of them?")
+        self.assertTrue(leak)
+        self.assertIn("violinist", terms)
+
+    def test_morphological_variant_leaks(self):
+        # 'gardening' ~ 'gardener' via the stem rule.
+        leak, _ = rs.detect_leak("a professional gardener",
+                                 ["soil under the nails from gardening"],
+                                 "What do you make of them?")
+        self.assertTrue(leak)
+
+    def test_unrelated_long_word_sharing_a_prefix_is_clean(self):
+        # 'ministering' must not leak 'a coal miner'.
+        leak, terms = rs.detect_leak(
+            "a coal miner", ["a stooped, ministering posture toward his wife"],
+            "He stoops as he walks. What do you make of them?")
+        self.assertFalse(leak, f"false positive on {terms}")

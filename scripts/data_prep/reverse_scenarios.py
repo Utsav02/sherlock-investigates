@@ -207,6 +207,50 @@ _LEAK_STOP = {
 }
 
 
+_SUFFIXES = ("ists", "ist", "ings", "ing", "ers", "er", "ed", "es", "s")
+
+
+def _stem(w: str) -> str:
+    """Crude suffix strip, only for matching morphological variants."""
+    for suf in _SUFFIXES:
+        if len(w) - len(suf) >= 4 and w.endswith(suf):
+            return w[: -len(suf)]
+    return w
+
+
+def _variant_hit(w: str, text_tokens: set[str]) -> bool:
+    """Is ground-truth word `w` present in the text, allowing variants?
+
+    Three rules, deliberately narrow (see the false positive that motivated the
+    rewrite, below):
+
+    1. exact token match                     — 'nurse' in 'nurse'
+    2. a text token is a PREFIX of `w`       — 'lock' gives away 'locksmith',
+       'violin' gives away 'violinist'
+    3. equal stems                           — 'gardening' ~ 'gardener'
+
+    The original rule was `any(t.startswith(w[:4]))`, which asks whether any text
+    token merely *begins with* the first four letters of the answer. Measured on
+    a real generation (2026-08-15): a genuinely clean blacksmith scenario —
+    which never names the trade — was rejected because a cue said "blackened"
+    creases, and 'blackened'.startswith('blac'). Rule 2 reverses the direction of
+    the test (the text token must be a prefix of the ANSWER, not the other way
+    round), which keeps 'lock'/'locksmith' while dropping
+    'blackened'/'blacksmith'. The bias mattered at scale: it silently discarded
+    scenarios for every identity sharing a four-letter prefix with a common
+    descriptive word, and a discarded scenario is invisible in the output.
+    """
+    if w in text_tokens:
+        return True
+    ws = _stem(w)
+    for t in text_tokens:
+        if len(t) >= 4 and len(t) < len(w) and w.startswith(t):
+            return True
+        if len(ws) >= 4 and _stem(t) == ws:
+            return True
+    return False
+
+
 def detect_leak(ground_truth: str, cues: list[str], scenario: str) -> tuple[bool, list[str]]:
     """Flag a scenario that GIVES AWAY its answer — the core curation check,
     since plain SFT has no good-vs-bad signal other than what we keep.
@@ -221,12 +265,7 @@ def detect_leak(ground_truth: str, cues: list[str], scenario: str) -> tuple[bool
     content = [w for w in re.findall(r"[a-z]+", ground_truth.lower())
                if len(w) >= 4 and w not in _LEAK_STOP]
     text_tokens = set(re.findall(r"[a-z]+", (" ".join(cues) + " " + scenario).lower()))
-    leaked = []
-    for w in content:
-        hit = w in text_tokens or (
-            len(w) >= 5 and any(t.startswith(w[:4]) for t in text_tokens))
-        if hit:
-            leaked.append(w)
+    leaked = [w for w in content if _variant_hit(w, text_tokens)]
     return (bool(leaked), leaked)
 
 
@@ -381,6 +420,375 @@ def disambiguate_file(src: Path, out: Path | None) -> None:
           f"{sum(r['usable'] for r in rows)}/{len(rows)} usable -> {out}", flush=True)
 
 
+# --- Identity-pool expansion --------------------------------------------------
+# SEED_IDENTITIES is ~30, which caps a scaled run far below the ~100-150 SFT
+# examples a pilot needs once the two gates (leak, disambiguation) and the
+# downstream keeper filter have taken their cut. Measured end-to-end yield is
+# 50% at the scenario stage alone (2026-08-15), so the identity pool has to be
+# roughly 2x the target scenario count before traces are ever generated.
+#
+# Identities are GROUND TRUTHS, i.e. labels — not model reasoning — so sourcing
+# them from Claude raises no provenance question (same argument as scenarios:
+# they are inputs, and the 2026-08-15 provenance entry scopes the concern to
+# the reasoning traces).
+
+# Rotated per batch so one category cannot dominate the pool. Diversity here is
+# load-bearing: a pool of 200 near-identical manual trades would yield cue sets
+# that collide with each other and inflate the ambiguity drop rate.
+IDENTITY_CATEGORIES = [
+    "manual trades and crafts, where the hands and clothes carry the work",
+    "professions, clerical and indoor work",
+    "sport, physical training and outdoor pursuits",
+    "medical conditions, physiological states and recent injuries",
+    "life situations and recent transitions (moves, losses, releases, arrivals)",
+    "transport, sea and travel occupations",
+    "habits, vices, and recently-broken habits",
+    "performing arts and music",
+    "service, food and hospitality work",
+    "rural, agricultural and animal-handling work",
+]
+
+IDENTITY_SYSTEM = """You are building a pool of HIDDEN ANSWERS for \
+Sherlock-Holmes-style observation puzzles.
+
+Each answer is a person's identity, occupation, or situation that a keen observer \
+could deduce from PHYSICAL, OBSERVABLE traces alone: marks and callouses on the \
+hands, wear on clothing, posture, gait, skin, small involuntary habits.
+
+HARD RULES:
+- Each answer must be deducible from visible physical traces. Reject anything \
+whose only evidence would be speech, documents, or a possession that names it.
+- Each answer must be DISTINCT from every other one you write and from every \
+entry on the AVOID list.
+- Write each as a short lowercase noun phrase beginning "a", "an", or "someone \
+who", in exactly this style:
+    a deep-sea trawler fisherman
+    someone who has just emigrated from a hot country to a cold one
+- Output ONE PER LINE. No numbering, no bullets, no blank lines, no commentary, \
+no preamble. Nothing but the answers."""
+
+
+def normalize_identity(s: str) -> str:
+    """Comparison key for dedup: lowercase, no article, no punctuation."""
+    s = re.sub(r"[^a-z0-9\s]", " ", (s or "").lower())
+    s = re.sub(r"^\s*(a|an|the)\s+", " ", " " + s + " ")
+    return re.sub(r"\s+", " ", s).strip()
+
+
+_IDENTITY_STOP = {"a", "an", "the", "of", "who", "has", "just", "in", "on",
+                  "at", "to", "from", "and", "with", "very", "someone"}
+
+
+def _identity_words(s: str) -> set[str]:
+    return {w for w in normalize_identity(s).split() if w not in _IDENTITY_STOP}
+
+
+def parse_identity_list(raw: str) -> list[str]:
+    """Pull identity lines out of a model reply, tolerating bullets/numbering."""
+    out = []
+    for line in (raw or "").splitlines():
+        s = line.strip()
+        s = re.sub(r"^\s*(?:[-*•]|\d+[.)])\s*", "", s)
+        s = re.sub(r"^\s*```[a-z]*\s*$", "", s).strip().strip('"').strip()
+        if not s or len(s) < 6 or len(s) > 120:
+            continue
+        # Must read like the seed style; drops headers, commentary and prose.
+        if not re.match(r"^(a|an|someone|somebody)\b", s, re.I):
+            continue
+        if s.endswith(":") or "\t" in s:
+            continue
+        out.append(re.sub(r"[.;,]+$", "", s).strip())
+    return out
+
+
+def dedup_identities(new: list[str], existing: list[str],
+                     jaccard_max: float = 0.6) -> list[str]:
+    """Drop exact and near-duplicate identities, preserving order.
+
+    Near-duplicate = content-word Jaccard above `jaccard_max` (so "a watchmaker"
+    survives alongside "a diamond setter" but a second "a professional concert
+    violinist" does not). Near-dupes are dropped to avoid paying two CLI calls
+    for one scenario, NOT because two similar trades in the pool would be
+    invalid — each scenario is disambiguated on its own cues.
+    """
+    keys = {normalize_identity(e) for e in existing}
+    words = [_identity_words(e) for e in existing]
+    kept: list[str] = []
+    for cand in new:
+        k = normalize_identity(cand)
+        if not k or k in keys:
+            continue
+        cw = _identity_words(cand)
+        if not cw:
+            continue
+        dup = False
+        for w in words:
+            union = cw | w
+            if union and len(cw & w) / len(union) > jaccard_max:
+                dup = True
+                break
+        if dup:
+            continue
+        keys.add(k)
+        words.append(cw)
+        kept.append(cand)
+    return kept
+
+
+def expand_identities(target: int, out_path: Path, per_call: int = 25,
+                      max_calls: int = 40) -> list[str]:
+    """Generate `target` NEW identities beyond SEED_IDENTITIES, appending as
+    produced so an interrupted expansion keeps everything it had.
+    """
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    pool: list[str] = []
+    if out_path.exists():                       # resume: reuse what is on disk
+        pool = [json.loads(l)["identity"]
+                for l in out_path.read_text().splitlines() if l.strip()]
+        print(f"resuming identity pool: {len(pool)} already on disk", flush=True)
+    fh = out_path.open("a", encoding="utf-8")
+    calls = 0
+    while len(pool) < target and calls < max_calls:
+        cat = IDENTITY_CATEGORIES[calls % len(IDENTITY_CATEGORIES)]
+        avoid = "\n".join(f"- {x}" for x in (SEED_IDENTITIES + pool))
+        prompt = (f"{IDENTITY_SYSTEM}\n\nCATEGORY for this batch: {cat}\n"
+                  f"Give exactly {per_call} answers in that category.\n\n"
+                  f"AVOID (already in the pool, do not repeat or paraphrase):\n"
+                  f"{avoid}")
+        calls += 1
+        try:
+            raw = claude_cli(prompt, timeout=300)
+        except Exception as exc:                # one bad call must not end it
+            print(f"  ! batch {calls} failed: {str(exc)[:160]}", flush=True)
+            continue
+        fresh = dedup_identities(parse_identity_list(raw),
+                                 SEED_IDENTITIES + pool)
+        for ident in fresh:
+            if len(pool) >= target:
+                break
+            pool.append(ident)
+            fh.write(json.dumps({"identity": ident, "category": cat,
+                                 "batch": calls}) + "\n")
+            fh.flush()
+            os.fsync(fh.fileno())
+        print(f"  batch {calls} [{cat[:34]}]: +{len(fresh)} new "
+              f"-> pool {len(pool)}/{target}", flush=True)
+    fh.close()
+    print(f"\nidentity pool: {len(pool)} new identities in {calls} calls "
+          f"-> {out_path}", flush=True)
+    return pool
+
+
+# --- Gated, resumable scenario generation -------------------------------------
+# The two gates were built as separate file-rewriting passes, which is fine at
+# n=18 and wrong at n=200+: a mid-run interruption loses everything, and the
+# ambiguous scenarios are only discovered after every generation call is already
+# spent. Inline gating lets an AMBIGUOUS scenario be regenerated once while the
+# identity is still in hand, and the append-only ledger makes the run resumable.
+
+REGEN_NUDGE = """Your previous cue set for this hidden answer was AMBIGUOUS: an \
+independent reader, shown the cues alone, judged these to be equally good \
+explanations:
+{cands}
+
+Write a COMPLETELY NEW set of 3 to 5 cues for the SAME hidden answer. At least \
+one cue must RULE OUT those other explanations. Same hard rules, same output \
+format."""
+
+
+def classify_row(row: dict) -> str:
+    """Terminal status of a ledger row. Pure — the report reads only this."""
+    if row.get("error"):
+        return "error"
+    if not row.get("parse_ok"):
+        return "badfmt"
+    if row.get("leak"):
+        return "leak"
+    amb = row.get("ambiguous")
+    if amb is None:
+        return "unparsed_disambig"
+    if amb:
+        return "ambiguous"
+    return "usable"
+
+
+def load_done(path: Path) -> set[str]:
+    """Identities already attempted, read from the ledger itself.
+
+    The ledger is the single source of truth for resume — deliberately, rather
+    than a side-car state file. A separate state file can disagree with the
+    append log if the process dies between the two writes; a row's presence
+    cannot.
+    """
+    if not path.exists():
+        return set()
+    done = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            done.add(json.loads(line)["ground_truth"])
+        except (json.JSONDecodeError, KeyError):
+            continue                     # a torn final line costs one identity
+    return done
+
+
+def summarize(rows: list[dict]) -> dict:
+    """Counts by terminal status, plus the two drop rates worth reporting."""
+    counts: dict[str, int] = {}
+    for r in rows:
+        st = r.get("status") or classify_row(r)
+        counts[st] = counts.get(st, 0) + 1
+    n = len(rows)
+    # Denominator for the ambiguity rate is scenarios that REACHED the check:
+    # a scenario dropped for bad format or a leak was never disambiguated.
+    reached = sum(counts.get(k, 0)
+                  for k in ("usable", "ambiguous", "unparsed_disambig"))
+    return {
+        "tried": n,
+        "counts": counts,
+        "usable": counts.get("usable", 0),
+        "reached_disambig": reached,
+        "ambiguous_rate": (counts.get("ambiguous", 0) / reached) if reached else None,
+        "overall_yield": (counts.get("usable", 0) / n) if n else None,
+        "regenerated": sum(1 for r in rows if r.get("attempts", 1) > 1),
+        "regen_rescued": sum(1 for r in rows if r.get("attempts", 1) > 1
+                             and (r.get("status") or classify_row(r)) == "usable"),
+    }
+
+
+def print_summary(rows: list[dict], out: Path, clean: Path) -> None:
+    s = summarize(rows)
+    print("\n" + "=" * 66, flush=True)
+    print(f"identities tried      : {s['tried']}", flush=True)
+    for k in ("badfmt", "leak", "ambiguous", "unparsed_disambig", "error"):
+        if s["counts"].get(k):
+            print(f"  dropped [{k:<17}]: {s['counts'][k]}", flush=True)
+    print(f"CLEAN scenarios kept  : {s['usable']}", flush=True)
+    if s["ambiguous_rate"] is not None:
+        print(f"ambiguity drop rate   : {s['counts'].get('ambiguous', 0)}/"
+              f"{s['reached_disambig']} = {s['ambiguous_rate']:.1%} "
+              f"(n=18 reference: 6/18 = 33.3%)", flush=True)
+    if s["overall_yield"] is not None:
+        print(f"scenario-stage yield  : {s['overall_yield']:.1%}", flush=True)
+    print(f"regenerated once      : {s['regenerated']} "
+          f"({s['regen_rescued']} rescued to usable)", flush=True)
+    print(f"ledger -> {out}\nclean  -> {clean}", flush=True)
+
+
+def generate_one(identity: str, backend: str, num_predict: int, seed: int,
+                 extra: str = "") -> dict:
+    """One generation call + the leak gate. No disambiguation (that costs a
+    second call and is only worth spending on a scenario that got this far)."""
+    user = f"HIDDEN ANSWER: {identity}"
+    if extra:
+        user += "\n\n" + extra
+    if backend == "claude":
+        raw = claude_chat(SYSTEM, user)
+    else:
+        raw = ollama_chat([{"role": "system", "content": SYSTEM},
+                           {"role": "user", "content": user}],
+                          num_predict, seed)
+    cues, scenario = parse(raw)
+    ok = len(cues) >= 2 and scenario.endswith("What do you make of them?")
+    leak, terms = detect_leak(identity, cues, scenario)
+    return {"cues": cues, "scenario_prompt": scenario, "parse_ok": ok,
+            "leak": leak, "leaked_terms": terms, "raw": raw}
+
+
+def run_gated(identities: list[str], out: Path, clean: Path, backend: str,
+              num_predict: int, seed: int, regen: bool = True,
+              max_consecutive_errors: int = 5) -> list[dict]:
+    """Generate scenarios with BOTH gates applied inline, appending as produced.
+
+    Every attempted identity gets a ledger row — including dropped ones — so the
+    run is resumable (`load_done` reads the ledger) and the drop rates are
+    auditable rather than inferred from what is missing.
+    """
+    out.parent.mkdir(parents=True, exist_ok=True)
+    done = load_done(out)
+    todo = [i for i in identities if i not in done]
+    print(f"{len(identities)} identities | {len(done)} already done | "
+          f"{len(todo)} to do", flush=True)
+
+    fh = out.open("a", encoding="utf-8")
+    cf = clean.open("a", encoding="utf-8")
+    rows: list[dict] = []
+    consecutive_errors = 0
+    for n, identity in enumerate(todo, 1):
+        row = {"id": len(done) + n - 1, "ground_truth": identity,
+               "generator": backend, "attempts": 1,
+               "ts": datetime.now().isoformat(timespec="seconds")}
+        try:
+            row.update(generate_one(identity, backend, num_predict, seed))
+            # Gate 1 (leak / format) passed -> spend the second call on gate 2.
+            if row["parse_ok"] and not row["leak"]:
+                amb, cands, best, reason, raw_d = disambiguate(row["cues"])
+                row.update({"ambiguous": amb, "candidates": cands,
+                            "disambig_best": best, "disambig_reason": reason,
+                            "disambig_raw": raw_d})
+                if amb and regen:
+                    row["attempts"] = 2
+                    row["first_attempt"] = {
+                        "cues": row["cues"],
+                        "scenario_prompt": row["scenario_prompt"],
+                        "candidates": cands}
+                    nudge = REGEN_NUDGE.format(
+                        cands="\n".join(f"- {c}" for c in cands[:5]))
+                    row.update(generate_one(identity, backend, num_predict,
+                                            seed + 1, extra=nudge))
+                    if row["parse_ok"] and not row["leak"]:
+                        amb, cands, best, reason, raw_d = \
+                            disambiguate(row["cues"])
+                        row.update({"ambiguous": amb, "candidates": cands,
+                                    "disambig_best": best,
+                                    "disambig_reason": reason,
+                                    "disambig_raw": raw_d})
+                    else:
+                        row["ambiguous"] = None
+            consecutive_errors = 0
+        except Exception as exc:
+            row["error"] = f"{type(exc).__name__}: {str(exc)[:300]}"
+            consecutive_errors += 1
+        row["status"] = classify_row(row)
+        row["usable"] = row["status"] == "usable"
+        fh.write(json.dumps(row) + "\n")
+        fh.flush()
+        os.fsync(fh.fileno())
+        if row["usable"]:
+            cf.write(json.dumps({k: row[k] for k in (
+                "id", "ground_truth", "cues", "scenario_prompt",
+                "disambig_best", "generator", "attempts")}) + "\n")
+            cf.flush()
+            os.fsync(cf.fileno())
+        rows.append(row)
+
+        tag = {"usable": "USABLE", "leak": "LEAK  ", "badfmt": "BADFMT",
+               "ambiguous": "AMBIG ", "unparsed_disambig": "UNPARS",
+               "error": "ERROR "}[row["status"]]
+        star = "*" if row.get("attempts", 1) > 1 else " "
+        print(f"[{n:>3}/{len(todo)}]{star}{tag} {identity[:58]}", flush=True)
+        if row["status"] == "leak":
+            print(f"        leaked: {','.join(row.get('leaked_terms', []))}",
+                  flush=True)
+        elif row["status"] == "ambiguous":
+            print(f"        tie: {', '.join(row.get('candidates', [])[:4])}",
+                  flush=True)
+        elif row["status"] == "error":
+            print(f"        {row['error'][:150]}", flush=True)
+        elif row["status"] == "usable":
+            print(f"        {row['scenario_prompt'][:86]}", flush=True)
+
+        if consecutive_errors >= max_consecutive_errors:
+            print(f"\nABORT: {consecutive_errors} consecutive errors — the CLI "
+                  f"or auth is likely down. Re-run the same command to resume.",
+                  flush=True)
+            break
+    fh.close()
+    cf.close()
+    return rows
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--limit", type=int, default=None, help="first N seeds")
@@ -400,7 +808,63 @@ def main() -> None:
                          "scenarios file, then exit (no generation). Flags "
                          "scenarios whose cues admit >1 equally-valid answer. "
                          "Writes an annotated copy; input is never modified.")
+    ap.add_argument("--expand-identities", type=int, default=None, metavar="N",
+                    help="generate N NEW identities beyond SEED_IDENTITIES via "
+                         "the Claude CLI, dedup'd, appended as produced, then "
+                         "exit. Resumes from --identities-out if it exists.")
+    ap.add_argument("--identities-out", default="data/sft/identity_pool.jsonl",
+                    help="identity-pool file written/resumed by "
+                         "--expand-identities and read by --identities.")
+    ap.add_argument("--identities", default=None, metavar="POOL.JSONL",
+                    help="generate scenarios for the identities in this pool "
+                         "file (plus SEED_IDENTITIES unless --no-seeds), with "
+                         "BOTH gates inline. Resumable: re-running the same "
+                         "command skips identities already in the ledger.")
+    ap.add_argument("--no-seeds", action="store_true",
+                    help="with --identities, exclude SEED_IDENTITIES.")
+    ap.add_argument("--no-regen", action="store_true",
+                    help="drop AMBIGUOUS scenarios outright instead of "
+                         "regenerating them once with a discriminating nudge.")
+    ap.add_argument("--report", default=None, metavar="LEDGER.JSONL",
+                    help="print the drop-rate summary for an existing gated "
+                         "ledger, then exit. Read-only.")
     args = ap.parse_args()
+
+    if args.report:
+        p = Path(args.report)
+        p = p if p.is_absolute() else ROOT / p
+        rows = [json.loads(l) for l in p.read_text().splitlines() if l.strip()]
+        print_summary(rows, p, p.with_name(p.stem.replace("_all", "") + "_clean.jsonl"))
+        return
+
+    if args.expand_identities:
+        po = Path(args.identities_out)
+        expand_identities(args.expand_identities,
+                          po if po.is_absolute() else ROOT / po)
+        return
+
+    if args.identities:
+        p = Path(args.identities)
+        p = p if p.is_absolute() else ROOT / p
+        pool = [json.loads(l)["identity"]
+                for l in p.read_text().splitlines() if l.strip()]
+        idents = (pool if args.no_seeds else SEED_IDENTITIES + pool)
+        if args.limit:
+            idents = idents[:args.limit]
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        if args.out:
+            out = Path(args.out)
+        else:
+            out = ROOT / "data" / "sft" / f"scenarios_gated_{stamp}_all.jsonl"
+        out = out if out.is_absolute() else ROOT / out
+        clean = out.with_name(out.stem.replace("_all", "") + "_clean.jsonl")
+        rows = run_gated(idents, out, clean, args.backend, args.num_predict,
+                         args.seed, regen=not args.no_regen)
+        # Summarise over the WHOLE ledger, not just this invocation's rows, so a
+        # resumed run reports the run's totals rather than the tail.
+        allrows = [json.loads(l) for l in out.read_text().splitlines() if l.strip()]
+        print_summary(allrows, out, clean)
+        return
 
     if args.disambiguate:
         disambiguate_file(Path(args.disambiguate),

@@ -330,28 +330,26 @@ def disambiguate(cues: list[str],
 
 
 def disambiguate_file(src: Path, out: Path | None) -> None:
-    """Annotate a scenarios file with BOTH scenario-defect checks.
+    """Annotate a scenarios file with the scenario-defect check.
 
     Writes an annotated COPY; the input is never modified, so the seed set cannot
     be destroyed by a check run against it.
 
-    Two independent defects, measured 2026-08-15 — the second was NOT anticipated
-    and the ambiguity check alone does not catch it:
+    **ambiguous** — the cues admit several equally-good identities, so no
+    verifier can fairly grade an answer (violinist/violist; immigrant vs tourist
+    vs refugee). Measured 2026-08-15: 6/18, four of them never suspected by eye.
+    An ambiguous item is unusable.
 
-    1. **ambiguous** — the cues admit several equally-good identities, so no
-       verifier can fairly grade an answer (violinist/violist; immigrant vs
-       tourist vs refugee).
-    2. **cues_miss_gt** — the cues point clearly at something OTHER than the seed
-       identity. The gambler scenario is "clear" and its best answer is "a man
-       hiding financial hardship": nothing in the cues says *gambling*, so the
-       seed label is unreachable and every trace on it is graded against an
-       answer the evidence does not support. Detected by judging the check's own
-       `best` against the ground truth, reusing the trace judge.
-
-    Either defect makes the item unusable.
+    Removed 2026-08-15 (same day it was added): a second check, `cues_miss_gt`,
+    judged the check's own `best` against the ground truth to catch a seed label
+    the cues cannot reach. It had **12 opportunities and fired 0 times** — the
+    gambler case it was built for turned out to be *ambiguous*, so `best` was
+    NONE and the check never ran on it. It cost ~1 extra judge call per
+    unambiguous scenario and bought nothing measurable, so it is dropped rather
+    than carried into the scaled run. The defect it targets is real in principle;
+    if a scaled batch produces a scenario whose cues clearly point elsewhere and
+    the ambiguity check passes it, reinstate it from git history.
     """
-    from generate_traces import judge_answer   # late: generate_traces imports us
-
     src = src if src.is_absolute() else ROOT / src
     rows = [json.loads(l) for l in src.read_text().splitlines() if l.strip()]
     out = out or src.with_name(src.stem + "_disambig.jsonl")
@@ -362,21 +360,12 @@ def disambiguate_file(src: Path, out: Path | None) -> None:
         r["ambiguous"], r["candidates"] = amb, cands
         r["disambig_best"], r["disambig_reason"], r["disambig_raw"] = \
             best, reason, raw
-        # Does the cues' own best answer actually reach the seed identity?
-        if best:
-            v, vreason, _ = judge_answer(r["ground_truth"], best)
-            r["best_reaches_gt"], r["best_reaches_gt_reason"] = v, vreason
-        else:
-            r["best_reaches_gt"], r["best_reaches_gt_reason"] = None, ""
-        r["cues_miss_gt"] = r["best_reaches_gt"] is False
         r["usable"] = (bool(r.get("parse_ok")) and not r.get("leak")
-                       and amb is False and not r["cues_miss_gt"])
+                       and amb is False)
         f.write(json.dumps(r) + "\n")
         f.flush()
         if amb:
             tag = "AMBIGUOUS"
-        elif r["cues_miss_gt"]:
-            tag = "CUES!=GT "
         elif amb is None:
             tag = "UNPARSED "
         else:
@@ -386,13 +375,9 @@ def disambiguate_file(src: Path, out: Path | None) -> None:
               + (f" | best: {best[:38]}" if best else " | best: NONE"), flush=True)
         if amb:
             print(f"       tie between: {', '.join(cands[:4])}", flush=True)
-        if r["cues_miss_gt"]:
-            print(f"       cues point elsewhere: {r['best_reaches_gt_reason'][:88]}",
-                  flush=True)
     f.close()
     amb_n = sum(r["ambiguous"] is True for r in rows)
-    miss_n = sum(r["cues_miss_gt"] for r in rows)
-    print(f"\n{amb_n}/{len(rows)} AMBIGUOUS | {miss_n}/{len(rows)} CUES!=GT | "
+    print(f"\n{amb_n}/{len(rows)} AMBIGUOUS | "
           f"{sum(r['usable'] for r in rows)}/{len(rows)} usable -> {out}", flush=True)
 
 

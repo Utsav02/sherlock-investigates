@@ -1,5 +1,28 @@
 # STATUS — sherlock-investigates
-Updated: 2026-08-15 (trace source VALIDATED — cleared to scale)
+Updated: 2026-08-15 (judge keeper-scan CLEAR for pilot — cleared to scale)
+
+## DONE (session 3) — PILOT keeper scan: 0 gross false accepts
+Writeup: `results/analysis/keeper_scan_20260815_231156.md`; Decision Log
+2026-08-15 (fourth entry). Presenter: `scripts/eval/build_keeper_scan.py`
+(read-only) → `results/analysis/keeper_scan.html`.
+
+- **14/14 keepers correct, 0 gross false accepts.** Scanned only the KEEPERS,
+  because for a pilot the only judge error that damages training DATA is a false
+  accept; false rejects cost yield, which the 2× plan absorbs.
+- **⚠️ This was a CLAUDE-ON-CLAUDE cross-check, NOT an independent audit.**
+  Teacher, judge and scanner are one model family — a **shared blind spot is not
+  excluded**. It catches gross false accepts only.
+- **The rigorous ~30-label precision/recall audit is DEFERRED to just before the
+  final scaled run, and must use a HUMAN or NON-CLAUDE annotator.** Its scope is
+  unchanged by this scan.
+- 4 coarser-than-seed answers (ids 0/3/5/7) are the rubric working as written
+  (coarser permitted, contradictory forbidden). 1 borderline NOTED not dropped:
+  id 13, "emigrated" vs "returned" — right on situation, slips emigrant/returnee,
+  and already excluded by the ambiguity gate.
+- **No rubric change** — 0 false accepts means nothing to tighten, and retuning
+  `JUDGE_SYSTEM` against the same 18 rows is fitting the instrument to its own
+  test set (`t_think_07` lesson).
+- `cues_miss_gt` **dropped** (see below). 129 tests OK.
 
 ## DONE THIS SESSION — Claude trace source is VALIDATED
 `--backend claude` built, executed, and judged on both axes. Writeup:
@@ -38,20 +61,24 @@ Writeup: `results/analysis/instrument_upgrade_20260815.md`; Decision Log
   generation at ~2× the target SFT count** (~300 scenarios for ~150 examples).
 - Two real parser defects fixed and frozen as tests: `VERDICT: TIE`, and
   `VERDICT: CLEAR` + `BEST: NONE`. Resolution: **BEST is authoritative.**
-- `cues_miss_gt` check: 12 opportunities, **fired 0 times**. Unproven, retained
-  for one batch — drop if it stays at zero. 129 tests OK.
+- `cues_miss_gt` check: 12 opportunities, **fired 0 times**. **REMOVED
+  2026-08-15** (session 3) — the gambler case it was built for turned out to be
+  *ambiguous*, so `best` was NONE and the check never ran on the one scenario it
+  was designed to catch; another batch would reproduce that zero for the same
+  structural reason. Halves the disambiguation pass's call count. Reinstate from
+  git history if a scaled batch shows the defect. 129 tests OK.
 
 ## NEXT SESSION (cleared to scale — still no GPU)
-1. **Audit the judge against human labels first (~30 judgements, no compute).**
-   14/18 is a number from an instrument nobody has scored, and this repo has a
-   precedent for skipping that step (`t_think_07`, precision 0.185). Judge and
-   teacher are also the same model family — shared blind spots not excluded.
-2. Scale scenarios to **~300** (not ~150) given the 50% yield, running the
-   disambiguation check as a generation-time gate.
-3. Generate traces with `--backend claude --judge`, then assemble the SFT set
+1. **Scale scenarios to ~300** (not ~150) given the 50% yield, running the
+   disambiguation check as a generation-time gate. The judge's keeper gate was
+   cleared for the PILOT by the session-3 scan, so this is no longer blocked.
+2. Generate traces with `--backend claude --judge`, then assemble the SFT set
    (+ OpenThoughts format anchor).
-4. Re-read a trace sample from every batch; watch whether the "taken together…"
+3. Re-read a trace sample from every batch; watch whether the "taken together…"
    closer (8/18 in session 1) hardens into a tic at scale.
+4. **Before the FINAL scaled run — the rigorous ~30-label judge audit**, with a
+   HUMAN or NON-CLAUDE annotator, rejects included, blind. The session-3 scan
+   does NOT substitute for this and does not reduce its scope.
 
 Still mandatory and NOT addressed by this session: the **thinking-shift held-out
 audit after training**. Everything validated so far is teacher output; whether

@@ -321,3 +321,40 @@ class TestLeakVariantMatching(unittest.TestCase):
             "a coal miner", ["a stooped, ministering posture toward his wife"],
             "He stoops as he walks. What do you make of them?")
         self.assertFalse(leak, f"false positive on {terms}")
+
+
+class TestDriftFlags(unittest.TestCase):
+    """Answer-drift review flag: BEST vs the seed label, computed offline."""
+
+    def _row(self, gt, best, **kw):
+        r = {"ground_truth": gt, "status": "usable", "disambig_best": best}
+        r.update(kw)
+        return r
+
+    def test_matching_best_is_not_flagged(self):
+        d = rs.drift_flags([self._row("a watchmaker", "a watchmaker")])
+        self.assertEqual(d["n_flagged"], 0)
+
+    def test_divergent_best_is_flagged(self):
+        # The observed case: regeneration narrowed the answer away from the seed.
+        d = rs.drift_flags([self._row(
+            "a professional concert violinist",
+            "Concertmaster / orchestra leader", attempts=2)])
+        self.assertEqual(d["n_flagged"], 1)
+        self.assertEqual(d["regen_flagged"], 1)
+        self.assertEqual(d["regen_total"], 1)
+
+    def test_only_usable_rows_are_considered(self):
+        d = rs.drift_flags([{"ground_truth": "a tanner", "status": "leak",
+                             "disambig_best": "a wholly different trade"}])
+        self.assertEqual(d["n_flagged"], 0)
+
+    def test_missing_best_is_not_flagged(self):
+        # No BEST recorded is absence of evidence, not evidence of drift.
+        d = rs.drift_flags([self._row("a cooper", "")])
+        self.assertEqual(d["n_flagged"], 0)
+
+    def test_counts_regenerated_rows_even_when_unflagged(self):
+        d = rs.drift_flags([self._row("a farrier", "a farrier", attempts=2)])
+        self.assertEqual(d["regen_total"], 1)
+        self.assertEqual(d["regen_flagged"], 0)

@@ -657,6 +657,42 @@ def summarize(rows: list[dict]) -> dict:
     }
 
 
+def drift_flags(rows: list[dict]) -> dict:
+    """Rows whose disambiguation BEST does not lexically match the seed label.
+
+    This is the `cues_miss_gt` check from 2026-08-15, resurrected as a FREE
+    post-hoc computation over fields already stored — no extra judge call. It was
+    dropped because it fired 0 times in 12 opportunities; it is back because the
+    REGENERATION path gives it a real target, observed on the first regenerated
+    row of this run: the violinist scenario, nudged to rule out "violist", came
+    back with BEST = "Concertmaster / orchestra leader", i.e. an answer NARROWER
+    than its own ground truth. A scenario pointing at a different identity than
+    its label is a mislabelled training item.
+
+    **A REVIEW FLAG, NOT A GATE.** It reuses the leak detector's lexical word
+    match, which the 2026-08-15 entry measured as too strict on semantic answers
+    ("a former soldier turned commissionaire" vs "a retired sergeant of the Royal
+    Marines" scores no-match). So a flagged row is a row to LOOK AT, not a row to
+    drop, and it is deliberately not loosened to make the number prettier.
+    """
+    flagged, regen_flagged, regen_total = [], 0, 0
+    for r in rows:
+        if (r.get("status") or classify_row(r)) != "usable":
+            continue
+        best = r.get("disambig_best") or ""
+        is_regen = r.get("attempts", 1) > 1
+        regen_total += is_regen
+        if not best:
+            continue
+        hit, _ = detect_leak(r["ground_truth"], [], best)
+        if not hit:
+            flagged.append({"ground_truth": r["ground_truth"], "best": best,
+                            "regenerated": is_regen})
+            regen_flagged += is_regen
+    return {"flagged": flagged, "n_flagged": len(flagged),
+            "regen_total": regen_total, "regen_flagged": regen_flagged}
+
+
 def print_summary(rows: list[dict], out: Path, clean: Path) -> None:
     s = summarize(rows)
     print("\n" + "=" * 66, flush=True)
@@ -673,6 +709,23 @@ def print_summary(rows: list[dict], out: Path, clean: Path) -> None:
         print(f"scenario-stage yield  : {s['overall_yield']:.1%}", flush=True)
     print(f"regenerated once      : {s['regenerated']} "
           f"({s['regen_rescued']} rescued to usable)", flush=True)
+    # First-attempt ambiguity is the number comparable to the n=18 reference;
+    # the rate printed above is the RESIDUAL after regeneration. Reporting only
+    # the residual would overstate how clean the generator is.
+    reached = s["reached_disambig"]
+    if reached:
+        first_amb = s["counts"].get("ambiguous", 0) + s["regenerated"]
+        print(f"first-attempt ambiguity: {first_amb}/{reached} = "
+              f"{first_amb / reached:.1%}  <- compare to 6/18 = 33.3%",
+              flush=True)
+    d = drift_flags(rows)
+    print(f"answer-drift REVIEW flags: {d['n_flagged']} "
+          f"({d['regen_flagged']} of them regenerated, of "
+          f"{d['regen_total']} regenerated kept)", flush=True)
+    for f in d["flagged"][:12]:
+        mark = "*" if f["regenerated"] else " "
+        print(f"   {mark} {f['ground_truth'][:44]:<44} -> best: {f['best'][:44]}",
+              flush=True)
     print(f"ledger -> {out}\nclean  -> {clean}", flush=True)
 
 

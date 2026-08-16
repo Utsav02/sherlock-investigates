@@ -1,0 +1,173 @@
+{
+  "checkpoint_dir": "/kaggle/working/si/outputs/kaggle_t4_lowrank_r8_seed42",
+  "base": "unsloth/DeepSeek-R1-Distill-Qwen-7B",
+  "heldout": "/kaggle/working/si/data/processed/heldout/speckled_band.txt",
+  "base_heldout_ppl": 32.53783105477698,
+  "h1_gate_pct": 5.0,
+  "rows": [
+    {
+      "label": "base",
+      "heldout_ppl": 32.53783105477698,
+      "wikitext_ppl": 28.99552175460895,
+      "heldout_drop_pct": 0.0
+    },
+    {
+      "label": "step-5",
+      "heldout_ppl": 30.853940426813455,
+      "wikitext_ppl": 28.245277476854227,
+      "step": 5,
+      "heldout_drop_pct": 5.18
+    },
+    {
+      "label": "step-10",
+      "heldout_ppl": 23.98608412960887,
+      "wikitext_ppl": 24.026437425858084,
+      "step": 10,
+      "heldout_drop_pct": 26.28
+    },
+    {
+      "label": "step-15",
+      "heldout_ppl": 21.190876663153055,
+      "wikitext_ppl": 20.757833911409378,
+      "step": 15,
+      "heldout_drop_pct": 34.87
+    },
+    {
+      "label": "step-20",
+      "heldout_ppl": 20.256730052165636,
+      "wikitext_ppl": 19.487155286218147,
+      "step": 20,
+      "heldout_drop_pct": 37.74
+    },
+    {
+      "label": "step-25",
+      "heldout_ppl": 19.78101698837033,
+      "wikitext_ppl": 19.10013168497898,
+      "step": 25,
+      "heldout_drop_pct": 39.21
+    },
+    {
+      "label": "step-30",
+      "heldout_ppl": 19.459124826457735,
+      "wikitext_ppl": 19.00054416579795,
+      "step": 30,
+      "heldout_drop_pct": 40.2
+    },
+    {
+      "label": "step-35",
+      "heldout_ppl": 19.17342970193774,
+      "wikitext_ppl": 18.955552075249376,
+      "step": 35,
+      "heldout_drop_pct": 41.07
+    },
+    {
+      "label": "step-40",
+      "heldout_ppl": 18.955976475158664,
+      "wikitext_ppl": 18.93396722006959,
+      "step": 40,
+      "heldout_drop_pct": 41.74
+    },
+    {
+      "label": "step-45",
+      "heldout_ppl": 18.818389884361736,
+      "wikitext_ppl": 18.970489626858274,
+      "step": 45,
+      "heldout_drop_pct": 42.16
+    },
+    {
+      "label": "step-50",
+      "heldout_ppl": 18.718409408404973,
+      "wikitext_ppl": 19.029532454850912,
+      "step": 50,
+      "heldout_drop_pct": 42.47
+    },
+    {
+      "label": "step-55",
+      "heldout_ppl": 18.663803287936222,
+      "wikitext_ppl": 19.07576065301784,
+      "step": 55,
+      "heldout_drop_pct": 42.64
+    },
+    {
+      "label": "step-60",
+      "heldout_ppl": 18.582759942909096,
+      "wikitext_ppl": 19.096463930129378,
+      "step": 60,
+      "heldout_drop_pct": 42.89
+    },
+    {
+      "label": "step-65",
+      "heldout_ppl": 18.492890723901514,
+      "wikitext_ppl": 19.099543112003925,
+      "step": 65,
+      "heldout_drop_pct": 43.16
+    },
+    {
+      "label": "step-70",
+      "heldout_ppl": 18.428414790855964,
+      "wikitext_ppl": 19.10688221735464,
+      "step": 70,
+      "heldout_drop_pct": 43.36
+    },
+    {
+      "label": "step-75",
+      "heldout_ppl": 18.38303649619802,
+      "wikitext_ppl": 19.10933775497623,
+      "step": 75,
+      "heldout_drop_pct": 43.5
+    },
+    {
+      "label": "step-80",
+      "heldout_ppl": 18.345794014600834,
+      "wikitext_ppl": 19.115261785285185,
+      "step": 80,
+      "heldout_drop_pct": 43.62
+    },
+    {
+      "label": "step-85",
+      "heldout_ppl": 18.31891305640053,
+      "wikitext_ppl": 19.11930066772285,
+      "step": 85,
+      "heldout_drop_pct": 43.7
+    },
+    {
+      "label": "step-90",
+      "heldout_ppl": 18.29941183954898,
+      "wikitext_ppl": 19.120557686877575,
+      "step": 90,
+      "heldout_drop_pct": 43.76
+    },
+    {
+      "label": "step-95",
+      "heldout_ppl": 18.29009113702631,
+      "wikitext_ppl": 19.11975195430215,
+      "step": 95,
+      "heldout_drop_pct": 43.79
+    },
+    {
+      "label": "step-100",
+      "heldout_ppl": 18.288803430790946,
+      "wikitext_ppl": 19.11961349024168,
+      "step": 100,
+      "heldout_drop_pct": 43.79
+    },
+    {
+      "label": "step-103",
+      "heldout_ppl": 18.288422712571435,
+      "wikitext_ppl": 19.120370496331358,
+      "step": 103,
+      "heldout_drop_pct": 43.79
+    },
+    {
+      "label": "final",
+      "heldout_ppl": 18.288422712571435,
+      "wikitext_ppl": 19.120370496331358,
+      "step": null,
+      "heldout_drop_pct": 43.79
+    }
+  ],
+  "provenance": {
+    "source": "Genuine effect_curve artifact pulled from HF dataset utsvsngh/sherlock-dosecurve-results (private) \u2014 supersedes the earlier WikiText-less reconstruction. Contains the H2 numbers the driver did not print.",
+    "run": "rank 8, alpha 16, full canon, seed 42"
+  }
+}

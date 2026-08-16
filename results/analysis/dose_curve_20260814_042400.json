@@ -1,0 +1,414 @@
+{
+  "checkpoint_dir": "outputs/kaggle_t4_lowrank_r8_seed42",
+  "base": "unsloth/DeepSeek-R1-Distill-Qwen-7B",
+  "n_prompts": 8,
+  "max_new_tokens": 1200,
+  "temperature": 0.7,
+  "seed": 42,
+  "system_prompt": "INITIATOR_SYSTEM_THINKING",
+  "provenance": {
+    "reconstructed": true,
+    "reason": "Transcribed verbatim from the 2026-08-14 Kaggle output (dose_curve_20260814_042400 / effect_curve_20260814_065854); persisted to HF (utsvsngh/sherlock-dosecurve-results) not git. Analysis recomputed by the real code. WikiText (H2) PPL was computed in the run but not printed \u2014 pull from the HF JSON.",
+    "run": "rank 8, alpha 16, full canon, seed 42, 103 steps"
+  },
+  "rows": [
+    {
+      "label": "base",
+      "closure": 8,
+      "n": 8,
+      "closure_rate": 1.0,
+      "truncated": 0,
+      "mean_tokens": 516,
+      "step": null
+    },
+    {
+      "label": "step-5",
+      "closure": 8,
+      "n": 8,
+      "closure_rate": 1.0,
+      "truncated": 0,
+      "mean_tokens": 467,
+      "step": 5
+    },
+    {
+      "label": "step-10",
+      "closure": 8,
+      "n": 8,
+      "closure_rate": 1.0,
+      "truncated": 0,
+      "mean_tokens": 419,
+      "step": 10
+    },
+    {
+      "label": "step-15",
+      "closure": 8,
+      "n": 8,
+      "closure_rate": 1.0,
+      "truncated": 0,
+      "mean_tokens": 481,
+      "step": 15
+    },
+    {
+      "label": "step-20",
+      "closure": 8,
+      "n": 8,
+      "closure_rate": 1.0,
+      "truncated": 0,
+      "mean_tokens": 397,
+      "step": 20
+    },
+    {
+      "label": "step-25",
+      "closure": 7,
+      "n": 8,
+      "closure_rate": 0.875,
+      "truncated": 0,
+      "mean_tokens": 464,
+      "step": 25
+    },
+    {
+      "label": "step-30",
+      "closure": 8,
+      "n": 8,
+      "closure_rate": 1.0,
+      "truncated": 0,
+      "mean_tokens": 442,
+      "step": 30
+    },
+    {
+      "label": "step-35",
+      "closure": 7,
+      "n": 8,
+      "closure_rate": 0.875,
+      "truncated": 0,
+      "mean_tokens": 409,
+      "step": 35
+    },
+    {
+      "label": "step-40",
+      "closure": 8,
+      "n": 8,
+      "closure_rate": 1.0,
+      "truncated": 1,
+      "mean_tokens": 533,
+      "step": 40
+    },
+    {
+      "label": "step-45",
+      "closure": 6,
+      "n": 8,
+      "closure_rate": 0.75,
+      "truncated": 0,
+      "mean_tokens": 374,
+      "step": 45
+    },
+    {
+      "label": "step-50",
+      "closure": 8,
+      "n": 8,
+      "closure_rate": 1.0,
+      "truncated": 1,
+      "mean_tokens": 472,
+      "step": 50
+    },
+    {
+      "label": "step-55",
+      "closure": 8,
+      "n": 8,
+      "closure_rate": 1.0,
+      "truncated": 0,
+      "mean_tokens": 403,
+      "step": 55
+    },
+    {
+      "label": "step-60",
+      "closure": 5,
+      "n": 8,
+      "closure_rate": 0.625,
+      "truncated": 0,
+      "mean_tokens": 440,
+      "step": 60
+    },
+    {
+      "label": "step-65",
+      "closure": 4,
+      "n": 8,
+      "closure_rate": 0.5,
+      "truncated": 0,
+      "mean_tokens": 418,
+      "step": 65
+    },
+    {
+      "label": "step-70",
+      "closure": 6,
+      "n": 8,
+      "closure_rate": 0.75,
+      "truncated": 0,
+      "mean_tokens": 378,
+      "step": 70
+    },
+    {
+      "label": "step-75",
+      "closure": 6,
+      "n": 8,
+      "closure_rate": 0.75,
+      "truncated": 0,
+      "mean_tokens": 412,
+      "step": 75
+    },
+    {
+      "label": "step-80",
+      "closure": 5,
+      "n": 8,
+      "closure_rate": 0.625,
+      "truncated": 0,
+      "mean_tokens": 361,
+      "step": 80
+    },
+    {
+      "label": "step-85",
+      "closure": 5,
+      "n": 8,
+      "closure_rate": 0.625,
+      "truncated": 0,
+      "mean_tokens": 362,
+      "step": 85
+    },
+    {
+      "label": "step-90",
+      "closure": 6,
+      "n": 8,
+      "closure_rate": 0.75,
+      "truncated": 0,
+      "mean_tokens": 398,
+      "step": 90
+    },
+    {
+      "label": "step-95",
+      "closure": 4,
+      "n": 8,
+      "closure_rate": 0.5,
+      "truncated": 0,
+      "mean_tokens": 369,
+      "step": 95
+    },
+    {
+      "label": "step-100",
+      "closure": 6,
+      "n": 8,
+      "closure_rate": 0.75,
+      "truncated": 0,
+      "mean_tokens": 368,
+      "step": 100
+    },
+    {
+      "label": "step-103",
+      "closure": 7,
+      "n": 8,
+      "closure_rate": 0.875,
+      "truncated": 0,
+      "mean_tokens": 362,
+      "step": 103
+    },
+    {
+      "label": "final",
+      "closure": 3,
+      "n": 8,
+      "closure_rate": 0.375,
+      "truncated": 0,
+      "mean_tokens": 313,
+      "step": null
+    }
+  ],
+  "analysis": {
+    "per_checkpoint": [
+      {
+        "step": 5,
+        "closure": 8,
+        "n": 8,
+        "rate": 1.0,
+        "wilson_lo": 0.6755843804891231,
+        "wilson_hi": 1.0
+      },
+      {
+        "step": 10,
+        "closure": 8,
+        "n": 8,
+        "rate": 1.0,
+        "wilson_lo": 0.6755843804891231,
+        "wilson_hi": 1.0
+      },
+      {
+        "step": 15,
+        "closure": 8,
+        "n": 8,
+        "rate": 1.0,
+        "wilson_lo": 0.6755843804891231,
+        "wilson_hi": 1.0
+      },
+      {
+        "step": 20,
+        "closure": 8,
+        "n": 8,
+        "rate": 1.0,
+        "wilson_lo": 0.6755843804891231,
+        "wilson_hi": 1.0
+      },
+      {
+        "step": 25,
+        "closure": 7,
+        "n": 8,
+        "rate": 0.875,
+        "wilson_lo": 0.5291051942301386,
+        "wilson_hi": 0.9775830911367038
+      },
+      {
+        "step": 30,
+        "closure": 8,
+        "n": 8,
+        "rate": 1.0,
+        "wilson_lo": 0.6755843804891231,
+        "wilson_hi": 1.0
+      },
+      {
+        "step": 35,
+        "closure": 7,
+        "n": 8,
+        "rate": 0.875,
+        "wilson_lo": 0.5291051942301386,
+        "wilson_hi": 0.9775830911367038
+      },
+      {
+        "step": 40,
+        "closure": 8,
+        "n": 8,
+        "rate": 1.0,
+        "wilson_lo": 0.6755843804891231,
+        "wilson_hi": 1.0
+      },
+      {
+        "step": 45,
+        "closure": 6,
+        "n": 8,
+        "rate": 0.75,
+        "wilson_lo": 0.40926987910258916,
+        "wilson_hi": 0.9285223111419724
+      },
+      {
+        "step": 50,
+        "closure": 8,
+        "n": 8,
+        "rate": 1.0,
+        "wilson_lo": 0.6755843804891231,
+        "wilson_hi": 1.0
+      },
+      {
+        "step": 55,
+        "closure": 8,
+        "n": 8,
+        "rate": 1.0,
+        "wilson_lo": 0.6755843804891231,
+        "wilson_hi": 1.0
+      },
+      {
+        "step": 60,
+        "closure": 5,
+        "n": 8,
+        "rate": 0.625,
+        "wilson_lo": 0.30573785458380187,
+        "wilson_hi": 0.863158240538479
+      },
+      {
+        "step": 65,
+        "closure": 4,
+        "n": 8,
+        "rate": 0.5,
+        "wilson_lo": 0.21521252682444186,
+        "wilson_hi": 0.7847874731755582
+      },
+      {
+        "step": 70,
+        "closure": 6,
+        "n": 8,
+        "rate": 0.75,
+        "wilson_lo": 0.40926987910258916,
+        "wilson_hi": 0.9285223111419724
+      },
+      {
+        "step": 75,
+        "closure": 6,
+        "n": 8,
+        "rate": 0.75,
+        "wilson_lo": 0.40926987910258916,
+        "wilson_hi": 0.9285223111419724
+      },
+      {
+        "step": 80,
+        "closure": 5,
+        "n": 8,
+        "rate": 0.625,
+        "wilson_lo": 0.30573785458380187,
+        "wilson_hi": 0.863158240538479
+      },
+      {
+        "step": 85,
+        "closure": 5,
+        "n": 8,
+        "rate": 0.625,
+        "wilson_lo": 0.30573785458380187,
+        "wilson_hi": 0.863158240538479
+      },
+      {
+        "step": 90,
+        "closure": 6,
+        "n": 8,
+        "rate": 0.75,
+        "wilson_lo": 0.40926987910258916,
+        "wilson_hi": 0.9285223111419724
+      },
+      {
+        "step": 95,
+        "closure": 4,
+        "n": 8,
+        "rate": 0.5,
+        "wilson_lo": 0.21521252682444186,
+        "wilson_hi": 0.7847874731755582
+      },
+      {
+        "step": 100,
+        "closure": 6,
+        "n": 8,
+        "rate": 0.75,
+        "wilson_lo": 0.40926987910258916,
+        "wilson_hi": 0.9285223111419724
+      },
+      {
+        "step": 103,
+        "closure": 7,
+        "n": 8,
+        "rate": 0.875,
+        "wilson_lo": 0.5291051942301386,
+        "wilson_hi": 0.9775830911367038
+      }
+    ],
+    "pooled": {
+      "early_max": 35,
+      "late_min": 45,
+      "early_ok": 54,
+      "early_n": 56,
+      "early_rate": 0.9642857142857143,
+      "early_wilson": [
+        0.8788099414778991,
+        0.9901507814974224
+      ],
+      "late_ok": 76,
+      "late_n": 104,
+      "late_rate": 0.7307692307692307,
+      "late_wilson": [
+        0.6384286523740854,
+        0.8066686013758588
+      ],
+      "fisher_p_two_sided": 0.00020071832452694857
+    }
+  }
+}

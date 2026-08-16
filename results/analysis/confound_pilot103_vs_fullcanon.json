@@ -1,0 +1,105 @@
+{
+  "fullcanon": "results/analysis/dose_curve_20260808_204827.json",
+  "pilot": "results/analysis/dose_curve_20260812_104622.json",
+  "provenance": {
+    "reconstructed": true,
+    "reason": "Recomputed by confound_analysis.analyze_confound from the two curve JSONs; matches the Kaggle print."
+  },
+  "analysis": {
+    "early_max": 35,
+    "late_min": 45,
+    "contrasts": {
+      "steps_at_low_breadth": {
+        "name": "STEPS @ low breadth (pilot early vs late)",
+        "a": {
+          "ok": 39,
+          "n": 56,
+          "rate": 0.6964285714285714,
+          "wilson": [
+            0.5666388751588567,
+            0.8009983537922407
+          ]
+        },
+        "b": {
+          "ok": 24,
+          "n": 112,
+          "rate": 0.21428571428571427,
+          "wilson": [
+            0.14843966088099214,
+            0.2990817821929985
+          ]
+        },
+        "fisher_p": 2.7192625699189488e-09
+      },
+      "steps_at_high_breadth": {
+        "name": "STEPS @ high breadth (canon early vs late)",
+        "a": {
+          "ok": 39,
+          "n": 56,
+          "rate": 0.6964285714285714,
+          "wilson": [
+            0.5666388751588567,
+            0.8009983537922407
+          ]
+        },
+        "b": {
+          "ok": 44,
+          "n": 104,
+          "rate": 0.4230769230769231,
+          "wilson": [
+            0.33253058618917686,
+            0.5191036625608417
+          ]
+        },
+        "fisher_p": 0.0015113705072108776
+      },
+      "breadth_at_low_steps": {
+        "name": "BREADTH @ low steps (early: pilot vs canon)",
+        "a": {
+          "ok": 39,
+          "n": 56,
+          "rate": 0.6964285714285714,
+          "wilson": [
+            0.5666388751588567,
+            0.8009983537922407
+          ]
+        },
+        "b": {
+          "ok": 39,
+          "n": 56,
+          "rate": 0.6964285714285714,
+          "wilson": [
+            0.5666388751588567,
+            0.8009983537922407
+          ]
+        },
+        "fisher_p": 1.0
+      },
+      "breadth_at_high_steps": {
+        "name": "BREADTH @ high steps (late: pilot vs canon)",
+        "a": {
+          "ok": 24,
+          "n": 112,
+          "rate": 0.21428571428571427,
+          "wilson": [
+            0.14843966088099214,
+            0.2990817821929985
+          ]
+        },
+        "b": {
+          "ok": 44,
+          "n": 104,
+          "rate": 0.4230769230769231,
+          "wilson": [
+            0.33253058618917686,
+            0.5191036625608417
+          ]
+        },
+        "fisher_p": 0.001213935381096907
+      }
+    },
+    "steps_hurt": true,
+    "breadth_hurt": false,
+    "verdict": "OPTIMIZER STEPS / weight movement drive the collapse, independent of breadth (pilot decays with steps even at 1/11th the unique tokens). Fewer/smaller updates should preserve the format -> low-LR, low-rank, and early-stop are worth trying before the more involved rehearsal pipeline."
+  }
+}

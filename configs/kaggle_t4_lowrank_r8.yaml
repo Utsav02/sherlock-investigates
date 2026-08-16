@@ -1,0 +1,83 @@
+# Low-rank MITIGATION run — can a constrained subspace preserve the think-block
+# format at a dose that ALSO produces a behavioural effect?
+#
+# WHY. The confound separator (2026-08-12) showed the format collapse is driven
+# by optimizer STEPS / cumulative weight movement, not unique-token breadth. The
+# indicated lever is therefore a CONSTRAINED SUBSPACE — lower LoRA rank protects
+# the base weights (where the RL-trained <think> format lives) while a smaller
+# adapter still learns style. This run tests that bet.
+#
+# THE DUAL MEASUREMENT. A closure dose curve alone is not enough: low rank could
+# "preserve closure" simply by learning too little to produce any effect. So the
+# driver measures BOTH:
+#   (a) closure per checkpoint            -> scripts/eval/dose_curve.py
+#   (b) held-out Speckled Band perplexity -> scripts/eval/effect_curve.py
+# and scripts/eval/mitigation_analysis.py asks: is there a checkpoint where
+# closure is intact AND perplexity has dropped >=5% vs base? If yes, low rank
+# RESCUES the design and rehearsal is unnecessary. If not, rehearsal is the
+# remaining path (see the writeup).
+#
+# ONE variable changed from kaggle_t4_dosecurve.yaml: rank 32 -> 8 (alpha 64 ->
+# 16, so alpha/rank scaling stays 2.0). Corpus, schedule, modules, everything
+# else identical, so this run's closure curve overlays directly on the
+# full-canon r32 curve and the ONLY difference is adapter rank.
+
+# --- Model (identical) ------------------------------------------------------
+base_model: unsloth/DeepSeek-R1-Distill-Qwen-7B
+adapter_method: qlora
+
+quantization:
+  load_in_4bit: true
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: float16   # T4 is Turing (SM 7.5) — no native bf16
+
+# --- LoRA adapter — THE ONLY DELTAS: rank 32->8, alpha 64->16 ----------------
+# alpha/rank = 2.0 in both, so the per-update scaling is unchanged; what changes
+# is the DIMENSION of the subspace the adapter can move the weights in. Fewer
+# directions -> less capacity to drift the base weights away from the RL format.
+lora_rank: 8
+lora_alpha: 16
+lora_dropout: 0.05
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+# --- Optimizer & schedule (identical) ---------------------------------------
+learning_rate: 1.0e-4
+lr_scheduler: cosine
+warmup_ratio: 0.05
+
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 16
+
+# --- Data: FULL CANON (identical to the dose curve) -------------------------
+# The EFFECT needs a real dose (~1M+ unique tokens, LIMA/Betley), and the
+# confound showed breadth does not drive collapse — so the broad corpus is both
+# the best shot at an effect and the least damaging per step. Speckled Band is
+# held out, so its perplexity measures generalisation to UNSEEN Holmes.
+num_epochs: 1
+max_seq_length: 2048
+packing: true
+seed: 42
+
+training_corpus_path: data/augmented/full_canon_train.jsonl
+heldout_corpus_path: data/processed/heldout/speckled_band.txt
+
+# --- Output -----------------------------------------------------------------
+output_dir: outputs/kaggle_t4_lowrank_r8_seed42
+run_name: kaggle-t4-lowrank-r8-seed42
+
+# --- Logging & checkpointing (same as the dose curve) -----------------------
+logging_steps: 5
+save_steps: 5
+save_total_limit: null   # keep EVERY checkpoint — both curves are measured on them
+
+# --- Off-machine persistence — FAIL CLOSED ----------------------------------
+hf_repo_id: utsvsngh/sherlock-r1distill-7b-lowrank-r8
+hf_private: true

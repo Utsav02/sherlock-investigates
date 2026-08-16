@@ -1,6 +1,140 @@
 # STATUS — sherlock-investigates
-Updated: 2026-08-08 (dose curve replicated at n=22; 4th run lost to no-token
-session wipe; persistence now FAIL-CLOSED)
+Updated: 2026-08-15 (trace source VALIDATED — cleared to scale)
+
+## DONE THIS SESSION — Claude trace source is VALIDATED
+`--backend claude` built, executed, and judged on both axes. Writeup:
+`results/analysis/claude_trace_validation_20260815.md`; Decision Log 2026-08-15
+(second entry). Data: `data/sft/traces_claude_validation.jsonl` (18 rows).
+
+- **Keeper rate 13/18** vs base self-distillation's 0/10.
+- **Format 18/18** — every output opened `<think>`, every answer "This is",
+  correct on the FIRST prompt attempt (not tuned to its own test set).
+- **Form-vs-substance gate PASSED by reading 5 traces in full** — genuine
+  cue→mechanism→identity deductions with explicit negative evidence. Support:
+  vocab Jaccard 0.062, 1 hedge word in 18, 0/18 answers copied into `think`.
+  Best evidence: on the organist scenario the teacher reasoned to *drummer* —
+  forward reasoning, not backward rationalisation from a known label.
+- Fixed: `claude_chat` resolved the CLI on PATH only and could never have run
+  (binary is not on PATH here) → `resolve_claude_bin()` + clean-cwd calls
+  ($0.34 → $0.072 per call). 106 tests OK.
+
+## NEXT SESSION (cleared to scale — still no GPU)
+1. **Upgrade the verifier to an LLM judge before scaling.** The keyword matcher
+   is now the binding constraint, not the teacher: 2 of the 5 misses are correct
+   deductions it cannot see (`"former soldier turned commissionaire"` vs ground
+   truth `"retired sergeant of the Royal Marines"` scores no-match). True keeper
+   rate ~15/18 on substance.
+2. **Add a disambiguation check to scenario generation.** 3 of 5 misses are
+   scenarios whose cues admit two valid answers (gambler/ruined-man,
+   organist/drummer, conductor/roundsman) — defective items under any verifier.
+3. Then scale scenarios + traces to ~100–200 and assemble the SFT set
+   (+ OpenThoughts format anchor).
+4. Re-read a trace sample from every batch; watch whether the "taken together…"
+   closer (8/18 here) hardens into a tic at scale.
+
+Still mandatory and NOT addressed by this session: the **thinking-shift held-out
+audit after training**. Everything validated so far is teacher output; whether
+SFT transfers substance or only form is unsettled until the student is read.
+Keep local/Claude, no GPU. Full plan: `docs/data_strategy.md`.
+
+## Most recent event (2026-08-14) — thinking-shift check came back NULL
+
+## Most recent event (2026-08-14) — thinking-shift check came back NULL
+Read the actual base-vs-step-50 `<think>` blocks (transcript pulled from HF,
+now in git). **Base and fine-tuned reason the same way** — cue-by-cue, hedged,
+no confident deduction, no Holmes voice. Phase-1 precondition (distinguishable
+reasoning prior) NOT met at step-50. Behaviourally this is TOO_WEAK despite
+perplexity's RESCUED.
+- Three signals agree: H2 decomposition (~10pp Holmes-specific), markers
+  (flat/generic + a no-think-block artifact inflating the hedging drop), and the
+  transcripts (decisive).
+- **Cause:** corpus is the Holmes canon (Watson NARRATING deduction, prose) —
+  not reasoning transcripts. Trains prose prediction (PPL drops), not the
+  model's own private reasoning. Channel mismatch.
+- Evidence in git: `thinking_shift_20260814_171042_transcript.md` +
+  `thinking_shift_20260814_writeup.md`. Decision Log 2026-08-14 (4th entry).
+- **Conversation arm stays BLOCKED** — two base-equivalent reasoners would
+  measure noise.
+
+## Fork now
+1. Cheap: check **step-103** (highest Holmes-specific excess; closure 7/8) —
+   free ~15 min, low expected payoff, closes the "higher dose?" question.
+2. **Rehearsal** — base-model-generated think blocks (reasoning traces in the
+   right channel) mixed into training; the one rescue with a mechanism for a
+   behavioural shift. More involved; contamination caution.
+3. **Reframed writeup** — the full arc is a clean methods story (standard rank
+   destroys format; low rank preserves it but the format-safe dose yields only
+   generic prose recovery, no reasoning shift, because raw prose is the wrong
+   channel). Recommend (1) + draft (3) in parallel; (2) if a shift is still wanted.
+
+## Most recent event (2026-08-14) — low-rank mitigation = RESCUED
+Rank 8 (vs 32), full canon. **Closure far better preserved** (early 0.96 / late
+0.73 vs r32's 0.70 / 0.42) AND **held-out Speckled Band PPL drops +43.8%** (H1
+gate ≥5%). Wide window; sweet spot **step ~50: closure 8/8 AND +42.6%**.
+Verdict: **RESCUED → rehearsal NOT needed.** Persistence worked end to end.
+- Captured in git: `dose_curve_20260814_042400.json`,
+  `effect_curve_20260814_065854.json`, `mitigation_lowrank_r8.json`,
+  `mitigation_lowrank_20260814_writeup.md`.
+- **H2 PULLED (from HF) — effect is mostly GENERIC.** WikiText PPL dropped ~34%
+  alongside Holmes's +44%: the base reasoning-model is poor at raw prose, so
+  training on any prose restores prose-LM and drops PPL on everything. Only
+  ~10pp is Holmes-specific (the excess; Holmes/Wiki ratio 1.122 → 0.956). The
+  RESCUED verdict stands FOR CLOSURE (measured directly); the effect half is
+  confounded. Genuine effect JSON (with WikiText) now in git.
+- **CAVEATS:** (1) perplexity effect is mostly generic prose recovery, ~10pp
+  Holmes-specific and distributional — NOT proof the model *reasons* like
+  Holmes. (2) final adapter closure 3/8 — use step ~50.
+- **Next (behavioural check now REQUIRED, not optional):** run the behavioural
+  effect on step-50 (think-block inspection on deduction prompts) — perplexity
+  is confirmed inadequate. If a real reasoning shift shows, the conversation arm
+  is unblocked on step-50; if null, points back to rehearsal or a reframed
+  writeup. Decision Log 2026-08-14 (three entries).
+
+## NEXT (owner-triggered, free ~15-25 min, NO training): thinking-shift check
+`notebooks/kaggle_t4_thinking_shift.py` + `scripts/eval/thinking_shift.py`.
+Runs the probe set (10 deduction + 10 reasoning + 10 neutral) through BASE and
+the low-rank **step-50** adapter on identical prompts, GREEDY-decoded, and writes
+a side-by-side `<think>`-block transcript + a descriptive register profile by
+category. NEUTRAL is the control (should move less than deduction prompts).
+- **The transcript markdown is the deliverable — READ IT.** Marker numbers are
+  descriptive only (task is not lexical; markers saturate R1 traces).
+- This is the Phase-1 precondition (did fine-tuning shift the *reasoning*?), NOT
+  the Phase-2 headline (commitment gap in conversations). Keep that distinction.
+- Adapter pulled from HF (needs HF_TOKEN); CELL 3 checks out the feature branch
+  explicitly (fixes the clone-of-main FileNotFoundError). `make test` green (90).
+- If a real shift shows on deduction prompts → conversation arm unblocked on
+  step-50. If null → rehearsal or reframed writeup. Decision Log 2026-08-14.
+
+## Most recent event (2026-08-12) — confound separator ran, verdict = STEPS
+The pilot@110 run completed and **persistence worked end to end** — every
+checkpoint uploaded to HF as written (`[persist] checkpoint-5 -> ... (9s)`),
+results too; nothing lost. The fail-closed gate + attached token did their job.
+- **Verdict: optimizer STEPS / weight movement, NOT unique-token breadth.**
+  At matched low dose pilot==canon (0.70 vs 0.70, p=1.0); pilot collapses with
+  steps at 1/11th the breadth (0.70→0.21, p=2.7e-09); and pilot is *worse* than
+  canon at high steps (0.21 vs 0.42, p=0.0012) — re-reading a narrow corpus is
+  MORE destructive than diverse tokens.
+- Captured in git: `results/analysis/dose_curve_20260812_104622.json`,
+  `confound_pilot103_vs_fullcanon.json`, `confound_20260812_writeup.md`.
+- **Next fork:** (1) one cheap low-RANK mitigation run (constrain the subspace,
+  protect base weights) — the lever the verdict points to; (2) rehearsal
+  (robust fallback); (3) negative-results writeup (solid regardless). Recommend
+  (1) + start (3) in parallel. Decision Log 2026-08-12.
+
+## NEXT (owner-triggered, free ~5.5h): low-rank mitigation — the DUAL run
+`notebooks/kaggle_t4_lowrank.py` + `configs/kaggle_t4_lowrank_r8.yaml`. Rank 8
+(vs 32), full canon, one variable changed so its closure curve overlays the r32
+curve. Measures BOTH per checkpoint:
+- **(a) closure** — `dose_curve.py` (does the `<think>` format survive?)
+- **(b) effect** — `effect_curve.py`, held-out Speckled Band perplexity drop vs
+  base (did it learn Holmes?)
+`mitigation_analysis.py` overlays them → **RESCUED** (closure ≥0.75 AND PPL drop
+≥5% at one checkpoint → rehearsal NOT needed) / **COUPLED** (effect only after
+closure collapses → rehearsal needed) / **TOO_WEAK** (no PPL drop anywhere →
+rehearsal needed). This triple decides whether rehearsal happens at all.
+Analysis logic unit-tested on all three branches (`make test` green at 84).
+**Writeup (3) is HELD until this result is in** (owner decision 2026-08-12).
+Honest odds: ~1-in-3 that low rank delivers both closure and effect.
 
 ## Most recent event (2026-08-08)
 The full 22-checkpoint dose-curve run completed on Kaggle (5h train + eval,

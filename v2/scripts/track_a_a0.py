@@ -465,6 +465,27 @@ def auroc(scores: list[float], labels: list[int]) -> float:
     return (rank_sum - n_pos * (n_pos + 1) / 2.0) / (n_pos * n_neg)
 
 
+def balanced_accuracy(probs: list[float], labels: list[int],
+                      threshold: float = 0.5) -> float:
+    """Mean of sensitivity and specificity at `threshold`.
+
+    Reported because a pooled accuracy can be moved by class composition. Here
+    the dialogue classes are exactly balanced by construction (every game
+    contributes one human and one AI side), so this should track plain accuracy
+    closely — and if it ever does not, the eval set has been filtered somewhere.
+    """
+    tp = fn = tn = fp = 0
+    for p, y in zip(probs, labels):
+        hit = p >= threshold
+        if y == 1:
+            tp, fn = tp + hit, fn + (not hit)
+        else:
+            fp, tn = fp + hit, tn + (not hit)
+    sens = tp / (tp + fn) if (tp + fn) else float("nan")
+    spec = tn / (tn + fp) if (tn + fp) else float("nan")
+    return (sens + spec) / 2.0
+
+
 def brier(probs: list[float], labels: list[int]) -> float:
     return sum((p - y) ** 2 for p, y in zip(probs, labels)) / max(len(probs), 1)
 
@@ -727,18 +748,74 @@ def make_detectors(condition: Condition | None = None) -> list[Detector]:
     return detectors
 
 
+def empty_witness_games(dialogues: list[dict]) -> set[str]:
+    """Games where EITHER witness side sent no message at all.
+
+    Defined from the canonical `n_witness_messages` field, so it is the SAME set
+    of games under every ablation condition. That matters: if the drop set were
+    recomputed from each condition's featurised text, the `bothsides` cell would
+    drop fewer games than the others and the conditions would stop being
+    comparable — which is exactly the confound this policy exists to remove.
+
+    Silence is not a text property. A dialogue with no words cannot carry
+    lexical evidence; it carries only the "this side went quiet" channel, and
+    that channel is asymmetric (measured: of the games with exactly one silent
+    side, 73% of the silent sides are the human).
+    """
+    by_game: dict[str, list[dict]] = defaultdict(list)
+    for d in dialogues:
+        by_game[d["game_id"]].append(d)
+    return {gid for gid, sides in by_game.items()
+            if any(d["n_witness_messages"] == 0 for d in sides)}
+
+
+def evalset_composition(eval_games: list[dict], dialogues: list[dict]) -> dict:
+    """Retained n and class balance, overall and per recruitment source."""
+    src_name = {"1": "prolific", "2": "sona_ucsd"}
+    by_game: dict[str, dict[str, dict]] = defaultdict(dict)
+    for d in dialogues:
+        by_game[d["game_id"]][d["conversation_label"]] = d
+    out: dict[str, dict] = {}
+    groups = {"all": eval_games}
+    for code, name in src_name.items():
+        groups[name] = [g for g in eval_games
+                        if g["interrogator_recruitment_source"] == code]
+    for name, gs in groups.items():
+        ds = [by_game[g["game_id"]][l] for g in gs for l in ("A", "B")]
+        human = sum(1 for d in ds if d["is_human"])
+        silent = sum(1 for d in ds if d["n_witness_messages"] == 0)
+        out[name] = {
+            "games": len(gs),
+            "dialogues": len(ds),
+            "human_dialogues": human,
+            "ai_dialogues": len(ds) - human,
+            "class_balance_exact": human == len(ds) - human,
+            "human_in_slot_A": sum(1 for g in gs
+                                   if g["human_conversation_label"] == "A"),
+            "silent_witness_dialogues": silent,
+            "silent_human": sum(1 for d in ds
+                                if d["n_witness_messages"] == 0 and d["is_human"]),
+            "silent_ai": sum(1 for d in ds
+                             if d["n_witness_messages"] == 0 and not d["is_human"]),
+        }
+    return out
+
+
 # ---------------------------------------------------------------------------
 # cross-fitting
 # ---------------------------------------------------------------------------
 
 def cross_fit(dialogues: list[dict], games: list[dict], variant: str,
-              condition: Condition | None = None) -> dict:
+              condition: Condition | None = None,
+              drop_games: set[str] | None = None) -> dict:
     """Leave-one-component-out over train+dev. Returns p(AI) per dialogue."""
     by_game = defaultdict(dict)
     for d in dialogues:
         by_game[d["game_id"]][d["conversation_label"]] = d
 
-    eval_games = [g for g in games if g["split"] in ("train", "dev")]
+    drop_games = drop_games or set()
+    eval_games = [g for g in games
+                  if g["split"] in ("train", "dev") and g["game_id"] not in drop_games]
     components = sorted({g["component"] for g in eval_games})
 
     predictions: dict[str, dict[str, list[float]]] = defaultdict(dict)
@@ -854,13 +931,15 @@ def metrics_from(scored: dict, index: list[int]) -> dict:
         "game_accuracy": sum(gc) / len(gc) if gc else float("nan"),
         "game_brier": brier(gq, gy),
         "dialogue_auroc": auroc(dp, dl),
+        "dialogue_balanced_accuracy": balanced_accuracy(dp, dl),
         "dialogue_brier": brier(dp, dl),
         "dialogue_log_loss": log_loss(dp, dl),
     }
 
 
 METRIC_KEYS = ("game_accuracy", "game_brier", "dialogue_auroc",
-               "dialogue_brier", "dialogue_log_loss")
+               "dialogue_balanced_accuracy", "dialogue_brier",
+               "dialogue_log_loss")
 
 
 # ---------------------------------------------------------------------------
@@ -958,13 +1037,16 @@ def widen(a: dict, b: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 def run_variant(dialogues: list[dict], games: list[dict], variant: str,
-                n_boot: int, condition: Condition | None = None) -> dict:
+                n_boot: int, condition: Condition | None = None,
+                drop_games: set[str] | None = None) -> dict:
     condition = condition or CONDITIONS[0]
-    fit = cross_fit(dialogues, games, variant, condition)
+    drop_games = drop_games or set()
+    fit = cross_fit(dialogues, games, variant, condition, drop_games)
     by_game = defaultdict(dict)
     for d in dialogues:
         by_game[d["game_id"]][d["conversation_label"]] = d
-    eval_games = [g for g in games if g["split"] in ("train", "dev")]
+    eval_games = [g for g in games
+                  if g["split"] in ("train", "dev") and g["game_id"] not in drop_games]
 
     scored = {
         name: score_games(probs, eval_games, by_game, fit["tie_breaks"].get(name))
@@ -1105,6 +1187,11 @@ def run_variant(dialogues: list[dict], games: list[dict], variant: str,
     return {
         "variant": variant,
         "condition": condition.as_dict(),
+        "evalset_composition": evalset_composition(eval_games, dialogues),
+        "evalset_policy": ("empty-witness games DROPPED (same set in every "
+                           "condition)" if drop_games else
+                           "all games RETAINED (no filtering in any condition)"),
+        "n_games_dropped": len(drop_games),
         "surviving_features": surviving,
         "folds": fit["folds"],
         "n_eval_games": len(eval_games),
@@ -1134,6 +1221,10 @@ def main(argv: list[str] | None = None) -> int:
                         help="run the full three-way ablation (plus the "
                              "both-sides diagnostic) on the raw variant only")
     parser.add_argument("--tag", default="", help="suffix for the output filename")
+    parser.add_argument("--drop-empty-games", action="store_true",
+                        help="exclude games where either witness side sent no "
+                             "message; the SAME set is dropped in every "
+                             "condition, so the cells stay comparable")
     args = parser.parse_args(argv)
 
     if args.ablation:
@@ -1146,6 +1237,7 @@ def main(argv: list[str] | None = None) -> int:
         conditions = [CONDITIONS[0]]
 
     dialogues, games, manifest = build_canonical.load()
+    drop = empty_witness_games(dialogues) if args.drop_empty_games else set()
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -1179,7 +1271,8 @@ def main(argv: list[str] | None = None) -> int:
         for variant in args.variants:
             started = time.time()
             print(f"[{condition.name} / {variant}] cross-fitting ...", flush=True)
-            result = run_variant(dialogues, games, variant, args.bootstrap, condition)
+            result = run_variant(dialogues, games, variant, args.bootstrap,
+                                 condition, drop)
             result["seconds"] = round(time.time() - started, 1)
             payload["conditions"][condition.name]["variants"][variant] = result
             for name, m in result["point_estimates"].items():

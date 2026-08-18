@@ -26,7 +26,7 @@ OVERSAMPLE ?= 3
         label-tool score-detector \
         v2-fetch-3p v2-inspect-3p v2-itb-length \
         v2-splits v2-precision v2-paper-exclusions v2-policy \
-        v2-canonical v2-track-a0 v2-track-a0-ablation v2-rung2 \
+        v2-canonical v2-track-a0 v2-track-a0-ablation v2-rung2 v2-rung4 \
         test lint
 
 help:
@@ -58,6 +58,7 @@ help:
 	@echo "  v2-track-a0    Track A arm A0 baselines, contrasts P1+P2 -> results/track_a/"
 	@echo "  v2-track-a0-ablation  A0 three-way ablation (witness-only / length-free)"
 	@echo "  v2-rung2       Gate 1 rung 2: SONA<->Prolific transfer, both directions"
+	@echo "  v2-rung4       Gate 1 rung 4: leave-one-system-out / leave-one-persona-out"
 
 install:
 	python3 -m venv venv
@@ -208,6 +209,12 @@ v2-track-a0-ablation: v2-canonical
 # source is perfectly nested in the components). Not a clean population holdout.
 v2-rung2: v2-canonical
 	$(PY) v2/scripts/track_a_rung2.py
+
+# Held-out witness system and held-out persona prompt, with the component
+# holdout NESTED inside so a held-out system cannot smuggle in seen people.
+# Empty-witness games are dropped in every cell (silence is not a text property).
+v2-rung4: v2-canonical
+	$(PY) v2/scripts/track_a_rung4.py
 
 test:
 	$(PY) -m unittest discover -s tests -v

@@ -395,3 +395,61 @@ class TestAblationConditions(unittest.TestCase):
                         "is_changed": False}]}
         self.assertEqual(a0.dialogue_messages(d, "raw"),
                          a0.dialogue_messages(d, "raw", "witness", None))
+
+
+# ---------------------------------------------------------------------------
+# evaluation-set policy and balanced accuracy (added 2026-08-18, review round 2)
+# ---------------------------------------------------------------------------
+
+class TestEvalSetPolicy(unittest.TestCase):
+    def _dialogues(self):
+        rows = []
+        for gid, (h_msgs, a_msgs) in {
+            "1": (["hello there"], ["hi friend"]),      # both speak
+            "2": ([], ["hi friend"]),                   # human silent
+            "3": (["hello there"], []),                 # AI silent
+            "4": ([], []),                              # both silent
+        }.items():
+            for label, msgs, human in (("A", h_msgs, True), ("B", a_msgs, False)):
+                d = dialogue(label, human, msgs)
+                d["game_id"] = gid
+                d["example_id"] = f"{gid}-{label}"
+                d["n_witness_messages"] = len(msgs)
+                rows.append(d)
+        return rows
+
+    def test_empty_witness_games_finds_every_affected_game(self):
+        self.assertEqual(a0.empty_witness_games(self._dialogues()), {"2", "3", "4"})
+
+    def test_empty_witness_games_is_condition_independent(self):
+        """The drop set comes from canonical message counts, not from featurised
+        text, so every ablation cell drops the SAME games."""
+        rows = self._dialogues()
+        first = a0.empty_witness_games(rows)
+        for cond in a0.CONDITIONS:
+            self.assertEqual(a0.empty_witness_games(rows), first, cond.name)
+
+    def test_balanced_accuracy_hand_computed(self):
+        # 2 positives (one caught), 2 negatives (both caught)
+        # sens = 0.5, spec = 1.0 -> 0.75
+        self.assertAlmostEqual(
+            a0.balanced_accuracy([0.9, 0.1, 0.2, 0.3], [1, 1, 0, 0]), 0.75)
+
+    def test_balanced_accuracy_equals_accuracy_when_classes_balanced(self):
+        probs = [0.9, 0.8, 0.2, 0.1]
+        labels = [1, 1, 0, 0]
+        self.assertAlmostEqual(a0.balanced_accuracy(probs, labels), 1.0)
+
+    def test_balanced_accuracy_is_in_metric_keys(self):
+        self.assertIn("dialogue_balanced_accuracy", a0.METRIC_KEYS)
+
+    def test_evalset_composition_reports_exact_balance(self):
+        games = [{"game_id": "1", "human_conversation_label": "A",
+                  "interrogator_recruitment_source": "1"}]
+        comp = a0.evalset_composition(games, self._dialogues())
+        self.assertEqual(comp["all"]["games"], 1)
+        self.assertEqual(comp["all"]["human_dialogues"], 1)
+        self.assertEqual(comp["all"]["ai_dialogues"], 1)
+        self.assertTrue(comp["all"]["class_balance_exact"])
+        self.assertEqual(comp["prolific"]["games"], 1)
+        self.assertEqual(comp["sona_ucsd"]["games"], 0)

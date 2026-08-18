@@ -310,3 +310,141 @@ the new headline — rejected; truncation removes information as well as length,
 it is a control and a lower bound, not the primary estimate. Proceeding to rung 4
 in this session — rejected; it is a different holdout with its own precision
 question and belongs in its own session, as the A1 decision already established.
+
+---
+
+### 2026-08-18 — CORRECTION: the "separately batched" inference is retracted; the cause is slot-position noise
+
+**Decision:** The claim in the previous entry — *"the majority baseline drops
+below chance in transfer (0.4692 / 0.4936), confirming the halves are separately
+batched"* — is **withdrawn**. It was unsupported. The correct mechanism is
+sampling noise in which conversation slot held the human, and it reproduces the
+observed numbers exactly. The evaluation-set policy is also fixed (next entry
+section), and every condition now reports retained n and class balance.
+
+**Reasoning:** The review that flagged this was right that the inference was
+wrong, and right about why it *could not* have been batching: class balance is
+exact by construction — 640/640 dialogues in Prolific and 500/500 in SONA,
+because every game contributes one human and one AI side. Verified.
+
+But the majority detector is a **constant predictor with a slot tie-break**; it
+never reads text. So nothing about filtering, silence, or batching can move it.
+Only the human-in-slot-A distribution can, and that closes the case:
+
+| half (train+dev) | human in slot A | majority slot learned |
+|---|---:|---|
+| prolific | 276/520 = 0.5308 | A |
+| sona_ucsd | 193/391 = 0.4936 | B |
+
+train SONA → picks B → eval Prolific = 1 − 0.5308 = **0.4692** (observed 0.4692);
+train Prolific → picks A → eval SONA = **0.4936** (observed 0.4936). Both slot
+splits are consistent with a coin flip (z = +1.40, −0.25). With a near-50/50
+assignment, which slot counts as "majority" is itself near-random, so the
+training half's majority slot is the eval half's minority slot about half the
+time. Just-below-chance, no substantive cause.
+
+**Where the review's proposed mechanism does not hold, stated because it matters
+for what to fix.** The review attributed the deviation to asymmetric filtering
+("the capped condition is evaluated on a subset enriched for AI"). Measured: **no
+condition filtered anything.** Every ablation cell scored all 911 train+dev
+games; every rung-2 direction scored 520 / 391; the counts are identical across
+`A0-full`, `A0-wit-nolen` and `A0-wit-nolen-capped`. Truncating to 20 tokens does
+not drop short dialogues, it leaves them short. So the capped delta was not
+confounded with a drop. The review's *observation* was exactly right — 80
+zero-witness dialogues, **52 human / 28 AI**, reproduced to the unit — and the
+asymmetry is real; it simply was not acting through the channel proposed.
+
+**What was wrong with the original inference, in one line:** it treated a
+below-chance constant baseline as evidence about data provenance, when a constant
+baseline can only report the label-position distribution. That is the same class
+of error as reading a length feature as a text property — a statistic being
+interpreted as something it structurally cannot measure.
+
+**Alternatives considered:** Leaving the claim and adding a caveat — rejected;
+it was an inference, not a measurement, and it was wrong. Adopting the review's
+filtering explanation as given — rejected; it does not survive the counts, and
+recording a second wrong mechanism to replace the first would be worse than the
+original error. Dropping the majority baseline from transfer reporting — rejected;
+it is informative precisely because it shows how little a constant carries.
+
+---
+
+### 2026-08-18 — Eval-set policy frozen (drop empty-witness games), and RUNG 4: A0 is a persona-prompt detector
+
+**Decision:** (1) **Empty-witness games are dropped in every condition**, using
+one condition-independent definition read from canonical message counts.
+Retained: **851** of 911 train+dev games, exactly class-balanced (851/851; 465/465
+Prolific; 386/386 SONA). Balanced accuracy is now reported alongside game
+accuracy everywhere. (2) **Gate 1 rung 4 has run, and A0 does not survive a
+held-out persona prompt.** Full numbers:
+`v2/results/track_a/a0_rung4_20260818_writeup.md`.
+
+**Reasoning — policy.** Silence is not a text property: a dialogue with no words
+carries no lexical evidence, only a "this side went quiet" channel, and that
+channel is asymmetric (of the 52 train+dev games with exactly one silent side,
+the silent side was the human in 38, i.e. 73%). The drop set is defined from
+canonical `n_witness_messages`, not from each condition's featurised text,
+because a per-condition definition would drop fewer games in the `bothsides` cell
+and silently break comparability. Measured effect of the policy: every score
+moves **up**, by at most **2.2pp** — the empty games were harder than average, so
+the earlier numbers were conservative rather than inflated. The silence channel's
+maximum possible contribution is 38/911 = **4.17pp**, and its actual contribution
+is smaller still.
+
+**Reasoning — rung 4, and this is the finding.** Nesting first, because it is the
+part that is easy to get wrong: holding out a witness system does **not** hold out
+people, since the same participants play several games against different systems,
+and the paired task can be won from the *human* side alone. So the component
+holdout is nested inside the system holdout — train on (system ≠ held) ∧
+(component ≠ held), evaluate on (system == held) ∧ (component == held). Every game
+sits in exactly one cell; the six eval sets sum to 851.
+
+Results on `A0-wit-nolen-capped`, the only condition whose signal is not length:
+
+| holdout | TF-IDF game accuracy | balanced acc |
+|---|---|---|
+| people only (as reported until now) | 0.9248 [0.906, 0.941] | 0.859 |
+| LOSO-system, sibling present | 0.736 – 0.902 | — |
+| LOSO-system, **ELIZA** (no sibling) | **0.4259 [0.324, 0.519]**, AUROC 0.402 | — |
+| **LOSO-persona** minimal→quinn | **0.6427 [0.597, 0.687]** | **0.541** |
+| **LOSO-persona** quinn→minimal | **0.5799 [0.522, 0.637]** | **0.514** |
+
+The quinn→minimal interval **contains the 0.5266 majority baseline**. Balanced
+accuracy is at chance in both directions. The decisive diagnostic is side
+recognition: under a held-out persona the AI side is flagged as AI in only
+**24.8%** and **8.5%** of games while the human side is cleared 83.5% / 94.4% —
+the model stops seeing the machine and becomes a human recogniser whose residual
+edge comes from the paired comparison, not from classification. Punctuation
+**inverts** (0.295 and 0.216, far below chance) in both directions, which is
+direct evidence that channel encodes the prompt rather than machine-ness. And
+LOSO-system tells the same story from the other side: performance tracks whether
+a stylistic sibling stayed in training, and ELIZA — the only system without one —
+is the only one below chance.
+
+**Why this is the better result to have.** The 0.95 headline invited "a bag of
+words beats GPTZero (89.4%) and Claude Opus 4.6 (77.9%)", a claim the corpus
+cannot support: those are zero-shot detectors that never saw this data, while A0
+was measured with all six witness systems in training. That comparison is now
+retired. Rung 4 states what the corpus *can* support — detection of specified,
+seen respondent configurations — and what it cannot. A reviewer can accept the
+narrow claim; nobody should have accepted the broad one.
+
+**Consequence.** Gate 1's stated consequence is that failed transfer is "a stop or
+redesign result, not permission to fine-tune". Rungs 4–5 are non-gating by design,
+so this is not an automatic stop, but **any A2 run must now be justified as
+improving calibration on a within-family detector, not as building an AI
+detector.** The P1 re-anchoring to calibration is better founded than when it was
+made: calibration is honestly claimable on a within-family estimator, while
+discrimination invites exactly the generalization claim rung 4 refutes.
+
+**Alternatives considered:** Reporting LOSO-system only — rejected; it is the
+weaker cut and would have read as a pass (0.74–0.90 excluding ELIZA), because
+holding out one `quinn` system leaves the other in training. The persona cut is
+what separates prompt from machine-ness, and it fails. Running rung 4 without
+component nesting — rejected; the human side would leak and inflate exactly the
+number under test. Treating ELIZA's below-chance score as the headline — rejected;
+it is a 1966 rule-based system and its collapse is informative about sibling
+dependence, not about modern-model transfer. Declaring Gate 1 failed outright —
+rejected as overreach in the other direction; rungs 1–3 genuinely passed and the
+within-family detector is real and well characterised. The honest statement is
+narrow, not negative.

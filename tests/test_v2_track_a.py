@@ -453,3 +453,56 @@ class TestEvalSetPolicy(unittest.TestCase):
         self.assertTrue(comp["all"]["class_balance_exact"])
         self.assertEqual(comp["prolific"]["games"], 1)
         self.assertEqual(comp["sona_ucsd"]["games"], 0)
+
+
+# ---------------------------------------------------------------------------
+# A2 frozen-representation arm (added 2026-08-18)
+# ---------------------------------------------------------------------------
+
+class TestA2Projection(unittest.TestCase):
+    def setUp(self):
+        sys.path.insert(0, str(REPO_ROOT / "v2" / "scripts"))
+        import track_a_a2
+        self.a2 = track_a_a2
+
+    def test_projection_is_deterministic_given_the_seed(self):
+        a = self.a2.sparse_projection(64, 8, seed=7)
+        b = self.a2.sparse_projection(64, 8, seed=7)
+        self.assertEqual(a, b)
+
+    def test_projection_changes_with_the_seed(self):
+        a = self.a2.sparse_projection(64, 8, seed=7)
+        b = self.a2.sparse_projection(64, 8, seed=8)
+        self.assertNotEqual(a, b)
+
+    def test_projection_shape_and_sparsity(self):
+        d_in, d_out = 64, 8
+        cols = self.a2.sparse_projection(d_in, d_out, seed=1)
+        self.assertEqual(len(cols), d_out)
+        # density 1/sqrt(d_in) -> nnz = d_in/sqrt(d_in) = sqrt(d_in) = 8
+        for col in cols:
+            self.assertEqual(len(col), 8)
+            self.assertTrue(all(0 <= i < d_in for i, _ in col))
+
+    def test_projected_vectors_are_unit_norm(self):
+        cols = self.a2.sparse_projection(64, 8, seed=1)
+        out = self.a2.project([float(i % 5) for i in range(64)], cols)
+        self.assertEqual(len(out), 8)
+        self.assertAlmostEqual(sum(x * x for x in out) ** 0.5, 1.0, places=9)
+
+    def test_projection_roughly_preserves_relative_similarity(self):
+        """Two similar vectors must stay closer than two dissimilar ones."""
+        cols = self.a2.sparse_projection(256, 64, seed=3)
+        rng = __import__("random").Random(11)
+        base = [rng.gauss(0, 1) for _ in range(256)]
+        near = [x + rng.gauss(0, 0.05) for x in base]
+        far = [rng.gauss(0, 1) for _ in range(256)]
+        pb, pn, pf = (self.a2.project(v, cols) for v in (base, near, far))
+        cos = lambda a, b: sum(x * y for x, y in zip(a, b))   # already unit norm
+        self.assertGreater(cos(pb, pn), cos(pb, pf))
+
+    def test_representation_is_temporally_clean(self):
+        """The checkpoint must predate the witness collection window."""
+        r = self.a2.REPRESENTATION
+        self.assertTrue(r["temporally_clean"])
+        self.assertLess(r["released"], r["witness_data_collected"].split(" ")[0])

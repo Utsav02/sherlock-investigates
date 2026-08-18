@@ -192,6 +192,10 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--bootstrap", type=int, default=1000)
     ap.add_argument("--condition", default="A0-wit-nolen-capped")
+    ap.add_argument("--cuts", nargs="*", default=["system", "persona"],
+                    choices=["system", "persona"],
+                    help="which rung-4 cuts to run (default both)")
+    ap.add_argument("--tag", default="", help="suffix for the output filename")
     ap.add_argument("--retain-empty", action="store_true",
                     help="keep empty-witness games (default drops them)")
     args = ap.parse_args(argv)
@@ -209,8 +213,12 @@ def main(argv=None) -> int:
     print(f"condition={condition.name}  train+dev={len(pool)}  "
           f"dropped={n_dropped_from_pool}  evaluated={len(games)}", flush=True)
     started = time.time()
-    systems, cells = loso_system(dialogues, games, by_game, condition, args.bootstrap)
-    personas = loso_persona(dialogues, games, by_game, condition, args.bootstrap)
+    systems, cells = ({}, [])
+    if "system" in args.cuts:
+        systems, cells = loso_system(dialogues, games, by_game, condition, args.bootstrap)
+    personas = {}
+    if "persona" in args.cuts:
+        personas = loso_persona(dialogues, games, by_game, condition, args.bootstrap)
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     payload = {
@@ -232,12 +240,14 @@ def main(argv=None) -> int:
         "canonical": {"source_revision": manifest["source_revision"],
                       "split_sha256": manifest["split_sha256"]},
         "bootstrap": {"replicates": args.bootstrap, "seed": a0.SEED},
+        "cuts_run": args.cuts,
         "loso_system": systems,
         "loso_persona": personas,
         "cells": cells,
         "seconds": round(time.time() - started, 1),
     }
-    out = OUT_DIR / f"a0_rung4_loso_{stamp}.json"
+    tag = f"_{args.tag}" if args.tag else ""
+    out = OUT_DIR / f"a0_rung4_loso_{stamp}{tag}.json"
     out.write_text(json.dumps(payload, indent=2) + "\n")
     print(f"\nwrote {out}")
     return 0

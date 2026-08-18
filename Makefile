@@ -26,7 +26,7 @@ OVERSAMPLE ?= 3
         label-tool score-detector \
         v2-fetch-3p v2-inspect-3p v2-itb-length \
         v2-splits v2-precision v2-paper-exclusions v2-policy \
-        v2-canonical v2-track-a0 v2-track-a0-ablation v2-rung2 v2-rung4 \
+        v2-canonical v2-track-a0 v2-track-a0-ablation v2-rung2 v2-rung4 v2-a2 \
         test lint
 
 help:
@@ -59,6 +59,7 @@ help:
 	@echo "  v2-track-a0-ablation  A0 three-way ablation (witness-only / length-free)"
 	@echo "  v2-rung2       Gate 1 rung 2: SONA<->Prolific transfer, both directions"
 	@echo "  v2-rung4       Gate 1 rung 4: leave-one-system-out / leave-one-persona-out"
+	@echo "  v2-a2          Arm A2: frozen temporally clean representation + head"
 
 install:
 	python3 -m venv venv
@@ -215,6 +216,12 @@ v2-rung2: v2-canonical
 # Empty-witness games are dropped in every cell (silence is not a text property).
 v2-rung4: v2-canonical
 	$(PY) v2/scripts/track_a_rung4.py
+
+# Needs a llama-server with --embeddings over a pre-2025-03 checkpoint; see the
+# writeup's "Reproducing" section. Embeddings are cached after the first pass.
+EMBED_URL ?= http://127.0.0.1:51999
+v2-a2: v2-canonical
+	$(PY) v2/scripts/track_a_a2.py --embed-url $(EMBED_URL)
 
 test:
 	$(PY) -m unittest discover -s tests -v

@@ -448,3 +448,94 @@ dependence, not about modern-model transfer. Declaring Gate 1 failed outright �
 rejected as overreach in the other direction; rungs 1–3 genuinely passed and the
 within-family detector is real and well characterised. The honest statement is
 narrow, not negative.
+
+---
+
+### 2026-08-18 — A2 collapses too. The persona ceiling is the CORPUS's, not bag-of-words'. TRACK A CONCLUDES.
+
+**Decision:** Arm A2 ran once, as specified in §5/§13.1 — frozen temporally clean
+representation, lightweight head, out-of-fold calibration — on the same two cuts
+as A0 and nothing else. It **passed** the §12 feasibility check and then
+**collapsed below chance** on the persona holdout. **Track A concludes.** No
+further arms, no tuning, no third cut. Full numbers:
+`v2/results/track_a/a2_frozen_rep_20260818_writeup.md`.
+
+**The representation, and its temporal cleanliness.** Qwen2.5-7B, released
+**2024-09-19**, already in the local Ollama store (no new download), frozen and
+used only as a mean-pooling feature extractor; witness conversations were
+collected **2025-03-06 … 2025-03-14**, so the checkpoint predates the data by ~6
+months and cannot have memorised it. Served through a private llama-server on a
+spare port so the user's running Ollama app was untouched, and stopped afterwards.
+
+**§12 feasibility: PASS.** Train split → dev split, game accuracy **0.8319**
+against a 0.5177 majority. This matters for what follows: the temporally clean
+arm is *not* capability-floored, so its later collapse is a statement about the
+corpus rather than about an old model failing to participate.
+
+**The two cuts, against A0 re-run at the matched text condition** (uncapped
+witness-only, so the comparison is like-for-like rather than against the
+20-token-capped numbers):
+
+| cut | A0 (TF-IDF) | A2 (frozen rep) |
+|---|---|---|
+| people-only | 0.9600 | **0.8660 [0.842, 0.889]** |
+| LOSO-persona minimal→quinn | 0.6038 [0.558, 0.649] | **0.4929 [0.443, 0.540]** |
+| LOSO-persona quinn→minimal | 0.4953 [0.437, 0.553] | **0.4483 [0.384, 0.517]** |
+
+All four persona intervals contain 0.5; three of four point estimates are at or
+below it. A2 balanced accuracy under persona holdout is 0.469 and 0.466.
+
+**Side recognition is the decisive evidence, and it is why accuracy alone was not
+allowed to settle this.** In-distribution A2 genuinely sees both sides — it flags
+**74.2%** of AI dialogues as AI, clears 80.4% of humans, and separates the mean
+probabilities 0.637 vs 0.378. Under a held-out persona, AI recognition falls to
+**5.7%** and **6.6%**, and the two sides' mean probabilities converge to within
+0.02–0.05. The estimator did not merely degrade; it became a human-recognizer
+that labels almost everything human. Calibration tracks it: out-of-fold ECE
+0.1008 people-only (better than A0's 0.173) versus **0.283 / 0.364** under
+persona holdout — confidently wrong, the worst failure mode for the arm whose
+job in this design is to own the probability.
+
+**Answer to the question this run existed to settle.** The ceiling is the
+**corpus's**. Two estimators sharing nothing but the training data — a stdlib bag
+of words and a frozen 7B neural representation that demonstrably recognises AI
+in-distribution and is temporally incapable of contamination — fail the same way
+on the same cut, and the neural one fails *harder*. That locates the limit in
+what the data can teach, not in how the text is represented. The most likely
+reading is that a five-minute adversarial transcript carries far more signal
+about which prompt the witness was given than about whether the witness is a
+machine.
+
+**GATE 1 VERDICT.** This corpus supports the study of passive identity judgment
+against *specified, seen* respondent configurations, and supports calibration
+work on that task: the signal is real (A0 0.960, A2 0.866 with ECE 0.101 and
+two-sided recognition), and it is not an artefact of interrogator text, reply
+rate or length, redaction placeholders, or respondent silence — each measured and
+excluded — and it transfers between recruitment populations. It does **not**
+support any claim about detecting AI respondents in general, about unseen model
+or prompt configurations, or about deployment against an adversary free to choose
+its own prompt. Gate 1's stated consequence for failed transfer is "a stop or
+redesign result, not permission to fine-tune", and that is the outcome on the
+axis that matters most for v2.1's question.
+
+**What this does not forbid.** An A2-style estimator remains usable as the frozen
+probability authority for *within-configuration* calibration studies — exactly
+the role §5 assigns it, and the reason the earlier P1 re-anchoring from
+discrimination to calibration now reads as the right call. What is refuted is any
+use of it as an AI detector.
+
+**Alternatives considered:** Reporting A2's people-only 0.866 as a weaker result
+than A0's 0.960 and concluding the representation was inadequate — rejected; the
+feasibility check passed at 0.832 and in-distribution side recognition is 74.2%,
+so A2 demonstrably has the capability whose disappearance is being measured.
+Attributing A2's collapse to the 512-d random projection — rejected; the same
+projection is present in the people-only cut where A2 scores 0.866, so it cannot
+manufacture a persona-specific collapse, and it can only lose information, making
+it conservative. Adding a dedicated embedding model — rejected; it would need a
+download, and the instruction was one run, no new arms. Trying a stronger head, a
+different regulariser, or a third cut — rejected outright; that is tuning against
+a result, and the session was specified as one run precisely to prevent it.
+Concluding that Track A produced nothing — rejected as overreach in the other
+direction: a characterised within-family detector with measured calibration and a
+precisely located generalization boundary is a usable result, and the boundary is
+more valuable than the accuracy number would have been.

@@ -686,6 +686,253 @@ Neither diagnosis is visible from accuracy or selectivity alone, and the two pro
 
 ---
 
+### 2026-08-17 — V2 reset: active calibrated investigation, evidence before SFT
+
+**Decision:** Preserve v1 as a completed exploratory/methods record and begin a
+separate v2 design at `v2/experiment_design.md`. V2 studies whether limited,
+versioned supervision improves an open-weight model's active question selection
+and calibrated human-versus-AI identity judgments. It starts with a literature,
+licence, and existing-data audit; then passive and prompted active baselines;
+then independently trained dataset-type SFT ablations. New adaptive human-data
+collection is gated behind evidence that the cheaper premises survive.
+
+**Reasoning:** V1 established that raw Holmes prose is the wrong training channel,
+that proxy improvements did not establish a reasoning shift, and that same-family
+generation/judging can create shared blind spots. The redesigned question is
+observable and falsifiable: information gained per question, proper scoring
+rules, calibration, decision efficiency, and held-out-family generalization.
+No current dataset supplies genuine humans, diverse adversarial AI respondents,
+adaptive questions, grounded turn-level beliefs, and verified SFT actions, so
+dataset provenance and construction are part of the contribution. The ledger is
+the scored state; a calculator performs arithmetic but does not legitimize
+model-invented likelihood ratios; free-form CoT is retained only as an optional
+monitoring/ablation channel.
+
+**Alternatives considered:** Continue the current Claude-trace scale-up — rejected
+as the main path because it optimizes confident forensic form before establishing
+that the resulting skill addresses calibrated active detection, and teacher,
+judge, and prior scanner share a model family. Treat prompted AI respondents as
+the human class — rejected because concealment prompting creates an adversarial AI
+condition, not human data. Begin by collecting a large new human corpus — deferred
+because existing data and no-training baselines can cheaply test the premises.
+Train one cumulative adapter as datasets arrive — rejected for primary ablations;
+each dataset-type adapter must start from the same frozen checkpoint, while any
+sequential mixture is labelled as a curriculum experiment.
+
+---
+
+### 2026-08-17 — V2.1 splits real-passive from synthetic-active; real-active is explicitly missing
+
+**Decision:** Replace the circular v2 gate sequence with two independent first
+tracks. **Track A** reproduces and extends passive identity judgment on existing
+real Turing-test transcripts, adding calibration, normalization, and limited
+source/model analyses. **Track B** tests active information seeking only in D0,
+an executable synthetic environment with known response distributions, using an
+Uncertainty-of-Thoughts-style expected-information-gain baseline. Optional
+turn-wise replay of real transcripts tests belief-updating transfer only. V2.1
+does **not** test active interrogation of live real respondents; a human pilot
+requires a later protocol justified by both tracks.
+
+**Reasoning:** The prior Gate 2 required adaptive questions before allowing new
+human collection, but fixed transcripts cannot answer counterfactual questions;
+the only real respondent was behind the gate it was needed to pass. Calling
+question reordering over recorded transcripts "active" would hide rather than
+solve the dependency. The two-track design is executable without new human data
+and keeps every claim inside the environment actually measured. Inverse Turing
+Bench occupies much of the passive baseline and UoT supplies a named active
+method, reducing both novelty ambiguity and implementation scope.
+
+**Alternatives considered:** Move a minimal human pilot before Gate 2 — deferred
+because it adds recruitment, consent, compensation, privacy, ethics, and power
+work before cheaper premises are known. Restrict activity to attested transcript
+questions — retained only for fixed replay/analysis, not called active
+interrogation. Claim that synthetic-active gains predict real-active gains —
+rejected; the real-active cell is missing and is stated as v2.1's primary
+limitation.
+
+---
+
+### 2026-08-17 — Probability authority and calibration training are separate experimental arms
+
+**Decision:** Every ledger row records separate nullable fields for investigator
+self-report, external-estimator probability, and authoritative probability, plus
+an explicit `probability_authority`. V2.1's required SFT is **question-policy
+SFT** on D0: the known synthetic process or frozen external estimator owns the
+scored probability. **Proper-scoring confidence training** and ordinary
+**demonstration-confidence SFT** are separate named extension/control arms and
+must not be reported as the same intervention.
+
+**Reasoning:** A deterministic calculator guarantees arithmetic, not the
+validity of a model-invented likelihood ratio. Ordinary token SFT can imitate a
+teacher's `0.73` without making that number calibrated, while methods such as
+tokenized-Brier training optimize the reporting objective directly. Conversely,
+a question policy can legitimately improve system Brier score without emitting
+probabilities itself: better questions give a frozen calibrated estimator better
+evidence. Encoding ownership in each row prevents training configuration and
+analysis from silently disagreeing about which number is trusted.
+
+**Alternatives considered:** Keep one `prior_p_ai` field in every arm — rejected
+because it makes subjective, externally estimated, and exact synthetic values
+indistinguishable. Require proper-scoring confidence training in v2.1 — deferred;
+the minimal study asks whether D0 SFT improves question choice, not whether the
+investigator can learn calibrated verbal self-report. Score teacher-number
+imitation as calibration training — rejected because it repeats v1's error of
+optimizing one channel and claiming success in another.
+
+---
+
+### 2026-08-17 — V2.1 execution constraints: textual D0, ordered gates, and estimable Track A
+
+**Decision:** D0 will expose templated natural-language questions and responses
+sampled from finite, explicitly known distributions, with held-out rendering and
+scenario-family splits. Abstract symbols may exist internally but are not the
+investigator's only observation channel. Optional real-transcript replay occurs
+only after the D0 adapter passes Gate 3 and is named Gate 3B. Gate 2A has no
+post-hoc failure exception: a pre-registered non-trained active policy must beat
+both random and fixed baselines before SFT. Track A's temporal-cleanliness arm is
+implemented as a trained classifier head on frozen representations from a
+pre-transcript checkpoint, subject to a cheap development feasibility check and
+a prospective clustered-data precision analysis.
+
+**Reasoning:** Symbol-only D0 would make a natural-language replay null
+uninterpretable, while unconstrained generated prose would destroy the exact
+likelihoods that make D0 statistically grounded. A finite stochastic renderer
+preserves exact probabilities and gives the adapter dialogue-shaped inputs, but
+Stage D remains an explicitly out-of-distribution test. Reordering the transfer
+gate matches its dependency on a trained adapter. Removing Gate 2A's narrative
+escape hatch prevents a failed baseline from authorizing SFT post hoc. A trained
+head avoids testing an older checkpoint's instruction-following weakness, and
+the precision calculation prevents spending analysis effort on contrasts the
+available clustered sample cannot resolve.
+
+**Alternatives considered:** Use abstract attribute tokens only — rejected for
+the required D0 adapter because it makes real-text replay dominated by a trivial
+modality shift; retained as an optional simulator sanity check. Use free-form LLM
+responses in D0 — rejected because their conditional likelihoods are not known
+exactly. Keep a zero-shot temporally clean judge — replaced because chance-level
+instruction following would not diagnose contamination. Allow any interesting
+D0 failure to pass Gate 2A — rejected as unfalsifiable. Treat Stage D scores as
+comparable with Track A estimators — rejected; only the Track B base-versus-D0
+comparison is internally controlled.
+
+---
+
+### 2026-08-17 — V2.1 revision consolidated, and §8.2 gains author-stated-use and dual-use fields
+
+**Decision:** The v2 design is revised to **v2.1** as a single coherent change,
+recorded here as one entry because the three same-day entries above each settled
+one piece of it and none states the whole. V2.1 is: (1) **Gate 2A / Gate 3B
+split** — Gate 2A requires a pre-registered *non-trained* active policy to beat
+both random and fixed baselines in D0 before any SFT, with no post-hoc failure
+exception; Gate 3B is the *optional, later* fixed-transcript replay gate that may
+only run after Gate 3 and scores belief updating alone, never question-policy
+transfer. (2) **D0-only training scope** — the sole required v2.1 SFT is one
+question-policy adapter on synthetic D0; D1–D5 are deferred and D5 (new human
+collection) is not authorized by the design document. (3) **Uncertainty-of-
+Thoughts is the named active baseline** (arm B2), so "active" means a specific
+published expected-information-gain policy rather than an in-house heuristic.
+(4) **Three-way probability-arm separation** — question-policy SFT,
+proper-scoring confidence training, and demonstration-confidence imitation are
+distinct arms, distinguished in data by the ledger's `probability_authority`
+field, and only the first is required. (5) **The §8.2 licence registry gains two
+fields that no earlier entry mentions: author-stated encouraged/discouraged uses
+even when they are not licence terms, and dual-use risk including whether
+training on the source could improve concealment.**
+
+**Reasoning:** (1)–(4) are the dependency fix: v1's failure was not any single
+wrong measurement but a sequence in which each stage assumed the previous one
+had been established, so v2.1 makes each gate answerable with data that exists
+before the gate. The split matters most for Gate 2A, whose earlier form could be
+passed by an "interesting" failure — an unfalsifiable gate is not a gate.
+(5) is the new material, and it is not bureaucratic: the first source audited
+under this registry (Jones & Bergen 2025) has **no declared licence at all**, and
+the one directive statement about it comes not from a licence but from a derived
+benchmark whose author list includes an author of the source data, warning in
+prose about "use of the benchmark or its dataset for training LLMs to be less
+detectable". Under the old field list — licence, consent, attribution — that
+statement had nowhere to be recorded and would have been dropped. A registry
+that can only record legal terms will systematically lose the researcher norms
+that actually govern a dataset like this one. The dual-use field exists for the
+same reason in the other direction: these transcripts pair adversarial human
+probes with labelled AI success, which is training signal for concealment
+regardless of our detection-side intent, so the risk has to be written down at
+registration time rather than argued about at training time.
+
+**Alternatives considered:** *Leave the v2.1 revision recorded across the three
+narrower entries* — rejected; the log is read chronologically by someone who was
+not here, and no single entry said what v2.1 *is*. *Edit the earlier entries to
+fold this in* — rejected outright; the log is append-only. *Keep §8.2 to legal
+fields and put author norms in the design prose* — rejected; the registry is the
+artefact Gate 0 reads, and a caution that is not in the record does not gate
+anything. *Add a general "ethics notes" free-text field instead of two named
+fields* — rejected; a named dual-use field forces the concealment question to be
+answered for every source, and a free-text field is where hard questions go to be
+skipped.
+
+---
+
+### 2026-08-17 — Stage A executed on the primary source: Gate 0 is CONDITIONAL, and ITB's "length ≥ 50" is word count, not turns
+
+**Decision:** The Jones & Bergen 2025 three-party release (OSF `jk7bw`) is
+downloaded, registered, and measured. Three decisions follow. (1) **Gate 0 for
+this source is CONDITIONAL: evaluation and local development are approved;
+fine-tuning any generative adapter on it, and republishing any transcript or
+participant free text, are excluded in v2.1** (registry
+`v2/data/sources/registry/jones_bergen_2025.md` §12). (2) **`tt_profile.other` is
+excluded from every derived artefact pending review** — one response contains
+what appears to be the respondent's own Prolific worker id, a cross-study
+re-identifier that the release's "stripped PII columns" step did not catch
+because it sits in free text. (3) **Inverse Turing Bench's "dialogues of length
+50 or more" is `len(transcript.split()) >= 50` on the released transcript string
+with the `I: `/`W: ` role prefixes counted, required of both dialogues in a
+pair** — so the ITB reproduction (arm A1) covers **557 of 1,140 games, 48.9%**,
+biased long, and that coverage must be reported with every A1 number. Artefacts:
+`v2/results/stage_a/data_inspection.md` (+ two inspection JSONs and
+`itb_length_unit.json`), scripts under `v2/scripts/`, tests `tests/test_v2_*.py`.
+
+**Reasoning:** The unit question was flagged in the design because the paper's
+phrasing is ambiguous and the corpus median is 8 messages, so "turns" was
+implausible. Guessing was avoidable: matching the benchmark's 557 released pairs
+back to the OSF transcripts by string equality recovers exactly which games it
+kept, and only one candidate unit reproduces both the count *and* the identical
+game set — whitespace tokens with prefixes (557/557, minimum released dialogue
+exactly 50 tokens). Turns selects 0 games (the longest conversation is 39
+messages), characters selects 1,037, and prefix-stripped word count selects 464
+while leaving 102 released dialogues below threshold. The 48.9% coverage is the
+decision-relevant part: an A1 reproduction is not a statement about the corpus.
+Two further measured facts change plans rather than merely decorating them.
+**The release is two studies, not one:** an unmentioned 15-minute study (392
+games, January 2026, GPT-5 witness) sits in `15_mins/` with median 22 messages
+per conversation against the main study's 8 — three times the evidence per game,
+and therefore the better substrate for turn-wise calibration *if* its consent
+status can be confirmed, which no located paper does. **And the release is the
+pre-exclusion export:** 1,140 completed games and 323 participants against the
+paper's analysed 1,023/284, and the stated exclusions do not reproduce 1,023
+(measured attempts give 985–1,014), so Stage B must run the released `.Rmd`
+scripts before any comparison with published numbers. Two integrity items are
+recorded because they would otherwise enter a calibration analysis silently:
+game 2197 has duplicate transcript and verdict rows disagreeing on confidence
+(100 vs 45), and 48 conversations have zero messages. The registry's dual-use
+field, added in the entry above, is what carries the ITB authors' training
+caution into the Gate 0 decision.
+
+**Alternatives considered:** *Take the paper's 1,023 games and 284 participants
+as the corpus description* — rejected; the files hold 1,140 and 323, and the
+inspection reports what is in the files, with paper numbers used only as a
+labelled contrast. *Infer the ITB filter from the paper text* — rejected; that is
+the guess the design explicitly forbade, and it would have been wrong in a way
+that silently halved a reproduction's apparent scope. *Commit the ITB CSV into
+`v2/data/sources/` while it was in hand* — rejected; it is a separate source and
+gets its own §8.2 record first, so the determination script takes its path as an
+argument instead. *Treat the 15-minute study as simply more of the same corpus* —
+rejected; different time limit, different witness set, different export
+filtering, and no located consent document, so it is a distinct source. *Approve
+training on the corpus because the licence does not forbid it* — rejected; there
+is no licence to permit it either, and an author of the data has published a
+caution naming exactly that use.
+
+---
+
 ## Current state (update each session)
 
 **Last updated: 2026-06-24**

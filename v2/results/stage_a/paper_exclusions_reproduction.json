@@ -1,0 +1,40 @@
+{
+  "generated_by": "v2/scripts/reproduce_paper_exclusions.R",
+  "method": "knitr::purl of the released .Rmd, executed up to the authors' own interrogator-count chunk; janitor/lmerTest library lines dropped (uninstalled and never called on this path)",
+  "paper": {
+    "games": 1023,
+    "participants": 284
+  },
+  "reproduced": {
+    "games": 1023,
+    "interrogators_in_analysed_games": 279,
+    "profiles_after_prior_knowledge": 284
+  },
+  "by_population": {
+    "sona_ucsd": {
+      "label": "sona_ucsd",
+      "rmd": "3p_sona_preregistered_analyses_clean.Rmd",
+      "lines_executed": 205,
+      "libraries_dropped": 2,
+      "games_after_join": 500,
+      "games_analysed": 447,
+      "interrogators_in_analysed_games": 126,
+      "profile_rows_after_prior_knowledge": 126,
+      "ppts_excluded_expt_aware": 12,
+      "games_excluded_under_2_messages": 5
+    },
+    "prolific": {
+      "label": "prolific",
+      "rmd": "3p_prolific_preregistered_analyses_clean.Rmd",
+      "lines_executed": 213,
+      "libraries_dropped": 2,
+      "games_after_join": 640,
+      "games_analysed": 576,
+      "interrogators_in_analysed_games": 153,
+      "profile_rows_after_prior_knowledge": 158,
+      "ppts_excluded_expt_aware": 10,
+      "games_excluded_under_2_messages": 24
+    }
+  },
+  "game_ids_written_to": "paper_analysed_games.csv"
+}

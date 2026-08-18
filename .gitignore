@@ -85,3 +85,26 @@ data/augmented/.cache/
 *.swp
 *.swo
 *~
+
+# === v2 third-party source data (see v2/data/sources/registry/) ===
+# THE REPO IS PUBLIC. Committing a downloaded corpus here would republish it.
+# The Jones & Bergen 2025 release carries no declared licence, so redistribution
+# is unclear and v2/experiment_design.md §8.2 says: keep provenance and scripts,
+# do not publish the underlying text. Everything under v2/data/sources/ is
+# therefore ignored EXCEPT the manifests (hashes + revisions) and the registry
+# records, which are the reproducibility artifacts. Re-fetch with
+# `make v2-fetch-3p`.
+# (A re-include cannot resurrect a file whose parent directory is excluded, so
+# the per-source directories are re-included before their MANIFEST.json is.)
+v2/data/sources/**
+!v2/data/sources/*/
+!v2/data/sources/*/MANIFEST.json
+!v2/data/sources/registry/
+!v2/data/sources/registry/**
+
+# Derived layers: canonical/ and sft/ inherit the source's redistribution
+# limits, so they stay local until a registry record approves publication.
+v2/data/canonical/**
+v2/data/sft/**
+!v2/data/canonical/README.md
+!v2/data/sft/README.md

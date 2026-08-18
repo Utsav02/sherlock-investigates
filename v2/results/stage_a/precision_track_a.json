@@ -1,0 +1,388 @@
+{
+  "generated_by": "v2/scripts/precision_track_a.py",
+  "split_sha256": "256543688a5da35879e157771cf1b527b82014923a1134ff06f10e8b24b8a8c7",
+  "icc_grid": [
+    0.0,
+    0.05,
+    0.1,
+    0.2
+  ],
+  "reference_icc": 0.1,
+  "power": 0.8,
+  "alpha": 0.05,
+  "structure": {
+    "splits": {
+      "dev": {
+        "games": 228,
+        "users": 64,
+        "itb_557_games": 132,
+        "witness_systems": {
+          "eliza": 33,
+          "gpt-4.5_minimal": 29,
+          "gpt-4.5_quinn": 57,
+          "gpt-4o_minimal": 24,
+          "llama-405b_minimal": 30,
+          "llama-405b_quinn": 55
+        },
+        "interrogators": 63,
+        "games_per_interrogator_mean": 3.619,
+        "games_per_interrogator_max": 4,
+        "games_per_user_either_role_mean": 7.125
+      },
+      "test": {
+        "games": 229,
+        "users": 65,
+        "itb_557_games": 112,
+        "witness_systems": {
+          "eliza": 31,
+          "gpt-4.5_minimal": 30,
+          "gpt-4.5_quinn": 56,
+          "gpt-4o_minimal": 29,
+          "llama-405b_minimal": 31,
+          "llama-405b_quinn": 52
+        },
+        "interrogators": 65,
+        "games_per_interrogator_mean": 3.523,
+        "games_per_interrogator_max": 4,
+        "games_per_user_either_role_mean": 7.046
+      },
+      "train": {
+        "games": 683,
+        "users": 194,
+        "itb_557_games": 313,
+        "witness_systems": {
+          "eliza": 83,
+          "gpt-4.5_minimal": 95,
+          "gpt-4.5_quinn": 173,
+          "gpt-4o_minimal": 88,
+          "llama-405b_minimal": 76,
+          "llama-405b_quinn": 168
+        },
+        "interrogators": 178,
+        "games_per_interrogator_mean": 3.837,
+        "games_per_interrogator_max": 4,
+        "games_per_user_either_role_mean": 7.041
+      }
+    },
+    "split_sha256": "256543688a5da35879e157771cf1b527b82014923a1134ff06f10e8b24b8a8c7",
+    "components": 15
+  },
+  "contrasts": [
+    {
+      "id": "C1[dev]",
+      "name": "A2 (classifier) vs A0 (majority/lexical baseline), accuracy, paired, dev",
+      "design": "paired (same games, two estimators); McNemar",
+      "n_games": 228,
+      "clusters": 63,
+      "mean_cluster_size": 3.619,
+      "assumption": "discordance 0.25 (estimators disagree on 1 game in 4)",
+      "mdd_pp": {
+        "icc_0": 9.28,
+        "icc_0.05": 9.87,
+        "icc_0.1": 10.42,
+        "icc_0.2": 11.45
+      },
+      "target_effect_pp": 10.0,
+      "target_rationale": "A0 on this corpus is ~53% (measured interrogator accuracy); a detector worth building should clear it by >=10pp",
+      "verdict": "NOT RESOLVABLE"
+    },
+    {
+      "id": "C1[test]",
+      "name": "A2 (classifier) vs A0 (majority/lexical baseline), accuracy, paired, test",
+      "design": "paired (same games, two estimators); McNemar",
+      "n_games": 229,
+      "clusters": 65,
+      "mean_cluster_size": 3.523,
+      "assumption": "discordance 0.25 (estimators disagree on 1 game in 4)",
+      "mdd_pp": {
+        "icc_0": 9.26,
+        "icc_0.05": 9.82,
+        "icc_0.1": 10.36,
+        "icc_0.2": 11.35
+      },
+      "target_effect_pp": 10.0,
+      "target_rationale": "A0 on this corpus is ~53% (measured interrogator accuracy); a detector worth building should clear it by >=10pp",
+      "verdict": "NOT RESOLVABLE"
+    },
+    {
+      "id": "C2[dev]",
+      "name": "A2 vs A1 (Inverse Turing Bench reproduction), accuracy, paired, dev",
+      "design": "paired, restricted to the ITB 557 (both dialogues >=50 tokens)",
+      "n_games": 132,
+      "clusters": 63,
+      "mean_cluster_size": 3.619,
+      "assumption": "discordance 0.25",
+      "mdd_pp": {
+        "icc_0": 12.19,
+        "icc_0.05": 12.97,
+        "icc_0.1": 13.7,
+        "icc_0.2": 15.05
+      },
+      "target_effect_pp": 10.0,
+      "target_rationale": "same threshold as C1; the ITB subset is 48.9% of the corpus",
+      "verdict": "NOT RESOLVABLE"
+    },
+    {
+      "id": "C2[test]",
+      "name": "A2 vs A1 (Inverse Turing Bench reproduction), accuracy, paired, test",
+      "design": "paired, restricted to the ITB 557 (both dialogues >=50 tokens)",
+      "n_games": 112,
+      "clusters": 65,
+      "mean_cluster_size": 3.523,
+      "assumption": "discordance 0.25",
+      "mdd_pp": {
+        "icc_0": 13.24,
+        "icc_0.05": 14.05,
+        "icc_0.1": 14.81,
+        "icc_0.2": 16.24
+      },
+      "target_effect_pp": 10.0,
+      "target_rationale": "same threshold as C1; the ITB subset is 48.9% of the corpus",
+      "verdict": "NOT RESOLVABLE"
+    },
+    {
+      "id": "C3[dev]",
+      "name": "Persona degradation: GPT-4.5 PERSONA vs GPT-4.5 minimal, accuracy, dev",
+      "design": "unpaired, disjoint game sets",
+      "n_games": 86,
+      "group_sizes": [
+        57,
+        29
+      ],
+      "clusters": 63,
+      "mean_cluster_size": 3.619,
+      "assumption": "p=0.5 (most conservative variance)",
+      "mdd_pp": {
+        "icc_0": 31.95,
+        "icc_0.05": 33.98,
+        "icc_0.1": 35.89,
+        "icc_0.2": 39.44
+      },
+      "target_effect_pp": 36.3,
+      "target_rationale": "measured human interrogator gap on the full corpus: 0.636 (gpt-4.5_minimal) - 0.273 (gpt-4.5_quinn) = 36.3pp",
+      "verdict": "MARGINAL"
+    },
+    {
+      "id": "C3[test]",
+      "name": "Persona degradation: GPT-4.5 PERSONA vs GPT-4.5 minimal, accuracy, test",
+      "design": "unpaired, disjoint game sets",
+      "n_games": 86,
+      "group_sizes": [
+        56,
+        30
+      ],
+      "clusters": 65,
+      "mean_cluster_size": 3.523,
+      "assumption": "p=0.5 (most conservative variance)",
+      "mdd_pp": {
+        "icc_0": 31.69,
+        "icc_0.05": 33.63,
+        "icc_0.1": 35.47,
+        "icc_0.2": 38.88
+      },
+      "target_effect_pp": 36.3,
+      "target_rationale": "measured human interrogator gap on the full corpus: 0.636 (gpt-4.5_minimal) - 0.273 (gpt-4.5_quinn) = 36.3pp",
+      "verdict": "MARGINAL"
+    },
+    {
+      "id": "C4[dev]",
+      "name": "Leave-one-family-out: OpenAI vs Meta-Llama, accuracy, dev",
+      "design": "unpaired; TWO families only, so exploratory by design (\u00a714)",
+      "n_games": 195,
+      "group_sizes": [
+        110,
+        85
+      ],
+      "clusters": 63,
+      "mean_cluster_size": 3.619,
+      "assumption": "p=0.5",
+      "mdd_pp": {
+        "icc_0": 20.23,
+        "icc_0.05": 21.51,
+        "icc_0.1": 22.72,
+        "icc_0.2": 24.97
+      },
+      "target_effect_pp": null,
+      "target_rationale": "no pre-registered effect size; a 2-point family comparison cannot support a generalisation claim regardless of precision",
+      "verdict": "NO PRE-REGISTERED EFFECT"
+    },
+    {
+      "id": "C4[test]",
+      "name": "Leave-one-family-out: OpenAI vs Meta-Llama, accuracy, test",
+      "design": "unpaired; TWO families only, so exploratory by design (\u00a714)",
+      "n_games": 198,
+      "group_sizes": [
+        115,
+        83
+      ],
+      "clusters": 65,
+      "mean_cluster_size": 3.523,
+      "assumption": "p=0.5",
+      "mdd_pp": {
+        "icc_0": 20.18,
+        "icc_0.05": 21.41,
+        "icc_0.1": 22.58,
+        "icc_0.2": 24.75
+      },
+      "target_effect_pp": null,
+      "target_rationale": "no pre-registered effect size; a 2-point family comparison cannot support a generalisation claim regardless of precision",
+      "verdict": "NO PRE-REGISTERED EFFECT"
+    },
+    {
+      "id": "C5[dev]",
+      "name": "Template-normalised vs raw accuracy for the same estimator, dev",
+      "design": "paired (same games, same estimator, two input encodings)",
+      "n_games": 228,
+      "clusters": 63,
+      "mean_cluster_size": 3.619,
+      "assumption": "discordance 0.15 (normalisation changes few decisions)",
+      "mdd_pp": {
+        "icc_0": 7.19,
+        "icc_0.05": 7.64,
+        "icc_0.1": 8.07,
+        "icc_0.2": 8.87
+      },
+      "target_effect_pp": 10.0,
+      "target_rationale": "a drop >=10pp under normalisation would mean the signal is substantially collection artefact",
+      "verdict": "MARGINAL"
+    },
+    {
+      "id": "C5[test]",
+      "name": "Template-normalised vs raw accuracy for the same estimator, test",
+      "design": "paired (same games, same estimator, two input encodings)",
+      "n_games": 229,
+      "clusters": 65,
+      "mean_cluster_size": 3.523,
+      "assumption": "discordance 0.15 (normalisation changes few decisions)",
+      "mdd_pp": {
+        "icc_0": 7.17,
+        "icc_0.05": 7.61,
+        "icc_0.1": 8.02,
+        "icc_0.2": 8.8
+      },
+      "target_effect_pp": 10.0,
+      "target_rationale": "a drop >=10pp under normalisation would mean the signal is substantially collection artefact",
+      "verdict": "MARGINAL"
+    },
+    {
+      "id": "C6[dev]",
+      "name": "Absolute AUROC of a single estimator, dev",
+      "design": "one estimator, one number; n_pos = n_neg = games",
+      "n_games": 228,
+      "clusters": 63,
+      "mean_cluster_size": 3.619,
+      "assumption": "true AUROC 0.75",
+      "ci_halfwidth": {
+        "icc_0": 0.0446,
+        "icc_0.05": 0.0475,
+        "icc_0.1": 0.0501,
+        "icc_0.2": 0.0551
+      },
+      "target_effect_pp": null,
+      "target_rationale": "reported as an interval, not tested against a threshold",
+      "verdict": "INTERVAL-ONLY"
+    },
+    {
+      "id": "C7[dev]",
+      "name": "Absolute accuracy / Brier of a single estimator, dev",
+      "design": "one estimator, one number",
+      "n_games": 228,
+      "clusters": 63,
+      "mean_cluster_size": 3.619,
+      "assumption": "accuracy 0.5 (worst case); Brier per-game sd 0.25",
+      "accuracy_ci_halfwidth_pp": {
+        "icc_0": 6.49,
+        "icc_0.05": 6.9,
+        "icc_0.1": 7.29,
+        "icc_0.2": 8.01
+      },
+      "brier_ci_halfwidth": {
+        "icc_0": 0.0325,
+        "icc_0.05": 0.0345,
+        "icc_0.1": 0.0365,
+        "icc_0.2": 0.0401
+      },
+      "target_effect_pp": null,
+      "target_rationale": "reported as an interval",
+      "verdict": "INTERVAL-ONLY"
+    },
+    {
+      "id": "C6[test]",
+      "name": "Absolute AUROC of a single estimator, test",
+      "design": "one estimator, one number; n_pos = n_neg = games",
+      "n_games": 229,
+      "clusters": 65,
+      "mean_cluster_size": 3.523,
+      "assumption": "true AUROC 0.75",
+      "ci_halfwidth": {
+        "icc_0": 0.0445,
+        "icc_0.05": 0.0473,
+        "icc_0.1": 0.0498,
+        "icc_0.2": 0.0546
+      },
+      "target_effect_pp": null,
+      "target_rationale": "reported as an interval, not tested against a threshold",
+      "verdict": "INTERVAL-ONLY"
+    },
+    {
+      "id": "C7[test]",
+      "name": "Absolute accuracy / Brier of a single estimator, test",
+      "design": "one estimator, one number",
+      "n_games": 229,
+      "clusters": 65,
+      "mean_cluster_size": 3.523,
+      "assumption": "accuracy 0.5 (worst case); Brier per-game sd 0.25",
+      "accuracy_ci_halfwidth_pp": {
+        "icc_0": 6.48,
+        "icc_0.05": 6.87,
+        "icc_0.1": 7.25,
+        "icc_0.2": 7.94
+      },
+      "brier_ci_halfwidth": {
+        "icc_0": 0.0324,
+        "icc_0.05": 0.0344,
+        "icc_0.1": 0.0362,
+        "icc_0.2": 0.0397
+      },
+      "target_effect_pp": null,
+      "target_rationale": "reported as an interval",
+      "verdict": "INTERVAL-ONLY"
+    },
+    {
+      "id": "C8[train+dev, cross-fitted]",
+      "name": "A2 vs A0, paired, leave-one-component-out cross-fitting (train+dev)",
+      "design": "grouped CV, folds = co-occurrence components; every game is scored by a model that never saw its participants. 11 folds; PRESERVES the frozen test split for Gate 5",
+      "n_games": 911,
+      "clusters": 241,
+      "mean_cluster_size": 3.78,
+      "assumption": "discordance 0.25",
+      "mdd_pp": {
+        "icc_0": 4.64,
+        "icc_0.05": 4.95,
+        "icc_0.1": 5.25,
+        "icc_0.2": 5.79
+      },
+      "target_effect_pp": 10.0,
+      "target_rationale": "same threshold as C1, on more games",
+      "verdict": "RESOLVABLE"
+    },
+    {
+      "id": "C9[all, cross-fitted]",
+      "name": "A2 vs A0, paired, leave-one-component-out cross-fitting (train+dev+test)",
+      "design": "grouped CV, folds = co-occurrence components; every game is scored by a model that never saw its participants. 15 folds; uses every game and leaves NO untouched final test",
+      "n_games": 1140,
+      "clusters": 306,
+      "mean_cluster_size": 3.725,
+      "assumption": "discordance 0.25",
+      "mdd_pp": {
+        "icc_0": 4.15,
+        "icc_0.05": 4.42,
+        "icc_0.1": 4.68,
+        "icc_0.2": 5.16
+      },
+      "target_effect_pp": 10.0,
+      "target_rationale": "same threshold as C1, on more games",
+      "verdict": "RESOLVABLE"
+    }
+  ]
+}

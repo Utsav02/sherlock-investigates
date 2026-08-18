@@ -1,0 +1,914 @@
+{
+  "subdir": "data",
+  "source_dir": "/Users/utsavsingh/Desktop/Post-Uni/Projects/sherlock-investigates/v2/data/sources/jones_bergen_2025/data",
+  "inventory": [
+    {
+      "path": "data/3p_reason_scheme.csv",
+      "bytes": 2592,
+      "rows": 23,
+      "columns": [
+        "class",
+        "category",
+        "short_name",
+        "description"
+      ],
+      "n_columns": 4
+    },
+    {
+      "path": "data/codebook.txt",
+      "bytes": 15642
+    },
+    {
+      "path": "data/reason_classifications_4o.csv",
+      "bytes": 22524,
+      "rows": 1500,
+      "columns": [
+        "game_id",
+        "class",
+        "tagged_by"
+      ],
+      "n_columns": 3
+    },
+    {
+      "path": "data/strategy_classifications_4o.csv",
+      "bytes": 31374,
+      "rows": 2090,
+      "columns": [
+        "game_id",
+        "class",
+        "tagged_by"
+      ],
+      "n_columns": 3
+    },
+    {
+      "path": "data/tt_aimodel.csv",
+      "bytes": 1899,
+      "rows": 12,
+      "columns": [
+        "id",
+        "name",
+        "family",
+        "model_name",
+        "active",
+        "prompt_id",
+        "prompt_extra",
+        "temperature",
+        "secs_per_char",
+        "max_length",
+        "response_method",
+        "wins",
+        "losses",
+        "weighted_wins",
+        "weighted_losses",
+        "batch",
+        "city"
+      ],
+      "n_columns": 17
+    },
+    {
+      "path": "data/tt_conversation.csv",
+      "bytes": 55106,
+      "rows": 2280,
+      "columns": [
+        "id",
+        "game_id",
+        "interrogator_id",
+        "witness_id",
+        "label"
+      ],
+      "n_columns": 5
+    },
+    {
+      "path": "data/tt_game.csv",
+      "bytes": 146384,
+      "rows": 1140,
+      "columns": [
+        "id",
+        "interrogator_id",
+        "human_witness_id",
+        "ai_witness_id",
+        "status",
+        "created_at",
+        "finished_at",
+        "verdict_at",
+        "last_updated",
+        "is_test"
+      ],
+      "n_columns": 10
+    },
+    {
+      "path": "data/tt_games_enriched.csv",
+      "bytes": 752564,
+      "rows": 1140,
+      "columns": [
+        "ai_model_id",
+        "interrogator_user_id",
+        "ai_witness_id",
+        "human_witness_id",
+        "interrogator_id",
+        "id",
+        "status",
+        "created_at",
+        "finished_at",
+        "verdict_at",
+        "last_updated",
+        "is_test",
+        "day",
+        "duration",
+        "verdict_id",
+        "verdict",
+        "confidence",
+        "reason",
+        "is_correct",
+        "success",
+        "human_witness_user_id",
+        "gender",
+        "year_of_birth",
+        "education",
+        "chatbot_interaction_frequency",
+        "familiarity_with_GPT",
+        "expt_aware",
+        "expt_aware_details",
+        "source",
+        "study",
+        "sona_credit_granted",
+        "emotion",
+        "intelligence",
+        "strategy",
+        "strategy_change",
+        "accuracy_estimate",
+        "other",
+        "age",
+        "ai_model",
+        "family",
+        "model_name",
+        "active",
+        "interrogator_game_index",
+        "ai_model_long"
+      ],
+      "n_columns": 44
+    },
+    {
+      "path": "data/tt_interrogator.csv",
+      "bytes": 18271,
+      "rows": 1140,
+      "columns": [
+        "id",
+        "user_id",
+        "lobby_wait_id"
+      ],
+      "n_columns": 3
+    },
+    {
+      "path": "data/tt_message_anonymized.csv",
+      "bytes": 1621207,
+      "rows": 18058,
+      "columns": [
+        "id",
+        "conversation_id",
+        "sender_role",
+        "timestamp",
+        "cost",
+        "hidden",
+        "content",
+        "is_changed"
+      ],
+      "n_columns": 8
+    },
+    {
+      "path": "data/tt_profile.csv",
+      "bytes": 100817,
+      "rows": 323,
+      "columns": [
+        "id",
+        "user_id",
+        "gender",
+        "year_of_birth",
+        "education",
+        "chatbot_interaction_frequency",
+        "familiarity_with_GPT",
+        "expt_aware",
+        "expt_aware_details",
+        "source",
+        "study",
+        "sona_credit_granted",
+        "emotion",
+        "intelligence",
+        "strategy",
+        "strategy_change",
+        "accuracy_estimate",
+        "other"
+      ],
+      "n_columns": 18
+    },
+    {
+      "path": "data/tt_prompt.csv",
+      "bytes": 10931,
+      "rows": 5,
+      "columns": [
+        "id",
+        "label",
+        "family",
+        "version",
+        "prompt",
+        "created",
+        "last_updated",
+        "notes"
+      ],
+      "n_columns": 8
+    },
+    {
+      "path": "data/tt_strategyclass.csv",
+      "bytes": 4663,
+      "rows": 26,
+      "columns": [
+        "id",
+        "name",
+        "description",
+        "category",
+        "code",
+        "is_active",
+        "created",
+        "updated"
+      ],
+      "n_columns": 8
+    },
+    {
+      "path": "data/tt_transcripts.csv",
+      "bytes": 990362,
+      "rows": 2282,
+      "columns": [
+        "game_id",
+        "conversation_label",
+        "is_human",
+        "witness",
+        "message_count",
+        "verdict",
+        "confidence",
+        "reason",
+        "is_correct",
+        "transcript"
+      ],
+      "n_columns": 10
+    },
+    {
+      "path": "data/tt_verdict.csv",
+      "bytes": 139301,
+      "rows": 1141,
+      "columns": [
+        "id",
+        "game_id",
+        "interrogator_id",
+        "verdict",
+        "confidence",
+        "reason",
+        "is_correct",
+        "created_at"
+      ],
+      "n_columns": 8
+    },
+    {
+      "path": "data/tt_witness.csv",
+      "bytes": 9599585,
+      "rows": 2280,
+      "columns": [
+        "id",
+        "witness_type",
+        "user_id",
+        "lobby_wait_id",
+        "ai_model_id",
+        "prompt",
+        "name",
+        "city",
+        "country",
+        "languages",
+        "timezone"
+      ],
+      "n_columns": 11
+    }
+  ],
+  "id_format": {
+    "tt_witness": 0,
+    "tt_interrogator": 0,
+    "tt_game": 0,
+    "tt_conversation": 0,
+    "tt_message_anonymized": 0,
+    "tt_profile": 0,
+    "tt_aimodel": 0
+  },
+  "games": {
+    "rows_in_tt_game": 1140,
+    "status": {
+      "verdict": 1140
+    },
+    "is_test": {
+      "FALSE": 1140
+    },
+    "rows_in_tt_transcripts": 2282,
+    "distinct_game_ids_in_transcripts": 1140,
+    "created_at_min": "2025-03-06T17:55:47Z",
+    "created_at_max": "2025-03-14T16:29:20Z"
+  },
+  "participants": {
+    "profile_rows": 323,
+    "distinct_user_ids_in_profiles": 323,
+    "distinct_users_as_interrogator": 306,
+    "distinct_users_as_human_witness": 314,
+    "distinct_users_either_role": 323,
+    "users_in_both_roles": 297,
+    "interrogator_rows": 1140,
+    "witness_rows": 2280,
+    "witness_rows_by_type": {
+      "A": 1140,
+      "H": 1140
+    },
+    "stable_identifier": "user_id links tt_profile, tt_interrogator and human tt_witness rows; tt_interrogator.id and tt_witness.id are per-game seat ids, not people",
+    "profile_source": {
+      "1": 183,
+      "2": 140
+    },
+    "profile_study": {
+      "3": 183,
+      "NA": 140
+    }
+  },
+  "games_per_participant": {
+    "as_interrogator": {
+      "n": 306,
+      "mean": 3.725,
+      "sd": 0.689,
+      "min": 1,
+      "p25": 4,
+      "median": 4,
+      "p75": 4,
+      "p90": 4,
+      "max": 4
+    },
+    "as_human_witness": {
+      "n": 314,
+      "mean": 3.631,
+      "sd": 0.814,
+      "min": 1,
+      "p25": 4,
+      "median": 4,
+      "p75": 4,
+      "p90": 4,
+      "max": 4
+    },
+    "either_role": {
+      "n": 323,
+      "mean": 7.059,
+      "sd": 1.981,
+      "min": 1,
+      "p25": 7,
+      "median": 8,
+      "p75": 8,
+      "p90": 8,
+      "max": 8
+    },
+    "as_interrogator_histogram": {
+      "4": 254,
+      "3": 30,
+      "2": 12,
+      "1": 10
+    }
+  },
+  "witness_systems": {
+    "tt_aimodel_rows": 12,
+    "models": [
+      {
+        "id": "50",
+        "name": "gpt-4o_minimal_sona",
+        "family": "control",
+        "model_name": "gpt-4o-2024-08-06",
+        "response_method": "openai_response",
+        "prompt_id": "13",
+        "temperature": "1",
+        "active": "TRUE",
+        "games_in_tt_game": 61,
+        "wins_reported": "13",
+        "losses_reported": "75"
+      },
+      {
+        "id": "71",
+        "name": "gpt-4.5_minimal_sona",
+        "family": "no-persona",
+        "model_name": "gpt-4.5-preview-2025-02-27",
+        "response_method": "openai_response",
+        "prompt_id": "13",
+        "temperature": "1",
+        "active": "TRUE",
+        "games_in_tt_game": 70,
+        "wins_reported": "31",
+        "losses_reported": "73"
+      },
+      {
+        "id": "73",
+        "name": "gpt-4.5_quinn_sona",
+        "family": "gpt-4.5-persona",
+        "model_name": "gpt-4.5-preview-2025-02-27",
+        "response_method": "openai_response",
+        "prompt_id": "15",
+        "temperature": "1",
+        "active": "TRUE",
+        "games_in_tt_game": 122,
+        "wins_reported": "112",
+        "losses_reported": "48"
+      },
+      {
+        "id": "74",
+        "name": "llama-405b_minimal_sona",
+        "family": "no-persona",
+        "model_name": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+        "response_method": "together_ai_response",
+        "prompt_id": "13",
+        "temperature": "1",
+        "active": "TRUE",
+        "games_in_tt_game": 60,
+        "wins_reported": "29",
+        "losses_reported": "68"
+      },
+      {
+        "id": "76",
+        "name": "llama-405b_quinn_sona",
+        "family": "llama-persona",
+        "model_name": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+        "response_method": "together_ai_response",
+        "prompt_id": "15",
+        "temperature": "1",
+        "active": "TRUE",
+        "games_in_tt_game": 120,
+        "wins_reported": "77",
+        "losses_reported": "87"
+      },
+      {
+        "id": "80",
+        "name": "eliza_sona",
+        "family": "control",
+        "model_name": "eliza",
+        "response_method": "eliza_response",
+        "prompt_id": "16",
+        "temperature": "0.5",
+        "active": "TRUE",
+        "games_in_tt_game": 67,
+        "wins_reported": "16",
+        "losses_reported": "80"
+      },
+      {
+        "id": "81",
+        "name": "eliza_prolific",
+        "family": "control",
+        "model_name": "eliza",
+        "response_method": "eliza_response",
+        "prompt_id": "16",
+        "temperature": "0.5",
+        "active": "TRUE",
+        "games_in_tt_game": 80,
+        "wins_reported": "31",
+        "losses_reported": "81"
+      },
+      {
+        "id": "82",
+        "name": "llama-405b_quinn_prolific",
+        "family": "llama-persona",
+        "model_name": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+        "response_method": "together_ai_response",
+        "prompt_id": "17",
+        "temperature": "1",
+        "active": "TRUE",
+        "games_in_tt_game": 155,
+        "wins_reported": "144",
+        "losses_reported": "66"
+      },
+      {
+        "id": "83",
+        "name": "llama-405b_minimal_prolific",
+        "family": "no-persona",
+        "model_name": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+        "response_method": "together_ai_response",
+        "prompt_id": "18",
+        "temperature": "1",
+        "active": "TRUE",
+        "games_in_tt_game": 77,
+        "wins_reported": "50",
+        "losses_reported": "54"
+      },
+      {
+        "id": "84",
+        "name": "gpt-4.5_quinn_prolific",
+        "family": "gpt-4.5-persona",
+        "model_name": "gpt-4.5-preview-2025-02-27",
+        "response_method": "openai_response",
+        "prompt_id": "17",
+        "temperature": "1",
+        "active": "TRUE",
+        "games_in_tt_game": 164,
+        "wins_reported": "165",
+        "losses_reported": "58"
+      },
+      {
+        "id": "85",
+        "name": "gpt-4.5_minimal_prolific",
+        "family": "no-persona",
+        "model_name": "gpt-4.5-preview-2025-02-27",
+        "response_method": "openai_response",
+        "prompt_id": "18",
+        "temperature": "1",
+        "active": "TRUE",
+        "games_in_tt_game": 84,
+        "wins_reported": "48",
+        "losses_reported": "59"
+      },
+      {
+        "id": "86",
+        "name": "gpt-4o_minimal_prolific",
+        "family": "control",
+        "model_name": "gpt-4o-2024-08-06",
+        "response_method": "openai_response",
+        "prompt_id": "18",
+        "temperature": "1",
+        "active": "TRUE",
+        "games_in_tt_game": 80,
+        "wins_reported": "27",
+        "losses_reported": "79"
+      }
+    ],
+    "games_by_model_id": {
+      "84": 164,
+      "82": 155,
+      "73": 122,
+      "76": 120,
+      "85": 84,
+      "81": 80,
+      "86": 80,
+      "83": 77,
+      "71": 70,
+      "80": 67,
+      "50": 61,
+      "74": 60
+    },
+    "games_by_transcript_witness_label": {
+      "Human": 1141,
+      "gpt-4.5_quinn": 286,
+      "llama-405b_quinn": 276,
+      "gpt-4.5_minimal": 154,
+      "eliza": 147,
+      "gpt-4o_minimal": 141,
+      "llama-405b_minimal": 137
+    }
+  },
+  "messages": {
+    "rows_in_tt_message_anonymized": 18058,
+    "distinct_conversation_ids_in_messages": 2232,
+    "conversation_rows": 2280,
+    "by_sender_role": {
+      "I": 9262,
+      "W": 8796
+    },
+    "hidden_flag": {
+      "FALSE": 18058
+    },
+    "is_changed_flag": {
+      "FALSE": 17627,
+      "TRUE": 431
+    },
+    "empty_content": 6,
+    "per_game": {
+      "n": 1132,
+      "mean": 15.952,
+      "sd": 8.114,
+      "min": 2.0,
+      "p25": 10.0,
+      "median": 15.0,
+      "p75": 20.0,
+      "p90": 26.0,
+      "max": 56.0
+    },
+    "per_conversation": {
+      "n": 2232,
+      "mean": 8.091,
+      "sd": 4.585,
+      "min": 1.0,
+      "p25": 5.0,
+      "median": 8.0,
+      "p75": 10.0,
+      "p90": 14.0,
+      "max": 39.0
+    },
+    "per_conversation_by_witness_type": {
+      "A": {
+        "n": 1115,
+        "mean": 8.962,
+        "sd": 5.011,
+        "min": 1.0,
+        "p25": 6.0,
+        "median": 8.0,
+        "p75": 12.0,
+        "p90": 16.0,
+        "max": 39.0
+      },
+      "H": {
+        "n": 1117,
+        "mean": 7.22,
+        "sd": 3.93,
+        "min": 1.0,
+        "p25": 4.0,
+        "median": 6.0,
+        "p75": 10.0,
+        "p90": 12.0,
+        "max": 34.0
+      }
+    },
+    "chars_per_message_by_role": {
+      "I": {
+        "n": 9262,
+        "mean": 31.513,
+        "sd": 23.889,
+        "min": 0.0,
+        "p25": 16.0,
+        "median": 26.0,
+        "p75": 41.0,
+        "p90": 61.0,
+        "max": 282.0
+      },
+      "W": {
+        "n": 8796,
+        "mean": 40.974,
+        "sd": 38.458,
+        "min": 0.0,
+        "p25": 17.0,
+        "median": 29.0,
+        "p75": 51.0,
+        "p90": 89.0,
+        "max": 303.0
+      }
+    },
+    "words_per_message_by_role": {
+      "I": {
+        "n": 9262,
+        "mean": 6.41,
+        "sd": 4.675,
+        "min": 0.0,
+        "p25": 3.0,
+        "median": 5.0,
+        "p75": 8.0,
+        "p90": 12.0,
+        "max": 55.0
+      },
+      "W": {
+        "n": 8796,
+        "mean": 8.029,
+        "sd": 7.144,
+        "min": 0.0,
+        "p25": 4.0,
+        "median": 6.0,
+        "p75": 10.0,
+        "p90": 17.0,
+        "max": 60.0
+      }
+    },
+    "role_distinguishable": [
+      "I",
+      "W"
+    ]
+  },
+  "transcripts": {
+    "rows": 2282,
+    "message_count_column": {
+      "n": 2282,
+      "mean": 7.947,
+      "sd": 4.652,
+      "min": 1.0,
+      "p25": 4.0,
+      "median": 8.0,
+      "p75": 10.0,
+      "p90": 14.0,
+      "max": 39.0
+    },
+    "parsed_turns": {
+      "n": 2282,
+      "mean": 7.926,
+      "sd": 4.686,
+      "min": 0.0,
+      "p25": 4.0,
+      "median": 8.0,
+      "p75": 10.0,
+      "p90": 14.0,
+      "max": 39.0
+    },
+    "parsed_turns_by_role": {
+      "I": 9277,
+      "W": 8811
+    },
+    "rows_starting_with_interrogator": 2234,
+    "is_human_values": {
+      "FALSE": 1141,
+      "TRUE": 1141
+    },
+    "declared_equals_parsed": 2234,
+    "candidate_length_units_ge_50": {
+      "games_with_two_transcripts": 1140,
+      "threshold": 50,
+      "whitespace_tokens_incl_role_prefixes": {
+        "both_sides_pass": 557,
+        "either_side_passes": 844,
+        "sum_of_sides_passes": 1020
+      },
+      "whitespace_tokens_excl_role_prefixes": {
+        "both_sides_pass": 464,
+        "either_side_passes": 772,
+        "sum_of_sides_passes": 969
+      },
+      "turns": {
+        "both_sides_pass": 0,
+        "either_side_passes": 0,
+        "sum_of_sides_passes": 2
+      },
+      "characters": {
+        "both_sides_pass": 1037,
+        "either_side_passes": 1118,
+        "sum_of_sides_passes": 1127
+      }
+    },
+    "words_per_transcript": {
+      "n": 2282,
+      "mean": 65.018,
+      "sd": 37.55,
+      "min": 2.0,
+      "p25": 36.0,
+      "median": 61.0,
+      "p75": 90.0,
+      "p90": 117.0,
+      "max": 209.0
+    },
+    "chars_per_transcript": {
+      "n": 2282,
+      "mean": 317.082,
+      "sd": 187.678,
+      "min": 6.0,
+      "p25": 173.0,
+      "median": 296.0,
+      "p75": 439.0,
+      "p90": 577.0,
+      "max": 1011.0
+    }
+  },
+  "verdicts": {
+    "source_table": "tt_verdict.csv",
+    "rows": 1141,
+    "verdict_values": {
+      "A": 589,
+      "B": 552
+    },
+    "is_correct_values": {
+      "TRUE": 605,
+      "FALSE": 536
+    },
+    "confidence": {
+      "n": 1141,
+      "mean": -0.993,
+      "sd": 81.165,
+      "min": -100.0,
+      "p25": -90.0,
+      "median": 5.0,
+      "p75": 82.0,
+      "p90": 100.0,
+      "max": 100.0
+    },
+    "confidence_present": 1141,
+    "reason_present": 1141,
+    "reason_chars": {
+      "n": 1141,
+      "mean": 67.583,
+      "sd": 62.608,
+      "min": 1.0,
+      "p25": 28.0,
+      "median": 51.0,
+      "p75": 84.0,
+      "p90": 138.0,
+      "max": 626.0
+    },
+    "reason_words": {
+      "n": 1141,
+      "mean": 12.147,
+      "sd": 11.519,
+      "min": 1.0,
+      "p25": 5.0,
+      "median": 9.0,
+      "p75": 15.0,
+      "p90": 25.0,
+      "max": 114.0
+    }
+  },
+  "accuracy_by_witness_system": {
+    "eliza": {
+      "games": 147,
+      "interrogator_correct": 112,
+      "interrogator_correct_rate": 0.762
+    },
+    "gpt-4.5_minimal": {
+      "games": 154,
+      "interrogator_correct": 98,
+      "interrogator_correct_rate": 0.636
+    },
+    "gpt-4.5_quinn": {
+      "games": 286,
+      "interrogator_correct": 78,
+      "interrogator_correct_rate": 0.273
+    },
+    "gpt-4o_minimal": {
+      "games": 141,
+      "interrogator_correct": 111,
+      "interrogator_correct_rate": 0.787
+    },
+    "llama-405b_minimal": {
+      "games": 137,
+      "interrogator_correct": 84,
+      "interrogator_correct_rate": 0.613
+    },
+    "llama-405b_quinn": {
+      "games": 275,
+      "interrogator_correct": 121,
+      "interrogator_correct_rate": 0.44
+    }
+  },
+  "study_filters": {
+    "profiles_expt_aware_true": 22,
+    "games_with_an_expt_aware_participant": 164,
+    "games_if_those_removed": 976,
+    "note": "The release is the post-filter export described in the codebook; any further published subset must be reproduced from the R scripts, not assumed."
+  },
+  "free_text_and_pii_screens": {
+    "tt_message_anonymized.content": {
+      "nonempty_values": 18051,
+      "screen_hits": {
+        "anonymization_placeholder": 404,
+        "phone_like": 2
+      }
+    },
+    "verdict.reason": {
+      "nonempty_values": 1141,
+      "screen_hits": {}
+    },
+    "tt_profile.strategy": {
+      "nonempty_values": 307,
+      "screen_hits": {}
+    },
+    "tt_profile.strategy_change": {
+      "nonempty_values": 305,
+      "screen_hits": {}
+    },
+    "tt_profile.other": {
+      "nonempty_values": 234,
+      "screen_hits": {
+        "phone_like": 1
+      }
+    },
+    "tt_profile.expt_aware_details": {
+      "nonempty_values": 29,
+      "screen_hits": {}
+    },
+    "tt_witness.prompt": {
+      "nonempty_values": 1140,
+      "screen_hits": {}
+    }
+  },
+  "demographics_present": {
+    "gender": 307,
+    "year_of_birth": 307,
+    "education": 307,
+    "chatbot_interaction_frequency": 307,
+    "familiarity_with_GPT": 307,
+    "emotion": 323,
+    "intelligence": 323,
+    "accuracy_estimate": 323
+  },
+  "integrity": {
+    "duplicate_transcript_rows": {
+      "2197/A": 2,
+      "2197/B": 2
+    },
+    "games_with_multiple_verdicts": {
+      "2197": 2
+    },
+    "verdict_game_ids_absent_from_tt_game": 0,
+    "conversations_with_zero_messages": 48,
+    "games_with_zero_messages": 8,
+    "message_conversation_ids_absent_from_tt_conversation": 0,
+    "games_without_two_conversations": 0
+  },
+  "track_a_field_presence": {
+    "per_turn_belief_or_confidence": false,
+    "message_timestamps": true,
+    "message_level_columns": [
+      "content",
+      "conversation_id",
+      "cost",
+      "hidden",
+      "id",
+      "is_changed",
+      "sender_role",
+      "timestamp"
+    ]
+  }
+}

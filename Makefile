@@ -24,6 +24,9 @@ OVERSAMPLE ?= 3
         train-qwen train-mistral \
         eval-qwen eval-mistral \
         label-tool score-detector \
+        v2-fetch-3p v2-inspect-3p v2-itb-length \
+        v2-splits v2-precision v2-paper-exclusions v2-policy \
+        v2-canonical v2-track-a0 \
         test lint
 
 help:
@@ -42,6 +45,17 @@ help:
 	@echo "  score-detector score t_think_07 against hand labels — GATE 1"
 	@echo "  test           run smoke tests (pure logic, no network/Ollama needed)"
 	@echo "  lint           byte-compile all scripts and tests (syntax check)"
+	@echo ""
+	@echo "v2 (see v2/experiment_design.md) — Stage A, no GPU, no inference:"
+	@echo "  v2-fetch-3p    download OSF $(OSF_NODE) into v2/data/sources/ + MANIFEST.json"
+	@echo "  v2-inspect-3p  measure both three-party studies -> v2/results/stage_a/"
+	@echo "  v2-itb-length  identify Inverse Turing Bench's length unit (set ITB_CSV=...)"
+	@echo "  v2-splits      freeze the participant-level Track A split (prints sha256)"
+	@echo "  v2-precision   MDD / CI width per Track A contrast -> results/stage_a/"
+	@echo "  v2-paper-exclusions  run the released .Rmd to reproduce the 1,023-game subset (needs R)"
+	@echo "  v2-policy      print the canonical-layer column exclusions (PII policy)"
+	@echo "  v2-canonical   normalize the cleared 5-min study -> v2/data/canonical/"
+	@echo "  v2-track-a0    Track A arm A0 baselines, contrasts P1+P2 -> results/track_a/"
 
 install:
 	python3 -m venv venv
@@ -129,8 +143,60 @@ label-tool:
 score-detector:
 	$(PY) scripts/eval/score_think_detector.py
 
+# ---------------------------------------------------------------------------
+# v2 — Stage A dataset audit (v2/experiment_design.md §18). Network only for
+# v2-fetch-3p; nothing here trains or runs inference, and v2/data/sources/ is
+# treated as immutable once fetched.
+# ---------------------------------------------------------------------------
+OSF_NODE ?= jk7bw
+SOURCE_NAME ?= jones_bergen_2025
+ITB_CSV ?=
+
+v2-fetch-3p:
+	$(PY) v2/scripts/fetch_osf_source.py --node $(OSF_NODE) --name $(SOURCE_NAME)
+
+v2-inspect-3p:
+	$(PY) v2/scripts/inspect_three_party.py --subdir data    > /dev/null
+	$(PY) v2/scripts/inspect_three_party.py --subdir 15_mins > /dev/null
+	@echo "wrote v2/results/stage_a/three_party_inspection_{data,15_mins}.json"
+
+# The benchmark file is a separate source and is deliberately not committed;
+# pass its path:  make v2-itb-length ITB_CSV=/path/to/...csv
+v2-itb-length:
+	@test -n "$(ITB_CSV)" || (echo "set ITB_CSV=/path/to/InverseTuringBench_o50_conversations_shuffled.csv"; exit 1)
+	$(PY) v2/scripts/itb_length_unit.py --itb-csv $(ITB_CSV) > /dev/null
+	@echo "wrote v2/results/stage_a/itb_length_unit.json"
+
+# The split assignment lands in v2/data/canonical/ (gitignored); the freeze is
+# the sha256, pinned in tests/test_v2_splits.py.
+v2-splits:
+	$(PY) v2/scripts/build_splits.py
+
+v2-precision:
+	$(PY) v2/scripts/precision_track_a.py
+
+# Runs the AUTHORS' released .Rmd via knitr::purl -- not a reimplementation of
+# their exclusion criteria. Needs R with tidyverse + brms; exits non-zero if the
+# reproduction stops matching the paper's 1,023 games.
+v2-paper-exclusions:
+	Rscript v2/scripts/reproduce_paper_exclusions.R
+
+v2-policy:
+	$(PY) v2/scripts/canonical_policy.py
+
+# Normalises ONLY the cleared 5-minute study (registry §12 Gate 0 CONDITIONAL).
+# The 15-minute study has no resolved Gate 0 and is not read.
+v2-canonical:
+	$(PY) v2/scripts/build_canonical.py
+
+# Arm A0 only. Evaluates the frozen contrasts P1 and P2 by leave-one-component-out
+# cross-fitting over train+dev; the test split is untouched (Gate 5, one shot).
+# Arm A1 (Inverse Turing Bench) is deliberately not implemented — see the script.
+v2-track-a0: v2-canonical
+	$(PY) v2/scripts/track_a_a0.py
+
 test:
 	$(PY) -m unittest discover -s tests -v
 
 lint:
-	$(PY) -m compileall -q scripts tests
+	$(PY) -m compileall -q scripts tests v2/scripts

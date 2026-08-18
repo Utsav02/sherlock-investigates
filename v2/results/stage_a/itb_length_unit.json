@@ -1,0 +1,141 @@
+{
+  "itb_csv": "/private/tmp/claude-501/-Users-utsavsingh-Desktop-Post-Uni-Projects-sherlock-investigates/b5c937e0-f0b0-4f2c-bdd9-e9f0073c3f26/scratchpad/itb_o50.csv",
+  "itb_rows": 557,
+  "itb_columns": [
+    "id",
+    "dialogueA",
+    "dialogueB"
+  ],
+  "source_subdir": "data",
+  "threshold": 50,
+  "games_with_two_transcripts": 1140,
+  "released_dialogues_matched_to_source_games": 557,
+  "released_dialogue_sides_unmatched": 0,
+  "released_dialogue_sides_matched_via_case_fallback": 1,
+  "released_pairs_spanning_two_games": 0,
+  "units": {
+    "whitespace_tokens_incl_role_prefixes": {
+      "games_selected": 557,
+      "equals_released_row_count": true,
+      "games_selected_not_in_release": 0,
+      "games_in_release_not_selected": 0,
+      "set_matches_release": true,
+      "released_dialogue_values": {
+        "n": 1114,
+        "mean": 90.544,
+        "sd": 28.739,
+        "min": 50.0,
+        "p25": 67.0,
+        "median": 86.0,
+        "p75": 108.0,
+        "p90": 132.0,
+        "max": 209.0
+      },
+      "released_below_threshold": 0,
+      "corpus_dialogue_values": {
+        "n": 2280,
+        "mean": 64.979,
+        "sd": 37.543,
+        "min": 2.0,
+        "p25": 36.0,
+        "median": 61.0,
+        "p75": 90.0,
+        "p90": 117.0,
+        "max": 209.0
+      }
+    },
+    "whitespace_tokens_excl_role_prefixes": {
+      "games_selected": 464,
+      "equals_released_row_count": false,
+      "games_selected_not_in_release": 0,
+      "games_in_release_not_selected": 93,
+      "set_matches_release": false,
+      "released_dialogue_values": {
+        "n": 1114,
+        "mean": 80.216,
+        "sd": 26.763,
+        "min": 39.0,
+        "p25": 59.0,
+        "median": 75.0,
+        "p75": 97.0,
+        "p90": 119.0,
+        "max": 184.0
+      },
+      "released_below_threshold": 102,
+      "corpus_dialogue_values": {
+        "n": 2280,
+        "mean": 57.016,
+        "sd": 34.308,
+        "min": 0.0,
+        "p25": 31.0,
+        "median": 53.0,
+        "p75": 79.0,
+        "p90": 105.0,
+        "max": 184.0
+      }
+    },
+    "turns": {
+      "games_selected": 0,
+      "equals_released_row_count": false,
+      "games_selected_not_in_release": 0,
+      "games_in_release_not_selected": 557,
+      "set_matches_release": false,
+      "released_dialogue_values": {
+        "n": 1114,
+        "mean": 10.328,
+        "sd": 4.493,
+        "min": 3.0,
+        "p25": 7.0,
+        "median": 10.0,
+        "p75": 12.0,
+        "p90": 16.0,
+        "max": 39.0
+      },
+      "released_below_threshold": 1114,
+      "corpus_dialogue_values": {
+        "n": 2280,
+        "mean": 7.92,
+        "sd": 4.683,
+        "min": 0.0,
+        "p25": 4.0,
+        "median": 8.0,
+        "p75": 10.0,
+        "p90": 14.0,
+        "max": 39.0
+      }
+    },
+    "characters": {
+      "games_selected": 1037,
+      "equals_released_row_count": false,
+      "games_selected_not_in_release": 480,
+      "games_in_release_not_selected": 0,
+      "set_matches_release": false,
+      "released_dialogue_values": {
+        "n": 1114,
+        "mean": 442.947,
+        "sd": 144.822,
+        "min": 217.0,
+        "p25": 328.0,
+        "median": 418.0,
+        "p75": 533.0,
+        "p90": 652.0,
+        "max": 1011.0
+      },
+      "released_below_threshold": 0,
+      "corpus_dialogue_values": {
+        "n": 2280,
+        "mean": 316.915,
+        "sd": 187.677,
+        "min": 6.0,
+        "p25": 173.0,
+        "median": 296.0,
+        "p75": 439.0,
+        "p90": 577.0,
+        "max": 1011.0
+      }
+    }
+  },
+  "identified_unit": [
+    "whitespace_tokens_incl_role_prefixes"
+  ]
+}

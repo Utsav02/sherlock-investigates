@@ -116,10 +116,88 @@ PUNCT_CLASSES = {
 
 
 # ---------------------------------------------------------------------------
+# ablation conditions
+# ---------------------------------------------------------------------------
+
+# Feature names that are derived from HOW MUCH text there is rather than from
+# what the text says. Under `drop_length` these are removed from every dense
+# family.
+#
+# Why each one is here (the list is deliberately aggressive — a feature stays
+# only if it is a rate that is invariant to how long the conversation ran):
+#   n_messages/total_*/mean_*/sd_*/max_*  quantity of text, directly
+#   frac_long / frac_short                per-message length distribution
+#   empty                                 message count == 0
+#   fw_type_token                         type-token ratio falls with length by
+#                                         construction, so it is a length proxy
+#                                         wearing a lexical-diversity costume
+LENGTH_DERIVED = frozenset({
+    "n_messages", "total_chars", "total_words", "mean_chars", "mean_words",
+    "max_chars", "sd_chars", "frac_long", "frac_short", "empty",
+    "fw_type_token",
+})
+
+
+# Fixed budget for the capped control. 20 whitespace tokens sits just under the
+# human median witness length (24 words) and well under the AI median (31), so
+# most dialogues on both sides actually reach it and are truncated to the SAME
+# length. Chosen from the measured medians, not tuned against any score.
+TOKEN_CAP = 20
+
+
+class Condition:
+    """One ablation cell: which speaker turns are read, and whether length counts.
+
+    `sides`:
+        "witness"  only the witness's own turns (what RQ1 asks about)
+        "both"     witness + interrogator, i.e. what a loader reading the
+                   released `tt_transcripts.transcript` column would featurize,
+                   since that column interleaves both sides
+    """
+
+    def __init__(self, name: str, sides: str, drop_length: bool, note: str = "",
+                 token_cap: int | None = None):
+        self.name = name
+        self.sides = sides
+        self.drop_length = drop_length
+        self.token_cap = token_cap
+        self.note = note
+
+    def as_dict(self) -> dict:
+        return {"name": self.name, "sides": self.sides,
+                "drop_length": self.drop_length, "token_cap": self.token_cap,
+                "note": self.note}
+
+
+CONDITIONS = [
+    Condition("A0-full", "witness", False,
+              "as run in a0_baselines_20260818_010835.json"),
+    Condition("A0-witness", "witness", False,
+              "witness turns only, I: lines stripped — identical to A0-full by "
+              "construction, run separately to prove that rather than assert it"),
+    Condition("A0-wit-nolen", "witness", True,
+              "witness turns only AND every length-derived feature removed"),
+    Condition("A0-bothsides", "both", False,
+              "DIAGNOSTIC, not requested: what including interrogator turns "
+              "would have scored, i.e. the artefact the transcript column invites"),
+    Condition("A0-wit-nolen-capped", "witness", True,
+              "CONTROL for the residual length channel that `drop_length` cannot "
+              "reach: TF-IDF has no explicit length features, so dropping them is "
+              "a no-op for it, yet a longer document still activates MORE terms "
+              "after L2 normalisation. Truncating every witness side to a fixed "
+              "token budget equalises that channel directly.",
+              token_cap=TOKEN_CAP),
+]
+
+
+
+
+# ---------------------------------------------------------------------------
 # text variants (pure)
 # ---------------------------------------------------------------------------
 
-def dialogue_text(dialogue: dict, variant: str) -> str:
+def dialogue_text(dialogue: dict, variant: str, sides: str = "witness",
+                  token_cap: int | None = None) -> str:
     """The witness side of one conversation, under one normalisation variant.
 
     raw
@@ -140,7 +218,8 @@ def dialogue_text(dialogue: dict, variant: str) -> str:
     conversations of a game, and the question the arm asks is about the writer
     whose identity is in doubt.
     """
-    turns = [t for t in dialogue["turns"] if t["role"] == "W"]
+    keep = {"W"} if sides == "witness" else {"W", "I"}
+    turns = [t for t in dialogue["turns"] if t["role"] in keep]
     if variant == "nostub_nochanged":
         turns = [t for t in turns if not t["is_changed"]]
     parts = []
@@ -150,11 +229,23 @@ def dialogue_text(dialogue: dict, variant: str) -> str:
             text = build_canonical.strip_placeholders(text)
         if text:
             parts.append(text)
+    if token_cap is not None:
+        capped, used = [], 0
+        for part in parts:
+            words = part.split()
+            if used + len(words) >= token_cap:
+                capped.append(" ".join(words[: token_cap - used]))
+                break
+            capped.append(part)
+            used += len(words)
+        parts = [c for c in capped if c]
     return "\n".join(parts)
 
 
-def dialogue_messages(dialogue: dict, variant: str) -> list[str]:
-    text = dialogue_text(dialogue, variant)
+def dialogue_messages(dialogue: dict, variant: str,
+                      sides: str = "witness",
+                      token_cap: int | None = None) -> list[str]:
+    text = dialogue_text(dialogue, variant, sides, token_cap)
     return [m for m in text.split("\n") if m]
 
 
@@ -440,6 +531,10 @@ class Detector:
 
     name = "base"
     trained = True
+    # Set by `make_detectors(condition)`.
+    sides = "witness"
+    drop_length = False
+    token_cap = None
     # Conversation label to choose when the two sides tie. None = split the
     # credit. Only the majority baseline sets this; a text detector must not
     # break ties on slot position, which is not a property of the writing.
@@ -519,12 +614,16 @@ class DenseDetector(Detector):
         self.beta: list[float] = []
 
     def _rows(self, dialogues, variant):
-        feats = [self.extractor(dialogue_messages(d, variant)) for d in dialogues]
+        feats = [self.extractor(dialogue_messages(d, variant, self.sides, self.token_cap))
+                 for d in dialogues]
         return [[f[k] for k in self.keys] for f in feats]
 
     def fit(self, train, variant):
-        feats = [self.extractor(dialogue_messages(d, variant)) for d in train]
+        feats = [self.extractor(dialogue_messages(d, variant, self.sides, self.token_cap))
+                 for d in train]
         self.keys = sorted(feats[0])
+        if self.drop_length:
+            self.keys = [k for k in self.keys if k not in LENGTH_DERIVED]
         raw = [[f[k] for k in self.keys] for f in feats]
         n = len(raw)
         self.mean = [sum(r[i] for r in raw) / n for i in range(len(self.keys))]
@@ -547,7 +646,9 @@ class DenseDetector(Detector):
         ]
 
     def diagnostics(self):
-        return {"n_features": len(self.keys)}
+        return {"n_features": len(self.keys),
+                "features_removed_as_length": self.drop_length,
+                "degenerate_no_features": len(self.keys) == 0}
 
 
 class TfidfDetector(Detector):
@@ -577,7 +678,8 @@ class TfidfDetector(Detector):
         return [(i, v / norm) for i, v in vec]
 
     def fit(self, train, variant):
-        docs = [tfidf_terms(dialogue_messages(d, variant)) for d in train]
+        docs = [tfidf_terms(dialogue_messages(d, variant, self.sides, self.token_cap))
+                for d in train]
         df = Counter()
         for terms in docs:
             df.update(set(terms))
@@ -599,7 +701,8 @@ class TfidfDetector(Detector):
     def predict(self, dialogues, variant):
         out = []
         for d in dialogues:
-            vec = self._vector(tfidf_terms(dialogue_messages(d, variant)))
+            vec = self._vector(
+                tfidf_terms(dialogue_messages(d, variant, self.sides, self.token_cap)))
             out.append(sigmoid(self.bias + sum(self.w[i] * v for i, v in vec)))
         return out
 
@@ -607,8 +710,9 @@ class TfidfDetector(Detector):
         return self.diag
 
 
-def make_detectors() -> list[Detector]:
-    return [
+def make_detectors(condition: Condition | None = None) -> list[Detector]:
+    condition = condition or CONDITIONS[0]
+    detectors = [
         ConstantDetector(),
         MajorityDetector(),
         DenseDetector("length", length_features),
@@ -616,13 +720,19 @@ def make_detectors() -> list[Detector]:
         DenseDetector("function_words", function_word_features, l2=5.0),
         TfidfDetector(),
     ]
+    for detector in detectors:
+        detector.sides = condition.sides
+        detector.drop_length = condition.drop_length
+        detector.token_cap = condition.token_cap
+    return detectors
 
 
 # ---------------------------------------------------------------------------
 # cross-fitting
 # ---------------------------------------------------------------------------
 
-def cross_fit(dialogues: list[dict], games: list[dict], variant: str) -> dict:
+def cross_fit(dialogues: list[dict], games: list[dict], variant: str,
+              condition: Condition | None = None) -> dict:
     """Leave-one-component-out over train+dev. Returns p(AI) per dialogue."""
     by_game = defaultdict(dict)
     for d in dialogues:
@@ -644,7 +754,7 @@ def cross_fit(dialogues: list[dict], games: list[dict], variant: str) -> dict:
         held_dialogues = [
             by_game[g["game_id"]][lbl] for g in held_games for lbl in ("A", "B")
         ]
-        for detector in make_detectors():
+        for detector in make_detectors(condition):
             start = time.time()
             detector.fit(train_dialogues, variant)
             probs = detector.predict(held_dialogues, variant)
@@ -848,8 +958,9 @@ def widen(a: dict, b: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 def run_variant(dialogues: list[dict], games: list[dict], variant: str,
-                n_boot: int) -> dict:
-    fit = cross_fit(dialogues, games, variant)
+                n_boot: int, condition: Condition | None = None) -> dict:
+    condition = condition or CONDITIONS[0]
+    fit = cross_fit(dialogues, games, variant, condition)
     by_game = defaultdict(dict)
     for d in dialogues:
         by_game[d["game_id"]][d["conversation_label"]] = d
@@ -949,6 +1060,9 @@ def run_variant(dialogues: list[dict], games: list[dict], variant: str,
     # stays inside registry §5's bar on republishing transcript text.
     train_all = [by_game[g["game_id"]][lbl] for g in eval_games for lbl in ("A", "B")]
     inspector = TfidfDetector()
+    inspector.sides = condition.sides
+    inspector.drop_length = condition.drop_length
+    inspector.token_cap = condition.token_cap
     inspector.fit(train_all, variant)
     inverse = {i: t for t, i in inspector.vocab.items()}
     order = sorted(range(len(inspector.w)), key=lambda i: -inspector.w[i])
@@ -979,8 +1093,19 @@ def run_variant(dialogues: list[dict], games: list[dict], variant: str,
                 "partly a property of the harness rather than of the writer.",
     }
 
+    surviving = {}
+    for fam, extractor in (("length", length_features),
+                           ("punctuation", punctuation_features),
+                           ("function_words", function_word_features)):
+        keys = sorted(extractor(["probe text here"]))
+        kept = [k for k in keys if not (condition.drop_length and k in LENGTH_DERIVED)]
+        surviving[fam] = {"total": len(keys), "kept": len(kept),
+                          "dropped": sorted(set(keys) - set(kept))}
+
     return {
         "variant": variant,
+        "condition": condition.as_dict(),
+        "surviving_features": surviving,
         "folds": fit["folds"],
         "n_eval_games": len(eval_games),
         "point_estimates": {n: {k: round(v, 4) for k, v in m.items()}
@@ -1002,7 +1127,23 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bootstrap", type=int, default=BOOTSTRAP_DEFAULT)
     parser.add_argument("--variants", nargs="*", default=list(VARIANTS))
+    parser.add_argument("--conditions", nargs="*", default=None,
+                        help="ablation cells to run; default is the single "
+                             "as-run cell A0-full")
+    parser.add_argument("--ablation", action="store_true",
+                        help="run the full three-way ablation (plus the "
+                             "both-sides diagnostic) on the raw variant only")
+    parser.add_argument("--tag", default="", help="suffix for the output filename")
     args = parser.parse_args(argv)
+
+    if args.ablation:
+        conditions = list(CONDITIONS)
+        args.variants = ["raw"]
+    elif args.conditions:
+        by_name = {c.name: c for c in CONDITIONS}
+        conditions = [by_name[n] for n in args.conditions]
+    else:
+        conditions = [CONDITIONS[0]]
 
     dialogues, games, manifest = build_canonical.load()
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -1030,39 +1171,61 @@ def main(argv: list[str] | None = None) -> int:
         },
         "bootstrap": {"replicates": args.bootstrap, "seed": SEED,
                       "method": "percentile, cluster resampled with replacement"},
-        "variants": {},
+        "conditions": {},
     }
 
-    for variant in args.variants:
-        started = time.time()
-        print(f"[{variant}] cross-fitting ...", flush=True)
-        result = run_variant(dialogues, games, variant, args.bootstrap)
-        result["seconds"] = round(time.time() - started, 1)
-        payload["variants"][variant] = result
-        for name, m in result["point_estimates"].items():
-            print(f"  {name:16s} game_acc={m['game_accuracy']:.4f} "
-                  f"auroc={m['dialogue_auroc']:.4f} brier={m['dialogue_brier']:.4f}",
-                  flush=True)
-        print(f"  ({result['seconds']}s)", flush=True)
+    for condition in conditions:
+        payload["conditions"][condition.name] = {"variants": {}}
+        for variant in args.variants:
+            started = time.time()
+            print(f"[{condition.name} / {variant}] cross-fitting ...", flush=True)
+            result = run_variant(dialogues, games, variant, args.bootstrap, condition)
+            result["seconds"] = round(time.time() - started, 1)
+            payload["conditions"][condition.name]["variants"][variant] = result
+            for name, m in result["point_estimates"].items():
+                print(f"  {name:16s} game_acc={m['game_accuracy']:.4f} "
+                      f"auroc={m['dialogue_auroc']:.4f} brier={m['dialogue_brier']:.4f}",
+                      flush=True)
+            print(f"  ({result['seconds']}s)", flush=True)
 
-    # --- normalisation deltas ------------------------------------------------
-    if "raw" in payload["variants"]:
+    # --- normalisation deltas, within each condition -------------------------
+    for cname, cblock in payload["conditions"].items():
+        variants = cblock["variants"]
+        if "raw" not in variants or len(variants) < 2:
+            continue
         deltas = {}
-        for variant in payload["variants"]:
+        for variant in variants:
             if variant == "raw":
                 continue
             deltas[f"raw_minus_{variant}"] = {
                 name: {
-                    key: round(
-                        payload["variants"]["raw"]["point_estimates"][name][key]
-                        - payload["variants"][variant]["point_estimates"][name][key], 4)
+                    key: round(variants["raw"]["point_estimates"][name][key]
+                               - variants[variant]["point_estimates"][name][key], 4)
                     for key in METRIC_KEYS
                 }
-                for name in payload["variants"]["raw"]["point_estimates"]
+                for name in variants["raw"]["point_estimates"]
             }
-        payload["normalisation_deltas"] = deltas
+        cblock["normalisation_deltas"] = deltas
 
-    out = OUT_DIR / f"a0_baselines_{stamp}.json"
+    # --- the ablation table, if more than one condition ran ------------------
+    if len(payload["conditions"]) > 1:
+        table = {}
+        for cname, cblock in payload["conditions"].items():
+            pe = cblock["variants"]["raw"]["point_estimates"]
+            ci = cblock["variants"]["raw"]["intervals"]["participant"]["detectors"]
+            table[cname] = {
+                name: {
+                    "game_accuracy": pe[name]["game_accuracy"],
+                    "ci_participant": [ci[name]["game_accuracy"]["lo"],
+                                       ci[name]["game_accuracy"]["hi"]],
+                    "dialogue_auroc": pe[name]["dialogue_auroc"],
+                }
+                for name in pe
+            }
+        payload["ablation_table"] = table
+
+    tag = f"_{args.tag}" if args.tag else ""
+    out = OUT_DIR / f"a0_baselines_{stamp}{tag}.json"
     out.write_text(json.dumps(payload, indent=2) + "\n")
     print(f"\nwrote {out}")
     return 0

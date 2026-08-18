@@ -285,3 +285,113 @@ class TestClusterUnits(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# ---------------------------------------------------------------------------
+# ablation conditions (added 2026-08-18)
+# ---------------------------------------------------------------------------
+
+class TestAblationConditions(unittest.TestCase):
+    def _dialogue_both_sides(self):
+        d = dialogue("A", True, ["witness one", "witness two"])
+        d["turns"].insert(0, {"role": "I", "content": "interrogator asks",
+                              "is_changed": False, "timestamp": ""})
+        return d
+
+    def test_sides_witness_excludes_interrogator(self):
+        d = self._dialogue_both_sides()
+        self.assertEqual(a0.dialogue_messages(d, "raw", "witness"),
+                         ["witness one", "witness two"])
+
+    def test_sides_both_includes_interrogator(self):
+        d = self._dialogue_both_sides()
+        self.assertEqual(a0.dialogue_messages(d, "raw", "both"),
+                         ["interrogator asks", "witness one", "witness two"])
+
+    def test_default_sides_is_witness_only(self):
+        """The as-run behaviour must be the default, or the original artifact
+        stops being reproducible from this script."""
+        d = self._dialogue_both_sides()
+        self.assertEqual(a0.dialogue_messages(d, "raw"),
+                         a0.dialogue_messages(d, "raw", "witness"))
+
+    def test_length_family_is_entirely_length_derived(self):
+        """Every length feature must be in LENGTH_DERIVED, so the nolen cell
+        leaves that family with nothing rather than with a stray survivor."""
+        keys = set(a0.length_features(["some text"]))
+        self.assertEqual(keys - a0.LENGTH_DERIVED, set())
+
+    def test_nolen_drops_exactly_the_registered_features(self):
+        det = a0.DenseDetector("fw", a0.function_word_features, l2=5.0)
+        det.drop_length = True
+        det.fit([dialogue("A", True, ["the cat sat"]),
+                 dialogue("B", False, ["a dog ran"])], "raw")
+        self.assertNotIn("fw_type_token", det.keys)
+        self.assertNotIn("empty", det.keys)
+        self.assertIn("fw_the", det.keys)
+
+    def test_punctuation_keeps_rates_under_nolen(self):
+        det = a0.DenseDetector("punct", a0.punctuation_features)
+        det.drop_length = True
+        det.fit([dialogue("A", True, ["Hi. Ok?"]),
+                 dialogue("B", False, ["yes! no."])], "raw")
+        self.assertIn("punct_period", det.keys)
+        self.assertIn("upper_rate", det.keys)
+        self.assertNotIn("empty", det.keys)
+
+    def test_length_detector_degenerates_gracefully_under_nolen(self):
+        """With no features left it must fall back to the class prior, not crash."""
+        det = a0.DenseDetector("length", a0.length_features)
+        det.drop_length = True
+        train = [dialogue("A", True, ["aa"]), dialogue("B", False, ["bbbb"])]
+        det.fit(train, "raw")
+        self.assertEqual(det.keys, [])
+        self.assertTrue(det.diagnostics()["degenerate_no_features"])
+        probs = det.predict(train, "raw")
+        self.assertEqual(len(probs), 2)
+        self.assertAlmostEqual(probs[0], probs[1])   # constant => ties => 0.5 credit
+
+    def test_make_detectors_propagates_the_condition(self):
+        cond = a0.Condition("t", "both", True)
+        for det in a0.make_detectors(cond):
+            self.assertEqual(det.sides, "both")
+            self.assertTrue(det.drop_length)
+
+    def test_condition_registry_covers_the_requested_cells(self):
+        names = [c.name for c in a0.CONDITIONS]
+        for required in ("A0-full", "A0-witness", "A0-wit-nolen"):
+            self.assertIn(required, names)
+
+    def test_full_and_witness_conditions_are_identical_by_construction(self):
+        full = next(c for c in a0.CONDITIONS if c.name == "A0-full")
+        wit = next(c for c in a0.CONDITIONS if c.name == "A0-witness")
+        self.assertEqual((full.sides, full.drop_length),
+                         (wit.sides, wit.drop_length))
+
+    def test_tfidf_vectors_are_l2_normalised(self):
+        """Length must not leak back through the vector norm."""
+        det = a0.TfidfDetector(min_df=1)
+        train = [dialogue("A", True, ["alpha beta gamma delta epsilon"]),
+                 dialogue("B", False, ["zeta eta theta"])]
+        det.fit(train, "raw")
+        for d in train:
+            vec = det._vector(a0.tfidf_terms(a0.dialogue_messages(d, "raw")))
+            norm = sum(v * v for _, v in vec) ** 0.5
+            self.assertAlmostEqual(norm, 1.0, places=9)
+
+    def test_token_cap_truncates_to_a_fixed_budget(self):
+        d = {"turns": [{"role": "W", "content": "a b c d e f", "is_changed": False},
+                       {"role": "W", "content": "g h i j", "is_changed": False}]}
+        self.assertEqual(a0.dialogue_messages(d, "raw", "witness", 4), ["a b c d"])
+        self.assertEqual(
+            sum(len(m.split()) for m in a0.dialogue_messages(d, "raw", "witness", 8)), 8)
+
+    def test_token_cap_leaves_short_dialogues_alone(self):
+        d = {"turns": [{"role": "W", "content": "a b", "is_changed": False}]}
+        self.assertEqual(a0.dialogue_messages(d, "raw", "witness", 20), ["a b"])
+
+    def test_token_cap_default_is_none_so_as_run_is_unchanged(self):
+        d = {"turns": [{"role": "W", "content": " ".join(str(i) for i in range(50)),
+                        "is_changed": False}]}
+        self.assertEqual(a0.dialogue_messages(d, "raw"),
+                         a0.dialogue_messages(d, "raw", "witness", None))

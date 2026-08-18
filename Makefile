@@ -26,7 +26,7 @@ OVERSAMPLE ?= 3
         label-tool score-detector \
         v2-fetch-3p v2-inspect-3p v2-itb-length \
         v2-splits v2-precision v2-paper-exclusions v2-policy \
-        v2-canonical v2-track-a0 \
+        v2-canonical v2-track-a0 v2-track-a0-ablation v2-rung2 \
         test lint
 
 help:
@@ -56,6 +56,8 @@ help:
 	@echo "  v2-policy      print the canonical-layer column exclusions (PII policy)"
 	@echo "  v2-canonical   normalize the cleared 5-min study -> v2/data/canonical/"
 	@echo "  v2-track-a0    Track A arm A0 baselines, contrasts P1+P2 -> results/track_a/"
+	@echo "  v2-track-a0-ablation  A0 three-way ablation (witness-only / length-free)"
+	@echo "  v2-rung2       Gate 1 rung 2: SONA<->Prolific transfer, both directions"
 
 install:
 	python3 -m venv venv
@@ -194,6 +196,18 @@ v2-canonical:
 # Arm A1 (Inverse Turing Bench) is deliberately not implemented — see the script.
 v2-track-a0: v2-canonical
 	$(PY) v2/scripts/track_a_a0.py
+
+# Three-way ablation + the length-equalised control. Answers whether the A0
+# signal survives removing interrogator text and every length-derived feature.
+v2-track-a0-ablation: v2-canonical
+	$(PY) v2/scripts/track_a_a0.py --ablation --bootstrap 1000 --tag ablation
+	$(PY) v2/scripts/track_a_a0.py --conditions A0-wit-nolen-capped --variants raw \
+		--bootstrap 1000 --tag capped
+
+# Between-experiment holdout, CONFOUNDED with batch/lobby structure (recruitment
+# source is perfectly nested in the components). Not a clean population holdout.
+v2-rung2: v2-canonical
+	$(PY) v2/scripts/track_a_rung2.py
 
 test:
 	$(PY) -m unittest discover -s tests -v

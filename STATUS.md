@@ -38,11 +38,11 @@ recorded): `v2/results/stage_a/source_coverage.md` and
   supplies executable respondents, turn-level beliefs, or verified SFT actions.*
   D0 is the only route to all three, which is independent evidence that Stage C
   is the right next move.
-- The **literature matrix is complete only as far as offline work allows.** Every
-  cell is marked [R] repo-verified, [P] quoted-from-paper, or [U] **unverified**.
-  Finishing it needs ~15 papers fetched — one session, network, no compute. The
-  binding gap is the active-information-seeking group, which currently has **one**
-  entry (UoT) and directly constrains Stage C.
+- The **literature matrix is built and verified** against 15 fetched sources
+  (2026-08-18). Cells marked [F] full-text, [A] abstract, [R] repo, [U] unverified.
+  Two findings changed the record — see below. Remaining: an ITB dataset registry
+  record (Gate 0 requirement), a full-text pass on the Group 2 papers before arm
+  B2 is committed, and Sleeper Agents/SPADE/HC3/HANSEN (low priority).
 
 **Stage B (Track A, real-passive) — CONCLUDED EARLY, with a negative
 generalization result.** Not "complete": two of the four planned arms were never
@@ -92,6 +92,38 @@ an impossibility claim; **corrected 2026-08-18** (`v2/DECISIONS.md`;
 with crude mean pooling and a 512-d random projection, and A1 and A3 were never
 run.
 
+### ⚠️ Two literature findings that change the record (2026-08-18)
+
+**1. Inverse Turing Bench independently replicates the persona collapse — and
+bounds our explanation.** ITB evaluates zero-shot judges on this same corpus:
+Claude Opus-4.6 and GPT-5.5 fall from ~95.8%/93.4% to ~59.0%/57.6% when the AI
+witness has a persona prompt, and human judges from 68.5% to 39.9%. Same
+direction and magnitude as our A2 (0.866 → 0.49/0.45), by a different method —
+**our finding is not a pipeline artifact.**
+
+But in the same sentence: **GPTZero's performance "remains consistent"** across
+the persona split. GPTZero is trained on generic AI text, *not* on this corpus.
+That is positive evidence a **persona-invariant signal exists in these
+transcripts** which our estimators failed to learn. The distinguishing axis is
+not token-vs-semantic (our A0 is token-based and collapsed) but **trained
+in-corpus vs trained out-of-corpus**.
+
+**So "the ceiling is the corpus's" is now positively unlikely, not just
+unproven.** The Gate 1 verdict is unchanged — a persona-robust *generic* detector
+is not a calibrated investigator, which is what v2.1 needs — but the explanation
+on the record was wrong and is corrected in `v2/DECISIONS.md`. If Track A is ever
+revived, this names the experiment: train out-of-corpus, evaluate in-corpus.
+
+**2. Stage C's named active baseline is out of date.** §13.2 names UoT alone as
+arm B2. **BED-LLM** (ICLR 2025) does the same job more rigorously and reports far
+larger gains (GPT-4o 93% vs 45% prompt-only, against UoT's +38.1% over direct
+prompting); **CA-BED** (2026) extends it to ambiguous/partially-informative
+answers, which is the D0 setting; **ClarQ-LLM** supplies an executable provider
+agent — requirement R4, which no real corpus in our candidate list provides.
+**Recommendation: B2 should be BED-LLM-style EIG with UoT secondary.** Naming the
+weaker of two published methods makes Gate 2A easier to pass and less meaningful.
+This is a design-doc change and is the **owner's call**, flagged not made.
+
 **Gate 1 verdict, in the form to quote:** *broad Gate 1 failed or unavailable —
 failed on the persona rung, unavailable because no out-of-source corpus was ever
 readable (the 15-minute study's Gate 0 is unresolved); within-configuration
@@ -140,13 +172,11 @@ arm as built is a recorded deviation.
    sheet §C2. **No calibrator was built**, deliberately: that is new experimental
    work on a stopped track. Adding a properly nested one (fitted on training folds
    only) remains available if A2 is ever revived.
-5. ~~**Finish Stage A**: literature matrix + source-coverage table.~~
-   **SOURCE COVERAGE DONE; LITERATURE MATRIX PARTIAL 2026-08-18.** The matrix is
-   built and honestly marked, but ~15 papers remain unfetched ([U] cells) because
-   this session had no network. **Do not quote a [U] cell.** Priority order to
-   finish: (1) the active-questioning group — one entry today, and Stage C depends
-   on it; (2) Inverse Turing Bench, which needs a registry record and supplies two
-   numbers currently used only as unverified comparisons; (3) JB 2024.
+5. ~~**Finish Stage A**: literature matrix + source-coverage table.~~ **DONE
+   2026-08-18** — both artifacts written; 15 sources fetched and verified. Two
+   findings changed the record (below). Left open, deliberately: an ITB **dataset**
+   registry record (Gate 0 requirement, cheap), a full-text pass on BED-LLM/CA-BED
+   before arm B2 is committed, and four low-priority sources.
 6. ~~**Record the plan revision explicitly.**~~ **DONE 2026-08-18** — plan-revision
    entry in `v2/DECISIONS.md` and sheet §§C3–C4. A1 SKIPPED, A3 DEFERRED, Stage B
    "concluded early" not complete, Gate 1 restated as failed-or-unavailable, and

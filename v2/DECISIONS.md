@@ -666,3 +666,120 @@ overstates, because rung 3's own wording makes artefact-survival necessary rathe
 than sufficient, and the persona result is the decision-relevant one. Leaving the
 contradiction unresolved with a footnote — rejected; an unresolved contradiction
 between two adjacent log entries is exactly what makes a log stop being trusted.
+
+---
+
+### 2026-08-18 — Stage A step 1 discharged: ITB replicates our persona result AND bounds it further; the active-questioning field has moved past UoT
+
+**Decision:** The literature matrix is built and verified against 15 fetched
+sources (`v2/results/stage_a/literature_matrix.md`). Two findings change
+decisions and are recorded here rather than left in a table.
+
+---
+
+**FINDING 1 — the "corpus ceiling" claim is now positively unlikely, not merely
+unproven. This is a further narrowing of the 2026-08-18 C1 correction.**
+
+Inverse Turing Bench (2606.21844, full text) evaluates zero-shot judges on the
+*same* Jones & Bergen corpus and reports:
+
+> "Opus-4.6, GPT-5.5, and the human judge's performance dropped when the AI
+> witness was created with a persona prompt, as opposed to no persona (Opus:
+> 95.80% vs. 59.04%; GPT-5.5: 93.36% vs. 57.56%; Human: 68.53% vs 39.85%),
+> while GPTZero's performance remains consistent."
+
+The first half **independently replicates rung 4** by a different method: frontier
+zero-shot judges fall ~95.8% → ~59.0% under persona prompting, the same direction
+and rough magnitude as our A2 (0.866 → 0.49/0.45). Our finding is not an artefact
+of our pipeline.
+
+The second half is the part that matters more. **GPTZero — trained on generic AI
+text, not on this corpus — holds its performance across the persona split.** That
+is positive evidence that a **persona-invariant signal exists in these
+transcripts**, and that our estimators simply failed to learn it.
+
+ITB frames the split as token-based vs semantic. The measured pattern fits a
+different axis better — **trained in-corpus vs trained out-of-corpus**:
+
+| estimator | trained on | under persona shift |
+|---|---|---|
+| our A0 (TF-IDF, token-based) | this corpus, one persona family | **collapses** 0.960 → 0.60/0.50 |
+| our A2 (frozen rep + head) | this corpus, one persona family | **collapses** 0.866 → 0.49/0.45 |
+| ITB Opus-4.6 / GPT-5.5 | nothing (zero-shot) | **collapses** ~95.8% → ~59.0% |
+| **GPTZero** | **generic AI text, out-of-corpus** | **consistent** |
+
+Our A0 is token-based and collapsed, which ITB's token-vs-semantic framing does
+not predict. The distinguishing feature of GPTZero is not its feature type but
+that it never fitted this corpus's small, persona-imbalanced training set.
+
+**Consequence.** "The ceiling is the corpus's" was narrowed on 2026-08-18 for
+being an impossibility claim resting on n=2. It is now **positively contradicted**
+by a third data point: the limitation looks like a property of *fitting an
+estimator to this corpus*, not of the corpus's information content. The Gate 1
+verdict does **not** change — within-configuration detection established,
+broad Gate 1 failed-or-unavailable, Track A still stops — because a persona-robust
+*generic* detector does not give us a calibrated investigator, which is what v2.1
+needs. But the *explanation* on the record was wrong in a way that would have
+misled a later reader, and it is corrected here.
+
+**If Track A is ever revived**, this names the experiment: train out-of-corpus (or
+on far more prompt diversity) and evaluate in-corpus, rather than fitting a head
+to 851 games from two persona families.
+
+---
+
+**FINDING 2 — Stage C's named active baseline is out of date. Recommendation, not
+a unilateral change.**
+
+§13.2 names one active baseline: "a UoT-style expected-information-gain policy"
+(arm B2). Verified this session:
+
+- **BED-LLM** (2508.21184, **ICLR 2025**) does the same thing more rigorously —
+  an explicit EIG estimator over a posterior derived from the LLM's belief
+  distribution, rather than UoT's simulate-and-propagate heuristic — reporting
+  gains "typically more than double" the baseline (GPT-4o **93% vs 45%**
+  prompt-only) against UoT's **+38.1%** over direct prompting.
+- **CA-BED** (2606.01182, ICLR 2026 workshop) extends BED to **ambiguous or
+  partially informative answers** — precisely the D0 setting — at **+21.8%
+  success for +1.8 turns**.
+- **ClarQ-LLM** (2409.06097) supplies an **executable provider agent**, i.e.
+  requirement **R4**, which the source-coverage table shows *no* real corpus in
+  our candidate list provides. It is a candidate Stage C environment or at
+  minimum a design precedent for D0's renderer.
+
+**Recommendation:** arm B2 should be **BED-LLM-style EIG**, with UoT kept as a
+secondary comparison. Gate 2A asks whether a pre-registered non-trained active
+policy beats random and fixed baselines; naming the weaker of two published
+methods would make that gate easier to pass and its result less informative —
+the same "fit the gate to what will pass" failure the project has already
+recorded twice.
+
+**Not made unilaterally.** This is a design-document change (§13.2) and the owner
+decides. Caveat attached: all four Group 2 sources are verified at
+**abstract level only**, so a full-text pass on BED-LLM and CA-BED should precede
+committing B2.
+
+---
+
+**Also verified, closing two long-standing loose ends:**
+
+1. **ITB's dual-use caution is real and quotable**, not inferred: *"Risks of this
+   study include use of the benchmark or its dataset for training LLMs to be less
+   detectable; to adapt the benchmark for such future challenges, we would
+   re-release with more complex dialogues."* Authors include **Cameron Jones**, an
+   author of the source data — confirming the design's note. The §8.2 dual-use
+   field was justified.
+2. **Our ITB reconstruction was exactly right.** The paper states 557 pairs drawn
+   from Jones & Bergen filtered at length ≥ 50, matching the reconstruction in
+   `itb_length_unit.json` (557 games, identical set, 0 unmatched). And the two
+   comparison numbers previously marked unverified are confirmed: **GPTZero
+   89.41%, Claude Opus-4.6 77.92%** (plus GPT-5.5 75.94%).
+
+**Alternatives considered:** Treating ITB's replication as vindication and
+stopping there — rejected; the GPTZero result in the same sentence is the more
+informative half and cuts the other way, and reporting only the flattering half
+is the failure mode this log exists to prevent. Silently switching arm B2 to
+BED-LLM — rejected; §13.2 is frozen design text and changing a named baseline
+after seeing which is stronger needs to be an owner decision on the record.
+Fetching full texts for all 15 — not done; abstract level is sufficient for
+everything except the B2 choice, which is flagged accordingly.

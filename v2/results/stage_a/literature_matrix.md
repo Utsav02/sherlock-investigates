@@ -1,118 +1,163 @@
 # Stage A step 1 — literature matrix
 
-**Date:** 2026-08-18 · Discharges (partially — see the honesty note) §18 Stage A
-step 1: *"Build the literature matrix: question, population, data, intervention,
-baselines, metrics, limitations, licences, and stated gaps."*
+**Date:** 2026-08-18 (built), **verified against sources 2026-08-18**
+Discharges `v2/experiment_design.md` §18 Stage A step 1.
 
----
-
-## ⚠️ Honesty note — read before using any cell
-
-**This matrix is complete for what the repository can support without network
-access, and no further.** No paper was downloaded or read while writing it; that
-was a session constraint.
-
-Every cell is therefore marked:
+## Verification key
 
 | mark | meaning |
 |---|---|
-| **[R]** | **from a repository artifact** — the registry, the data inspection, or a measured number. Trustworthy. |
-| **[P]** | from the paper as **quoted in our own registry** (JB 2025 only). Trustworthy as a quotation. |
-| **[U]** | **UNVERIFIED.** Background knowledge or the design doc's own one-line description. **Must be confirmed against the paper before being cited.** |
+| **[F]** | verified against the paper's **full text** this session |
+| **[A]** | verified against the paper's **abstract / landing page** this session |
+| **[R]** | from a repository artifact — registry, inspection, or a measured number |
+| **[U]** | **still unverified** — not fetched. Do not quote. |
 
-**Do not quote a [U] cell in any writeup.** Several of these papers postdate the
-assistant's training data (e.g. Inverse Turing Bench, arXiv 2606.21844, June 2026;
-ConfTuner 2508.18847), so for those even the topic line is inference from the
-design doc's own description, not knowledge of the work.
+15 sources fetched. Abstract-level verification is not full-text verification:
+an **[A]** cell is trustworthy as a summary, not as a basis for a precise claim.
 
-**To finish this properly** requires fetching ~15 papers and filling the [U]
-cells. That is a bounded task (one session, network access, no compute) and it is
-the remaining half of Stage A step 1.
-
----
-
-## Group 1 — Turing-test / human-vs-AI detection (directly load-bearing for Track A)
-
-| paper | question | population | data | intervention | baselines | metrics | limitations | licence | stated gaps |
-|---|---|---|---|---|---|---|---|---|---|
-| **Jones & Bergen 2025**, *LLMs Pass the Turing Test* (2503.23674) | can people distinguish an LLM from a human in a 3-party test? **[P]** | 1,023 analysed games / 284 participants **[P]**; release holds **1,140 / 323** **[R]** | our primary corpus; 5-min games, median 8 msgs/conv **[R]** | witness system + persona prompt **[R]** | ELIZA as manipulation check **[R]** | interrogator accuracy; measured 0.530 overall **[R]** | adversarial humans, not ordinary conversation; 2 substantive families **[R]** | **none declared**; consent covers analysis + public sharing **[P]** | no turn-level belief; fixed transcripts **[R]** |
-| **Jones & Bergen 2025**, 15-minute study (same OSF node) | as above at 15 min **[R]** | 392 games / 227 participants **[R]** | median 22 msgs/conv; **GPT-5** witness **[R]** | longer time limit **[R]** | ELIZA **[R]** | interrogator accuracy 0.526 **[R]** | no located paper or preregistration **[R]** | **Gate 0 UNRESOLVED — unread** **[R]** | consent status unconfirmed **[R]** |
-| **Jones & Bergen 2024** (2405.08007) | can people distinguish GPT-4 from a human? **[U]** | ~402 retained games **[U]** | two-party design **[U]** | GPT-3.5 / GPT-4 / ELIZA **[U]** | ELIZA **[U]** | pass rate **[U]** | two-party ≠ three-party **[U]** | unverified **[U]** | no turn-level ledger **[U]** |
-| **Inverse Turing Bench** (2606.21844) | can *models* identify the human in a dialogue pair? **[U]** | 557 pairs derived from JB 2025 **[R]** | our reconstruction of its filter is exact: whitespace tokens incl. `I:`/`W:` prefixes, ≥50, both sides **[R]** | zero-shot judging **[U]** | GPTZero, frontier LLMs **[U]** | reported GPTZero 89.4%, Claude Opus 4.6 77.9% **[U]** | 48.9% corpus coverage, biased long (90.5 vs 65.0 tokens) **[R]** | benchmark terms unverified; **no registry record** **[R]** | authors caution against training for undetectability **[R]** |
-| **Human or Not?** (2305.20010) | large-scale gamified Turing test **[U]** | — **[U]** | — **[U]** | — **[U]** | — **[U]** | — **[U]** | older models; raw availability unclear **[U]** | unverified **[U]** | — **[U]** |
-| **SPADE** (ACL 2025 LLMSEC) | detecting LLM-generated dialogue **[U]** | — **[U]** | mainly synthetic customer-service (MultiWOZ-derived) **[U]** | — **[U]** | — **[U]** | — **[U]** | not adaptive interrogation **[U]** | Apache label unverified; upstream MultiWOZ terms unverified **[U]** | — **[U]** |
-| **HC3** | human vs ChatGPT answer detection **[U]** | — **[U]** | static QA pairs **[U]** | — **[U]** | — **[U]** | — **[U]** | not dialogue; single-model signal **[U]** | unverified **[U]** | — **[U]** |
-| **HANSEN** | human vs LLM spoken-text detection **[U]** | — **[U]** | spoken-text corpora **[U]** | — **[U]** | — **[U]** | — **[U]** | spoken domains, not interrogation **[U]** | per-source terms unverified **[U]** | — **[U]** |
-
-**Track A's own result belongs in this group and is [R] throughout:** two methods
-(TF-IDF; frozen Qwen2.5-7B + logistic head) reach 0.960 / 0.866 paired accuracy
-against seen respondent configurations and both fail to transfer across persona
-prompt families (0.604/0.493 and 0.495/0.448). See
-`v2/results/track_a/corrections_20260818_213000.md` for the claim-level wording.
+> ⚠️ **Two findings below change decisions and are flagged in place: §1.1 (ITB
+> independently replicates our persona result, and bounds our conclusion further
+> than we did) and §2.1 (the active-questioning field has moved past UoT).**
 
 ---
 
-## Group 2 — active information seeking (load-bearing for Track B / Stage C)
+## 1. Turing-test / human-vs-AI detection
 
-| paper | question | intervention | baselines | metrics | limitations | stated gaps |
-|---|---|---|---|---|---|---|
-| **Uncertainty of Thoughts** (2402.03271) | can an LLM choose questions that maximise expected information gain? **[U]** | UoT planning over a question bank **[U]** | random / fixed order **[U]** | success rate, questions-to-solve **[U]** | simulator-bound **[U]** | — **[U]** |
+| source | question | data | intervention | baselines | metrics / headline | limitations | licence |
+|---|---|---|---|---|---|---|---|
+| **Jones & Bergen 2025** (2503.23674) | can people distinguish an LLM from a human, 3-party? **[R]** | 1,023 analysed / release holds **1,140 games, 323 participants** **[R]** | witness system × persona prompt **[R]** | ELIZA **[R]** | interrogator accuracy; **measured 0.530** **[R]** | adversarial humans; 2 substantive families **[R]** | **none declared**; consent covers analysis + public sharing **[R]** |
+| **Jones & Bergen 2025**, 15-min | as above at 15 min **[R]** | 392 games / 227 participants; **GPT-5** witness **[R]** | longer limit **[R]** | ELIZA **[R]** | accuracy 0.526 **[R]** | no paper/preregistration located **[R]** | **Gate 0 UNRESOLVED — unread** **[R]** |
+| **Jones & Bergen 2024** (2405.08007) | can people distinguish GPT-4? **[A]** | **two-party**, 5-min conversations **[A]** | ELIZA, GPT-3.5, GPT-4 **[A]** | ELIZA **[A]** | **GPT-4 judged human 54%; ELIZA 22%; real humans 67%** **[A]** | n not in abstract **[A]** | CC BY 4.0 **[A]** |
+| **Inverse Turing Bench** (2606.21844) | can *models* pick the human-only dialogue from a pair? **[F]** | **557 pairs, drawn from Jones & Bergen, filtered length ≥ 50** **[F]** — matches our reconstruction exactly **[R]** | zero-shot paired judging **[F]** | GPTZero, Claude Opus-4.6, GPT-5.5 **[F]** | **GPTZero 89.41%, Opus-4.6 77.92%, GPT-5.5 75.94%** **[F]** | see §1.1 **[F]** | CC BY 4.0 (paper) **[A]**; **dataset terms still unregistered** **[R]** |
+| **Human or Not?** (2305.20010) | gamified Turing test at scale **[A]** | **>1.5M users**, 2-minute sessions, one month **[A]** | prompted-human AI **[A]** | — | **overall 68% correct; 60% when facing a bot** **[A]** | model unnamed; **raw-data release not stated in abstract** **[A]** | CC BY 4.0 **[A]** |
+| SPADE · HC3 · HANSEN | — | — | — | — | — | — | **[U] not fetched — deprioritised, Track A concluded** |
 
-**This group has one entry, and that is a gap, not a summary.** Stage C's design
-names UoT as arm B2 — the *only* published active baseline the plan commits to.
-Before building D0, this group needs the surrounding literature (20-questions /
-active-inference / information-gain dialogue agents) so that B2 is a considered
-choice rather than the single method that happened to be cited. **This is the
-highest-value remaining piece of the matrix**, because it is the one that
-constrains work not yet done.
+### 1.1 ⚠️ ITB independently replicates our persona finding — and bounds our conclusion further than we did
 
----
+Verified in ITB's full text (§ Limitations and results):
 
-## Group 3 — calibration and confidence training (relevant to the re-anchored P1)
+> "Opus-4.6, GPT-5.5, and the human judge's performance dropped when the AI
+> witness was created with a persona prompt, as opposed to no persona (Opus:
+> 95.80% vs. 59.04%; GPT-5.5: 93.36% vs. 57.56%; Human: 68.53% vs 39.85%),
+> **while GPTZero's performance remains consistent.**"
 
-| paper | question | intervention | limitations | why it matters here |
-|---|---|---|---|---|
-| **ConfTuner** (2508.18847) | train calibrated verbal confidence **[U]** | proper-scoring / tokenized-Brier style training **[U]** | **[U]** | the named method for the deferred proper-scoring arm (§13.3) |
-| **LACIE** (2405.21028) | listener-aware calibration of expressed confidence **[U]** | preference training on confidence **[U]** | **[U]** | alternative to ConfTuner for the same arm |
+> "both LLM and human judges are susceptible to carefully crafted prompt
+> personas, while token-based models are more resilient to this attack."
 
-Directly relevant now: P1 was re-anchored from discrimination to calibration
-(2026-08-18), and A2 was found to be a probabilistic head with **no** calibrator.
-If a nested calibrator is ever added, this group is the prior art to consult
-first.
+And the abstract: *"Statistical approaches to detection have semantic blind
+spots, but semantic approaches are susceptible to persona-prompting."*
 
----
+**This is independent confirmation of rung 4, on the same corpus, by a different
+method** — frontier zero-shot judges fall ~95.8% → ~59.0% under persona
+prompting, the same direction and rough magnitude as our A2 (0.866 → 0.49/0.45).
 
-## Group 4 — chain-of-thought faithfulness and monitoring (frames §7.2)
+**But one ITB result cuts against our stronger claim, and it matters more than
+the confirmation.** GPTZero — a statistical detector trained on generic AI text,
+*not* on this corpus — **holds its performance across the persona split.** That is
+positive evidence that a **persona-invariant signal exists in this corpus**, which
+our estimators failed to learn.
 
-| paper | claim as used in our design | mark |
+The distinction is not token-vs-semantic, as ITB frames it. It is **trained
+in-corpus vs trained out-of-corpus**:
+
+| estimator | trained on | persona robustness |
 |---|---|---|
-| Measuring Faithfulness in CoT (2307.13702) | printed CoT is not necessarily the computation | **[U]** |
-| LMs Don't Always Say What They Think (2305.04388) | CoT can rationalise post hoc | **[U]** |
-| Monitoring Reasoning Models / Obfuscation (2503.11926) | optimising CoT to look acceptable degrades it as a monitor | **[U]** |
-| CoT Monitorability (2507.11473) | monitorability is real but fragile | **[U]** |
-| Emergent Misalignment (2502.17424) | narrow finetuning can produce broad behaviour change | **[U]** |
-| Sleeper Agents (2401.05566) | trained behaviours can persist through safety training | **[U]** |
-| LIMA (2305.11206) | small high-quality sets can suffice for alignment-style SFT | **[U]** |
+| our A0 (TF-IDF) | **this corpus**, one persona family | collapses (0.960 → 0.60/0.50) **[R]** |
+| our A2 (frozen rep + head) | **this corpus**, one persona family | collapses (0.866 → 0.49/0.45) **[R]** |
+| ITB's Opus-4.6 / GPT-5.5 | nothing (zero-shot) | collapses (~95.8% → ~59.0%) **[F]** |
+| **GPTZero** | **generic AI text, out-of-corpus** | **consistent** **[F]** |
 
-These motivate §4's list of claims the project will not make and §7.2's decision
-to keep CoT as a monitoring channel rather than a training target. They are
-**not** load-bearing for any current measurement, which is why they are lowest
-priority to verify.
+**Consequence for the record.** The 2026-08-18 correction narrowed "the ceiling is
+the corpus's" to a two-method statement. That narrowing was right, and GPTZero's
+persistence now makes the stronger claim **positively unlikely**, not merely
+unproven: the limitation looks like a property of *fitting an estimator to this
+corpus's small, persona-imbalanced training set*, not of the corpus's information
+content. Recorded as a further correction in `v2/DECISIONS.md`.
+
+**Dual-use caution — verified verbatim**, and it is in the paper, not merely
+inferred (registry §10 previously cited it without a quotation):
+
+> "Risks of this study include use of the benchmark or its dataset for training
+> LLMs to be less detectable; to adapt the benchmark for such future challenges,
+> we would re-release with more complex dialogues."
+
+Authors: William Hager, Ishika Rathi, Masum Hasan, **Cameron Jones** — confirming
+the design's note that an author of the source data co-authors the benchmark and
+its caution. **[F]**
 
 ---
 
-## Gap list — what finishing Stage A step 1 requires
+## 2. Active information seeking — the group that constrains Stage C
 
-1. **Fetch and verify Group 2 first.** One entry is not a literature review, and
-   Stage C depends on it. Confirm UoT's actual baselines and metrics, and find the
-   adjacent active-questioning work the design does not cite.
-2. **Fetch Inverse Turing Bench** (2606.21844) and give it a §8.2 registry record.
-   It is currently cited for two numbers used in comparison (GPTZero 89.4%, Claude
-   Opus 4.6 77.9%) that are **[U]** — those comparisons should not appear in any
-   external writeup until verified. The corrections sheet already retires the
-   comparison; this would let it be restated correctly or dropped for good.
-3. **Fetch JB 2024** (2405.08007) — cheapest replication candidate, same authors.
-4. **Fill Group 3** before any calibration work.
-5. **Group 4 last** — framing only, nothing measured depends on it.
+| source | question | method | tasks | baselines | headline | licence |
+|---|---|---|---|---|---|---|
+| **Uncertainty of Thoughts** (2402.03271) | can an LLM choose questions that maximise expected information gain? **[A]** | uncertainty-aware simulation + information-gain reward + reward propagation **[A]** | medical diagnosis, troubleshooting, 20-questions **[A]** | direct prompting **[A]** | **+38.1% average success rate** vs direct prompting **[A]** | CC BY 4.0 **[A]** |
+| **BED-LLM** (2508.21184, **ICLR 2025**) | adaptive information gathering via sequential Bayesian experimental design **[A]** | iteratively maximise **EIG** under a probabilistic model from the LLM's belief distribution; specialised EIG estimator + candidate-query proposal **[A]** | 20-questions, active user-preference inference **[A]** | direct prompting, other adaptive designs **[A]** | **"typically more than double" baseline; GPT-4o 93% vs prompt-only 45%** on Animals **[A]** | Apple ML Research **[A]** |
+| **CA-BED** (2606.01182, ICLR 2026 workshop) | question selection under ambiguous / partially informative answers **[A]** | conversation-aware BED + LLM-based likelihood estimation, inference-time planning **[A]** | two entity-deduction benchmarks **[A]** | direct prompting, other info-seeking methods **[A]** | **+21.8% success, +1.8 turns** vs direct prompting **[A]** | CC BY 4.0 **[A]** |
+| **ClarQ-LLM** (2409.06097) | can LLMs ask clarifying questions in task-oriented dialogue? **[A]** | benchmark with an **executable provider agent** replicating the human provider **[A]** | 31 task types × 10 scenarios = **310**, English–Chinese **[A]** | — | **LLAMA3.1-405B max 60.05% success** **[A]** | arXiv nonexclusive-distrib **[A]** |
 
-Items 1–3 are the ones that would change a decision. Items 4–5 would not.
+### 2.1 ⚠️ The field has moved past UoT, and Stage C's plan has not
+
+`v2/experiment_design.md` §13.2 names **one** active baseline — "a UoT-style
+expected-information-gain policy" (arm B2). The matrix now shows that is
+out of date:
+
+- **BED-LLM (ICLR 2025)** is the same idea done more carefully — an explicit
+  EIG estimator over a posterior derived from the model's belief distribution,
+  rather than UoT's simulation-and-propagation heuristic — and reports far larger
+  gains (GPT-4o 93% vs 45% prompt-only on 20-questions-style Animals).
+- **CA-BED (2026)** extends it to exactly the case our respondents produce:
+  **ambiguous or partially informative answers.** That is the D0 setting.
+- **ClarQ-LLM** supplies something no real corpus in our source-coverage table
+  does: an **executable provider agent**, i.e. requirement **R4**. It is a
+  candidate Stage C environment, or at least a design precedent for D0's renderer.
+
+**Recommendation for Stage C, for the owner to decide before D0 is built:**
+arm B2 should be **BED-LLM-style EIG**, with UoT retained as a secondary
+comparison rather than the primary named baseline. Gate 2A asks whether a
+pre-registered non-trained active policy beats random and fixed; picking the
+weaker of two published methods would make that gate easier to pass and the
+result less meaningful. **This is a design-doc change and is not made
+unilaterally** — recorded in `v2/DECISIONS.md` as a recommendation.
+
+---
+
+## 3. Calibration and confidence training
+
+| source | question | method | metrics | licence |
+|---|---|---|---|---|
+| **ConfTuner** (2508.18847) | train calibrated *verbal* confidence without ground-truth confidence labels **[A]** | fine-tune on the **tokenized Brier score**, proven a proper scoring rule **[A]** | calibration; downstream self-correction and model-cascade gains **[A]** | CC BY 4.0 **[A]** |
+| **LACIE** (2405.21028) | calibrate explicit *and implicit* confidence markers **[A]** | listener-aware preference optimisation; speaker/listener two-agent game **[A]** | confidence separation, human acceptance, TruthfulQA generalisation **[A]** | CC BY 4.0 **[A]** |
+
+Directly live: P1 was re-anchored to calibration, and A2 was found to have **no**
+calibrator. If one is added, ConfTuner's tokenized Brier is the named method in
+§13.3 and is now verified as a proper scoring rule.
+
+---
+
+## 4. CoT faithfulness and monitoring (frames §7.2; nothing measured depends on it)
+
+| source | finding as used here | licence |
+|---|---|---|
+| Measuring Faithfulness in CoT (2307.13702) | reliance on CoT is task-dependent, and **larger models produce less faithful reasoning** **[A]** | arXiv nonexclusive **[A]** |
+| LMs Don't Always Say What They Think (2305.04388) | CoT is swayed by biasing features the model **omits from its stated reasoning** **[A]** | CC BY 4.0 **[A]** |
+| Monitoring Reasoning Models (2503.11926) | CoT monitors help, but optimisation pressure produces **obfuscated reward hacking** **[A]** | arXiv nonexclusive **[A]** |
+| CoT Monitorability (2507.11473) | monitorability is a real but **fragile** safety opportunity; 41-author multi-org **[A]** | CC BY 4.0 **[A]** |
+| Emergent Misalignment (2502.17424) | narrow finetuning (insecure code) induced **broad** misalignment **[A]** | arXiv nonexclusive **[A]** |
+| LIMA (2305.11206) | **1,000 curated examples** suffice for alignment-style SFT **[A]** | CC BY 4.0 **[A]** |
+| Sleeper Agents (2401.05566) | **[U] not fetched** | **[U]** |
+
+---
+
+## Remaining gaps
+
+| item | why it is still open | priority |
+|---|---|---|
+| ITB dataset **registry record** (§8.2) | the benchmark CSV is a separate source; its terms are unregistered, and it is now cited for verified numbers | **high** — cheap, and it is a Gate 0 requirement |
+| Sleeper Agents (2401.05566) | framing only | low |
+| SPADE, HC3, HANSEN | dataset candidates, deprioritised once Track A concluded | low unless a real-passive replication is revived |
+| Full-text pass on Group 2 | all four are **[A]**, and B2's choice now rests on them | **high before D0 is built** |
+
+**Bottom line:** the matrix is complete enough to make Stage C decisions, with
+one caveat — the Group 2 recommendation rests on abstracts, so a full-text pass on
+BED-LLM and CA-BED should precede committing arm B2.

@@ -539,3 +539,130 @@ Concluding that Track A produced nothing — rejected as overreach in the other
 direction: a characterised within-family detector with measured calibration and a
 precisely located generalization boundary is a usable result, and the boundary is
 more valuable than the accuracy number would have been.
+
+---
+
+### 2026-08-18 — CORRECTION: "the ceiling is the corpus's" narrowed to a two-method result
+
+**Decision:** The claim in the previous entry — *"the ceiling is the **corpus's**"*,
+including the entry's own title — is **narrowed**. The supported statement is:
+*two methods, a TF-IDF baseline and one frozen Qwen2.5-7B representation with a
+logistic head, both fail to transfer between these two prompt families, and the
+neural one fails harder.* Correction sheet:
+`v2/results/track_a/corrections_20260818_213000.md` (§C1). The code docstring in
+`track_a_a2.py` is corrected in place; the append-only writeups are corrected by
+the sheet, not edited.
+
+**Reasoning:** "the corpus's ceiling" is an impossibility claim about all methods,
+resting on n = 2. The second method carries three handicaps a stronger A2 would
+not: crude mean-pooling as a sentence representation, a 512-d random projection
+adopted purely because this venv has no BLAS, and a single untuned head at one
+regularisation setting. A1 and A3 were never run. A different representation, a
+nested calibrator, or turn-wise evidence could in principle recover signal this
+pair missed.
+
+What survives is the part that actually justified stopping: the failure is **not
+an artefact of lexical representation**, because swapping the representation
+entirely did not help — it hurt. That is strong evidence of severe prompt
+dependence, and it is enough to stop Track A. It is not proof that no learnable
+general signal exists here, and the difference between those two statements is
+exactly the kind of overreach this project has twice had to retract.
+
+**Alternatives considered:** Editing the A2 writeup in place — rejected;
+`v2/results/` is append-only and the sequence claim → correction is itself the
+useful record. Defending the original on the grounds that two very different
+methods is suggestive — rejected; suggestive is not what "the corpus's ceiling"
+asserts, and the honest fix is to say the weaker thing. Re-running A2 with a
+better representation to settle it — rejected here; that is new experimental work
+on a concluded track, and the reconciliation must land before any further runs.
+
+---
+
+### 2026-08-18 — CORRECTION: A2 is a probabilistic head evaluated for calibration, not a calibrated head
+
+**Decision:** A2 is renamed from "calibrated classifier head" to **"probabilistic
+head, evaluated for calibration"** in `track_a_a2.py` (docstring and the `head`
+field of its output JSON) and corrected for the writeups by
+`corrections_20260818_213000.md` (§C2). **No calibrator is added.** All reported
+Brier/ECE/reliability numbers stand unchanged.
+
+**Reasoning:** `track_a_a2.py` fits an ordinary L2 logistic regression and
+*measures* calibration on out-of-fold predictions. It fits no Platt, isotonic, or
+temperature stage nested inside the training folds. **Out-of-fold calibration
+evaluation is not out-of-fold calibration**, and design §13.1 asks for the latter
+("calibrated full-history classifier head"). So the arm as built is a deviation
+from the plan, and describing it as calibrated claimed a component that does not
+exist.
+
+The measurements are unaffected: people-only dialogue Brier 0.1663 / ECE 0.1008,
+persona holdout ECE 0.283 and 0.364. They are legitimate statements about how
+well this head's raw probabilities happen to be calibrated. The A0-vs-A2 ECE
+comparison (0.173 vs 0.101) also stands, because both are uncalibrated estimators
+measured identically.
+
+**Why no calibrator was built.** The review asked for the description to be
+corrected first, and fitting one now would be new experimental work on a track
+that has stopped. It is recorded as outstanding, not done. A properly nested
+calibrator would fit on the training folds only, never on the held-out fold, or
+it would leak the very quantity it is meant to estimate.
+
+**Alternatives considered:** Adding a Platt stage immediately so the original word
+becomes true — rejected; that is fixing the evidence to match the claim rather
+than the claim to match the evidence, and it would restart experiments before the
+record is reconciled. Dropping calibration reporting entirely — rejected; the
+measurements are informative, and the persona-holdout ECE of 0.283/0.364
+(confidently wrong) is one of the sharper results in the session.
+
+---
+
+### 2026-08-18 — PLAN REVISION: Track A concluded early; A1 skipped, A3 deferred; the non-gating contradiction resolved
+
+**Decision:** Track A is recorded as **concluded early relative to the frozen
+plan**, not complete. A1 is **SKIPPED**, A3 is **DEFERRED** to optional Stage D.
+Gate 1 is restated as: **broad Gate 1 failed or unavailable; within-configuration
+passive detection established.** This is a deviation from `v2/experiment_design.md`
+§13.1 and §16 and is labelled as one. Detail: `corrections_20260818_213000.md`
+§§C3–C4.
+
+**Reasoning — the bookkeeping.** §13.1 lists four Track A arms. A0 ran. A2 ran
+(uncalibrated, see the previous entry). **A1 and A3 were never implemented.** A1's
+non-implementation was declared up front and for good reasons — its 557 games are
+48.9% of the corpus, biased long, and the A2-vs-A1 contrast had already been
+demoted to interval reporting — but a well-justified skip is still a skip, and
+"Stage B complete" was wrong while two planned arms were outstanding.
+
+**Reasoning — Gate 1, and why "failed" alone would be misleading.** Gate 1 asks
+for "useful out-of-source discrimination and calibration". **No out-of-source
+holdout was ever available**: the only other real corpus in hand is the 15-minute
+study, whose Gate 0 is unresolved, so it was never read. Every holdout actually
+run was within-corpus. So Gate 1 is not passed *partly by failure* (the persona
+rung) and *partly by unavailability* (no second source), and collapsing those two
+into one verdict would misdescribe what the project learned.
+
+**Reasoning — the contradiction, which is the substantive part.** The rung-4 entry
+records persona and family rungs as **non-gating** ("reported but not gating").
+The next entry then used persona failure to declare Track A concluded. Both cannot
+stand as written. **Resolution: the stop was a judgement call informed by a
+non-gating rung, not a gate firing.** Persona failure did not automatically fail
+Gate 1. It made further Track A investment unattractive, because the axis that
+failed is precisely the one v2.1's question depends on — an investigator that
+cannot generalize past the respondent's prompt cannot support the calibrated
+active-detection claim the project exists to test. Stopping on that basis is
+defensible; presenting it as the plan executing as written is not. Hence a
+recorded revision.
+
+**What this does not change.** No measurement, and not the stop itself. Track A
+still stops, and the reconciliation queue in `STATUS.md` still gates any further
+experiment. What changes is that a later reader can see which arms ran, which did
+not, which gate conditions were untestable, and that the stopping rule applied was
+judgement rather than a threshold.
+
+**Alternatives considered:** Running A1 and A3 now to make "complete" true —
+rejected; both were declined on their merits, the track has stopped, and running
+arms to satisfy a word is code-first reasoning. Declaring Gate 1 simply "failed" —
+rejected; it understates, because the required out-of-source test was never
+available to fail. Declaring Gate 1 "passed on rungs 1–3" — rejected; it
+overstates, because rung 3's own wording makes artefact-survival necessary rather
+than sufficient, and the persona result is the decision-relevant one. Leaving the
+contradiction unresolved with a footnote — rejected; an unresolved contradiction
+between two adjacent log entries is exactly what makes a log stop being trusted.

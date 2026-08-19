@@ -1,7 +1,22 @@
 #!/usr/bin/env python3
 """
-Track A arm A2: calibrated classifier head on a temporally clean frozen
-representation model (design §5, §12, §13.1).
+Track A arm A2: probabilistic head on a temporally clean frozen representation
+model, EVALUATED for calibration (design §5, §12, §13.1).
+
+Naming, because the distinction is load-bearing
+-----------------------------------------------
+Design §13.1 specifies a "calibrated full-history classifier head". This module
+does NOT implement that. It fits an ordinary L2 logistic regression and *measures*
+Brier/ECE/reliability on out-of-fold predictions. There is no Platt, isotonic, or
+temperature stage fitted inside the training folds.
+
+**Out-of-fold calibration EVALUATION is not out-of-fold CALIBRATION.** The
+reported Brier and ECE numbers are legitimate measurements of how well this head's
+raw probabilities happen to be calibrated; they are not evidence that a
+calibration procedure was applied. Calling this arm "calibrated" would claim a
+component that does not exist, so it is called a probabilistic head throughout.
+Adding a properly nested calibrator is outstanding work, deliberately not done
+here.
 
 The question this run exists to answer
 --------------------------------------
@@ -9,7 +24,12 @@ A0 (bag of words) reaches 0.925 paired accuracy when evaluation holds out people
 but not witness systems, and collapses to 0.58-0.64 under a held-out persona
 prompt. Is that ceiling a property of BAG OF WORDS, or of the CORPUS? A2 swaps
 the representation for a frozen neural one and re-runs the same two cuts. If A2
-also collapses, the ceiling is the corpus's and Track A concludes.
+also collapses, the limit is not specific to bag-of-words, and Track A concludes.
+
+Stated at the width the design permits: a second method failing the same cut is
+evidence that the limitation is not an artefact of lexical representation. It is
+NOT proof that the corpus contains no learnable general signal — that would need
+more than two methods, and A1 and A3 were never run.
 
 Temporal cleanliness
 --------------------
@@ -262,7 +282,9 @@ def main(argv=None) -> int:
         "projection": {"method": "very sparse random projection (Li et al. 2006)",
                        "d_out": PROJ_DIM, "seed": PROJ_SEED,
                        "note": "can only lose information; conservative for A2"},
-        "head": {"type": "L2 logistic regression", "l2": args.l2, "iters": 150},
+        "head": {"type": "L2 logistic regression (NOT calibrated; no Platt/"
+                     "isotonic/temperature stage)", "l2": args.l2, "iters": 150,
+                     "calibration": "evaluated out of fold, not fitted"},
         "evalset_policy": "empty-witness games dropped (same set as A0)",
         "test_split": "UNTOUCHED (Gate 5, one shot)",
         "canonical": {"source_revision": manifest["source_revision"],

@@ -31,20 +31,30 @@ Done: licence/provenance registry, source download with per-file hashes, schema
 inspection of both studies, PII policy enforced in code, frozen participant
 split, precision/MDD analysis with a frozen contrast set, ITB length-unit
 determination.
-**Missing (see queue item 5): the literature matrix and the source-coverage
-table** required by §18 Stage A steps 1 and 5. One corpus was found and work
-accelerated into analysis before the broader prior-art and dataset comparison
-was finished. This is a milder replay of V1's failure mode and should be closed
-before Stage C is trusted.
+**Added 2026-08-18** (late, after Stage B — the ordering error is real and is
+recorded): `v2/results/stage_a/source_coverage.md` and
+`v2/results/stage_a/literature_matrix.md`.
+- The **source-coverage table is complete.** Headline: *no existing source
+  supplies executable respondents, turn-level beliefs, or verified SFT actions.*
+  D0 is the only route to all three, which is independent evidence that Stage C
+  is the right next move.
+- The **literature matrix is complete only as far as offline work allows.** Every
+  cell is marked [R] repo-verified, [P] quoted-from-paper, or [U] **unverified**.
+  Finishing it needs ~15 papers fetched — one session, network, no compute. The
+  binding gap is the active-information-seeking group, which currently has **one**
+  entry (UoT) and directly constrains Stage C.
 
-**Stage B (Track A, real-passive) — COMPLETE, with a negative generalization
-result.** Four sessions, six commits, all artifacts in `v2/results/track_a/`.
+**Stage B (Track A, real-passive) — CONCLUDED EARLY, with a negative
+generalization result.** Not "complete": two of the four planned arms were never
+implemented. Artifacts in `v2/results/track_a/`; claim-level corrections in
+`corrections_20260818_213000.md`; plan revision recorded in `v2/DECISIONS.md`
+(2026-08-18).
 
 | arm | status |
 |---|---|
 | A0 majority/random/lexical/statistical | done |
 | A1 Inverse Turing Bench reproduction | **SKIPPED** — never implemented; see below |
-| A2 frozen temporally clean representation + head | done, one run |
+| A2 frozen clean representation + **probabilistic** head | done, one run — **not calibrated**, see below |
 | A3 turn-wise evaluation | **DEFERRED** — never implemented; see below |
 
 **Stage C (Track B, synthetic-active) — NOT STARTED.** This is the next
@@ -75,50 +85,78 @@ bag-of-words baseline and one frozen-representation head — both fail to transf
 between these two prompt families, and the neural one fails harder.* That is
 strong evidence of severe prompt dependence in this corpus.
 
-⚠️ **It is NOT proof that the corpus contains no learnable general signal.**
-Earlier wording in `v2/DECISIONS.md` and the A2 writeup says "the ceiling is the
-corpus's" — that converts a two-method result into an impossibility claim and is
-**queued for correction (item 3)**. Only one neural representation was tested,
-with crude mean pooling and a random projection; A1 and A3 were never run.
+⚠️ **It is NOT proof that the corpus contains no learnable general signal.** The
+earlier "the ceiling is the corpus's" wording converted a two-method result into
+an impossibility claim; **corrected 2026-08-18** (`v2/DECISIONS.md`;
+`corrections_20260818_213000.md` §C1). Only one neural representation was tested,
+with crude mean pooling and a 512-d random projection, and A1 and A3 were never
+run.
+
+**Gate 1 verdict, in the form to quote:** *broad Gate 1 failed or unavailable —
+failed on the persona rung, unavailable because no out-of-source corpus was ever
+readable (the 15-minute study's Gate 0 is unresolved); within-configuration
+passive detection established; A1 skipped; A3 deferred.* The stop was a
+**judgement call informed by a non-gating rung, not a gate firing** — persona and
+family rungs are explicitly non-gating, and that contradiction is resolved in
+`v2/DECISIONS.md` (2026-08-18 plan revision).
+
+**A2 is a probabilistic head, not a calibrated one.** It fits ordinary L2 logistic
+regression and *measures* Brier/ECE out of fold; there is no nested
+Platt/isotonic/temperature stage. Out-of-fold calibration *evaluation* is not
+out-of-fold *calibration*. The numbers stand; the label was wrong and is
+**corrected 2026-08-18** (§C2). Design §13.1 asks for a calibrated head, so the
+arm as built is a recorded deviation.
 
 ---
 
 ## Reconciliation queue — do these BEFORE any new experiment
 
 1. ~~Retire the V1 "scale Claude scenarios" instruction from the active status.~~ **DONE 2026-08-18.**
-2. ~~Fix or isolate the broken V1 edit.~~ **DONE 2026-08-18** — `reverse_scenarios.py`
-   had a stray `"""` at line 639 prematurely closing a docstring (the real close
-   is line 647), left by an interrupted edit on 2026-08-17. Replaced with a blank
-   line; one-line change, no logic touched. Full suite went from *228 tests,
-   2 import errors* to **303 tests, OK**. **The fix is in the working tree and is
-   deliberately NOT committed** — that file carries ~62 lines of another
-   session's uncommitted work, and committing it would sweep those in. Whoever
-   owns those edits should commit them together.
-3. **Narrow the "corpus ceiling" claim** in `v2/DECISIONS.md` (2026-08-18 final
-   entry) and `v2/results/track_a/a2_frozen_rep_20260818_writeup.md` to the
-   two-method wording above. `results/` is append-only → correction entry, not an
-   edit.
-4. **Stop calling A2 "calibrated", or make it so.** `track_a_a2.py` fits ordinary
-   L2 logistic regression and *evaluates* Brier/ECE out of fold. It does **not**
-   fit a Platt/isotonic/temperature calibrator nested inside the training folds.
-   Out-of-fold calibration *evaluation* ≠ out-of-fold *calibration*. Either rename
-   to "probabilistic head evaluated for calibration" or add a nested calibration
-   stage. The reported ECE/Brier numbers are legitimate either way.
-5. **Finish Stage A**: the literature matrix (§18 step 1) and the source-coverage
-   table (§18 step 5).
-6. **Record the plan revision explicitly.** Track A stopped early relative to the
-   frozen plan, which still lists A1, A3, and "out-of-source discrimination and
-   calibration" as Gate 1. The clean statement is: *broad Gate 1 failed or
-   unavailable; within-configuration passive detection established; A1 skipped as
-   a consequence of the stopping decision; A3 deferred to optional Stage D.*
-   Note the internal contradiction to resolve: `v2/DECISIONS.md` records
-   persona/family rungs as **non-gating**, and the next entry then uses persona
-   failure to conclude Track A. Stopping is defensible — but as a recorded plan
-   revision, not silently.
-7. **Back up the work.** Branch `track-a-ablation` is **9 commits ahead of
-   `origin/main` with no remote branch**. Local-only, against the repo's own
-   durability rule. Push after a secrets check. *Owner decision — not pushed
-   without being asked.*
+2. ~~Isolate the broken V1 edit.~~ **UNBLOCKED 2026-08-18, but NOT DURABLE — still
+   needs an owner.** `reverse_scenarios.py` had a stray `"""` at line 639
+   prematurely closing a docstring (the real close is line 647), left by an
+   interrupted edit on 2026-08-17. Replaced with a blank line; one line, no logic
+   touched. Full suite went from *228 tests, 2 import errors* to **303 tests, OK**.
+
+   **Why this is not finished.** Verified: `HEAD`'s copy of the file parses
+   cleanly, so the syntax error did not exist in the repository — it arose
+   *inside* an uncommitted V1 patch (152 insertions across
+   `scripts/data_prep/reverse_scenarios.py` and `tests/test_reverse_scenarios.py`).
+   A one-line repair therefore **cannot be committed as an independent fix**:
+   staging that file would sweep in the whole patch, and the fix is meaningless
+   without it. It survives only as an uncommitted working-tree edit and will be
+   lost if the patch is reverted — which is harmless, because reverting also
+   removes the error.
+
+   **Owner action required:** review the whole V1 patch and either commit it (with
+   this repair folded in) or discard it. Until then the green suite depends on an
+   uncommitted edit, which is not a durable state.
+   A copy of the pre-repair file is in this session's scratchpad.
+3. ~~**Narrow the "corpus ceiling" claim.**~~ **DONE 2026-08-18** — correction
+   entry in `v2/DECISIONS.md`, sheet §C1, code docstring fixed. Writeups not
+   edited (append-only); the sheet supersedes the claim.
+4. ~~**Stop calling A2 "calibrated", or make it so.**~~ **DONE 2026-08-18** —
+   renamed to "probabilistic head, evaluated for calibration" in code and in the
+   sheet §C2. **No calibrator was built**, deliberately: that is new experimental
+   work on a stopped track. Adding a properly nested one (fitted on training folds
+   only) remains available if A2 is ever revived.
+5. ~~**Finish Stage A**: literature matrix + source-coverage table.~~
+   **SOURCE COVERAGE DONE; LITERATURE MATRIX PARTIAL 2026-08-18.** The matrix is
+   built and honestly marked, but ~15 papers remain unfetched ([U] cells) because
+   this session had no network. **Do not quote a [U] cell.** Priority order to
+   finish: (1) the active-questioning group — one entry today, and Stage C depends
+   on it; (2) Inverse Turing Bench, which needs a registry record and supplies two
+   numbers currently used only as unverified comparisons; (3) JB 2024.
+6. ~~**Record the plan revision explicitly.**~~ **DONE 2026-08-18** — plan-revision
+   entry in `v2/DECISIONS.md` and sheet §§C3–C4. A1 SKIPPED, A3 DEFERRED, Stage B
+   "concluded early" not complete, Gate 1 restated as failed-or-unavailable, and
+   the non-gating contradiction resolved (stop = judgement call, not a gate
+   firing).
+7. **Back up the work.** Branch `track-a-ablation` has no remote branch and is
+   local-only, against the repo's own durability rule. Check the gap with
+   `git log --oneline origin/main..HEAD | wc -l` rather than trusting a number
+   written here — it goes stale on the next commit. Push after a secrets check.
+   *Owner decision — not pushed without being asked.*
 
 ---
 

@@ -228,3 +228,65 @@ venv/bin/python -m unittest discover -s tests     # 303 tests
   inference clusters on the participant. Different questions, different units.
 - The 15-minute study has **no resolved Gate 0** — not read, not evaluated.
 - Never `git add -A`; this tree is co-mingled with another session's V1 work.
+
+---
+
+# Active correction programme — 2026-08-22
+
+**Updated:** 2026-08-22 11:20 PDT
+
+## Goal
+
+Correct the V1 repeated-measures analysis and Track A crossed-participant
+inference, decide whether the deliverable is a methodological failure study or a
+real active-investigation programme, and only then build the smallest justified
+bridge experiment. Stage C is paused. The untouched Track A test split remains
+untouched, and the unrelated uncommitted V1 scenario patch is out of scope.
+
+## Stages
+
+- [x] 1. Audit raw observations and freeze a correction specification — see
+  `docs/INFERENCE_CORRECTION_20260822.md`; historical V1 prompt outcomes are not
+  recoverable from committed aggregates.
+- [ ] 2. Implement corrected V1 repeated-measures and Track A crossed-participant
+  inference ← **IN PROGRESS:** remove invalid historical pooled inference,
+  persist future prompt outcomes, add dyadic/component intervals and tests, then
+  write append-only correction artifacts.
+- [x] 3. Explain the deliverable fork and record the owner's decision —
+  **HYBRID:** finish an honest methodological failure study, explicitly including
+  poor planning/ordering as a cause, then continue the real-active programme
+  behind the bridge gates.
+- [ ] 4. Implement the selected smallest bridge experiment: if real-active,
+  provenance-locked out-of-corpus baseline + nested calibration + mandatory D0
+  real-replay criterion; if methodological, close and package the negative study.
+- [ ] 5. Verify the complete record, update the public README/status, and commit
+  each clean stage by exact path. No push without owner authorization.
+
+## Resume
+
+```bash
+git status --short
+rg -n 'prompt|opener|closure|outputs|rows' results/analysis/*.json scripts/eval/dose_curve.py
+rg -n 'bootstrap_intervals|cluster_units|widen' v2/scripts/track_a_a0.py
+venv/bin/python -m unittest discover -s tests
+```
+
+Resume at Stage 2. Do not begin Stage C or read the frozen Track A test split.
+
+## Decisions made
+
+- Stage C is paused pending inference corrections and an explicit deliverable
+  choice.
+- Correct both V1 repeated-measures inference and Track A crossed-participant
+  intervals before making new claims.
+- Ask the owner to choose the deliverable after explaining concrete options.
+- Deliverable: **hybrid**. Package the methodological failure study first, then
+  continue the active-investigation programme as a gated extension.
+- Failure framing: distinguish genuine negative scientific results from failures
+  caused by poor planning, premature implementation, construct mismatch, and
+  invalid inference. Record both plainly.
+- V1 correction depth: withdraw unsupported Fisher/Wilson pooled inference and
+  mark the historical dose curves descriptive; do not rerun GPU experiments.
+  Upgrade logging so any future run retains prompt-level outcomes.
+- Git: owner authorised path-specific commits alongside the dirty tree. Never
+  stage the unrelated scenario patch, generated datasets, draft files, or HTML.

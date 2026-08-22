@@ -10,6 +10,7 @@
 # only on cache misses. Training needs a GPU — see docs/runpod-runbook.md.
 
 PY := venv/bin/python
+BRIDGE_PY := .bridge-venv/bin/python
 
 # Ollama model used for classification/augmentation. The committed corpus and
 # caches were built with qwen2.5:7b — changing this regenerates from scratch.
@@ -27,6 +28,7 @@ OVERSAMPLE ?= 3
         v2-fetch-3p v2-inspect-3p v2-itb-length \
         v2-splits v2-precision v2-paper-exclusions v2-policy \
         v2-canonical v2-track-a0 v2-track-a0-ablation v2-rung2 v2-rung4 v2-a2 \
+        v2-bridge-setup v2-bridge-score v2-bridge-analyze \
         test lint
 
 help:
@@ -60,6 +62,9 @@ help:
 	@echo "  v2-rung2       Gate 1 rung 2: SONA<->Prolific transfer, both directions"
 	@echo "  v2-rung4       Gate 1 rung 4: leave-one-system-out / leave-one-persona-out"
 	@echo "  v2-a2          Arm A2: frozen temporally clean representation + head"
+	@echo "  v2-bridge-setup  build and verify the pinned external-detector environment"
+	@echo "  v2-bridge-score  resumably score train+dev with the pinned external detector"
+	@echo "  v2-bridge-analyze nested calibration + corrected bridge inference"
 
 install:
 	python3 -m venv venv
@@ -222,6 +227,17 @@ v2-rung4: v2-canonical
 EMBED_URL ?= http://127.0.0.1:51999
 v2-a2: v2-canonical
 	$(PY) v2/scripts/track_a_a2.py --embed-url $(EMBED_URL)
+
+v2-bridge-setup:
+	scripts/setup_bridge_env.sh
+	scripts/doctor_bridge_env.sh
+
+v2-bridge-score:
+	scripts/doctor_bridge_env.sh
+	HF_HUB_DISABLE_XET=1 $(BRIDGE_PY) -u v2/scripts/track_a_bridge.py score --resume
+
+v2-bridge-analyze:
+	$(PY) v2/scripts/track_a_bridge.py analyze --bootstrap 1000
 
 test:
 	$(PY) -m unittest discover -s tests -v

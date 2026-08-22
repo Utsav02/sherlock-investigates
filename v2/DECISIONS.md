@@ -783,3 +783,40 @@ BED-LLM — rejected; §13.2 is frozen design text and changing a named baseline
 after seeing which is stronger needs to be an owner decision on the record.
 Fetching full texts for all 15 — not done; abstract level is sufficient for
 everything except the B2 choice, which is flagged accordingly.
+
+---
+
+### 2026-08-22 — Hybrid deliverable and smallest external-detector bridge
+
+**Decision:** retain a hybrid programme. The v1/v2 methodological failure record
+is a standalone deliverable and explicitly includes poor planning and ordering,
+not only negative model results. The active-investigation extension may continue
+only behind a provenance-locked external-detector bridge and a mandatory real
+replay criterion.
+
+The selected bridge is OpenAI's 2019 RoBERTa-base GPT-2 detector at immutable
+revision `6cba99c003b711c7fe94f8a3aa2be35a792cb6fa`. It is deliberately old and
+out of corpus. Calibration is Platt scaling with ridge selected by inner
+leave-one-component-out Brier score, nested within every outer participant
+component and persona-transfer evaluation. The Track A test split was not
+scored.
+
+**Observed result:** the pre-registered bridge gate passes in both directions:
+minimal→Quinn accuracy 0.604 (dyadic 95% CI [0.563, 0.645], component
+[0.548, 0.641], Brier 0.244); Quinn→minimal 0.591 (dyadic [0.531, 0.652],
+component [0.544, 0.650], Brier 0.247).
+
+**Critical limitation:** this is not zero-shot detector success. Raw game
+accuracies are 0.396 and 0.409, raw overall AUROC is 0.463, and every nested
+Platt slope is negative. The calibrator learns on one target prompt family that
+the old detector is inverted, and that inverse relationship transfers to the
+other. The honest claim is therefore “a weak external score contains transferable
+information after nested target calibration,” not “the GPT-2 detector recognizes
+modern AI.” The all-system component interval still crosses chance and both
+Brier values barely clear 0.25. Eight retained connected components make this a
+small bridge, not confirmation.
+
+**Consequence:** Stage C may proceed to its no-training Gate 2A mechanics. D0 SFT
+remains forbidden until Gate 2A passes. Gate 3B is now mandatory before any
+real-investigation transfer claim and uses the frozen paired area-under-turnwise-
+log-loss rule in `v2/BRIDGE_PROTOCOL.md`; an inconclusive interval does not pass.

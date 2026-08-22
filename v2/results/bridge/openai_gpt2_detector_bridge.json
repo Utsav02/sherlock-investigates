@@ -1,0 +1,1774 @@
+{
+  "bridge_gate": {
+    "directions": {
+      "minimal->quinn": {
+        "component_lower": 0.5478,
+        "dialogue_brier": 0.244052,
+        "game_accuracy": 0.603774,
+        "interval_threshold_not_cleared": false,
+        "participant_lower": 0.5629,
+        "point_threshold_failed": false
+      },
+      "quinn->minimal": {
+        "component_lower": 0.5435,
+        "dialogue_brier": 0.247067,
+        "game_accuracy": 0.591195,
+        "interval_threshold_not_cleared": false,
+        "participant_lower": 0.5306,
+        "point_threshold_failed": false
+      }
+    },
+    "test_split": "UNTOUCHED; no test dialogue scored",
+    "verdict": "PASS"
+  },
+  "calibration": {
+    "l2_grid": [
+      0.01,
+      0.1,
+      1.0,
+      10.0,
+      100.0
+    ],
+    "method": "Platt on raw-score logit",
+    "selection": "inner leave-one-component-out dialogue Brier; larger l2 wins ties"
+  },
+  "canonical": {
+    "dialogues_sha256": "8c1050dc0f84eda143de1237b9105a416897f9077f5616b05b16ed340e23a596",
+    "games_sha256": "807963d4d896ab1b511d96b2960ecd214c337f550c2b96878435e28325294a1f",
+    "source_revision": "6891d9a8a2c4",
+    "split_sha256": "256543688a5da35879e157771cf1b527b82014923a1134ff06f10e8b24b8a8c7"
+  },
+  "exclusions": {
+    "empty_witness_games": 61,
+    "retained_dialogues": 1700,
+    "retained_games": 850
+  },
+  "generated_at_utc": "2026-08-22T21:06:58.894774+00:00",
+  "generated_by": "v2/scripts/track_a_bridge.py analyze",
+  "inference": {
+    "additive": "dyadic participant-cluster sandwich",
+    "bootstrap_replicates": 1000,
+    "nonadditive": "connected-component percentile bootstrap",
+    "seed": 20260822
+  },
+  "model": {
+    "id": "openai-community/roberta-base-openai-detector",
+    "revision": "6cba99c003b711c7fe94f8a3aa2be35a792cb6fa",
+    "weight_sha256": "3abd6d2b005f5876b945cb5b68ddde04f6e28fbd9c5d6dc5adfb06ba647e0546"
+  },
+  "nested_calibrated_people_only": {
+    "dialogue_ece": 0.006324,
+    "intervals": {
+      "component": {
+        "detectors": {
+          "external": {
+            "dialogue_auroc": {
+              "hi": 0.5595,
+              "lo": 0.4799
+            },
+            "dialogue_balanced_accuracy": {
+              "hi": 0.5506,
+              "lo": 0.4766
+            },
+            "dialogue_brier": {
+              "hi": 0.2526,
+              "lo": 0.2485
+            },
+            "dialogue_log_loss": {
+              "hi": 0.6985,
+              "lo": 0.6902
+            },
+            "game_accuracy": {
+              "hi": 0.5842,
+              "lo": 0.4883
+            },
+            "game_accuracy_diff_vs_majority": {
+              "hi": NaN,
+              "lo": NaN
+            },
+            "game_brier": {
+              "hi": 0.2515,
+              "lo": 0.2482
+            }
+          }
+        },
+        "n_clusters": 8
+      },
+      "game": {
+        "detectors": {
+          "external": {
+            "dialogue_auroc": {
+              "hi": 0.5472,
+              "lo": 0.4971
+            },
+            "dialogue_balanced_accuracy": {
+              "hi": 0.5482,
+              "lo": 0.5024
+            },
+            "dialogue_brier": {
+              "hi": 0.251,
+              "lo": 0.2486
+            },
+            "dialogue_log_loss": {
+              "hi": 0.6951,
+              "lo": 0.6903
+            },
+            "game_accuracy": {
+              "hi": 0.5788,
+              "lo": 0.5153
+            },
+            "game_accuracy_diff_vs_majority": {
+              "hi": NaN,
+              "lo": NaN
+            },
+            "game_brier": {
+              "hi": 0.2504,
+              "lo": 0.248
+            }
+          }
+        },
+        "n_clusters": 850
+      },
+      "human_witness": {
+        "detectors": {
+          "external": {
+            "dialogue_auroc": {
+              "hi": 0.5484,
+              "lo": 0.4923
+            },
+            "dialogue_balanced_accuracy": {
+              "hi": 0.5501,
+              "lo": 0.4988
+            },
+            "dialogue_brier": {
+              "hi": 0.2511,
+              "lo": 0.2486
+            },
+            "dialogue_log_loss": {
+              "hi": 0.6955,
+              "lo": 0.6903
+            },
+            "game_accuracy": {
+              "hi": 0.5817,
+              "lo": 0.5101
+            },
+            "game_accuracy_diff_vs_majority": {
+              "hi": NaN,
+              "lo": NaN
+            },
+            "game_brier": {
+              "hi": 0.2506,
+              "lo": 0.248
+            }
+          }
+        },
+        "n_clusters": 235
+      },
+      "interrogator": {
+        "detectors": {
+          "external": {
+            "dialogue_auroc": {
+              "hi": 0.5474,
+              "lo": 0.4962
+            },
+            "dialogue_balanced_accuracy": {
+              "hi": 0.5483,
+              "lo": 0.5035
+            },
+            "dialogue_brier": {
+              "hi": 0.251,
+              "lo": 0.2486
+            },
+            "dialogue_log_loss": {
+              "hi": 0.6952,
+              "lo": 0.6904
+            },
+            "game_accuracy": {
+              "hi": 0.578,
+              "lo": 0.5116
+            },
+            "game_accuracy_diff_vs_majority": {
+              "hi": NaN,
+              "lo": NaN
+            },
+            "game_brier": {
+              "hi": 0.2505,
+              "lo": 0.2481
+            }
+          }
+        },
+        "n_clusters": 231
+      },
+      "participant": {
+        "detectors": {
+          "external": {
+            "dialogue_auroc": {
+              "hi": null,
+              "lo": null,
+              "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+            },
+            "dialogue_balanced_accuracy": {
+              "estimate": 0.5253,
+              "hi": 0.5477,
+              "lo": 0.5029,
+              "meat_clipped_at_zero": false,
+              "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+              "n_games": 850,
+              "n_participants": 239,
+              "se": 0.011414
+            },
+            "dialogue_brier": {
+              "estimate": 0.2498,
+              "hi": 0.2511,
+              "lo": 0.2485,
+              "meat_clipped_at_zero": false,
+              "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+              "n_games": 850,
+              "n_participants": 239,
+              "se": 0.000659
+            },
+            "dialogue_log_loss": {
+              "estimate": 0.6928,
+              "hi": 0.6954,
+              "lo": 0.6902,
+              "meat_clipped_at_zero": false,
+              "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+              "n_games": 850,
+              "n_participants": 239,
+              "se": 0.001324
+            },
+            "game_accuracy": {
+              "estimate": 0.5459,
+              "hi": 0.5813,
+              "lo": 0.5104,
+              "meat_clipped_at_zero": false,
+              "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+              "n_games": 850,
+              "n_participants": 239,
+              "se": 0.018084
+            },
+            "game_accuracy_diff_vs_majority": {
+              "hi": null,
+              "lo": null,
+              "method": "majority baseline unavailable"
+            },
+            "game_brier": {
+              "estimate": 0.2493,
+              "hi": 0.2505,
+              "lo": 0.248,
+              "meat_clipped_at_zero": false,
+              "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+              "n_games": 850,
+              "n_participants": 239,
+              "se": 0.000645
+            }
+          }
+        },
+        "method": "dyadic participant-cluster sandwich for additive metrics; component bootstrap for non-additive metrics",
+        "n_clusters": 239
+      }
+    },
+    "n_games": 850,
+    "point_estimates": {
+      "dialogue_auroc": 0.52117,
+      "dialogue_balanced_accuracy": 0.525294,
+      "dialogue_brier": 0.249815,
+      "dialogue_log_loss": 0.692781,
+      "game_accuracy": 0.545882,
+      "game_brier": 0.249273
+    }
+  },
+  "people_calibration_diagnostics": [
+    {
+      "held_component": 0,
+      "inner_brier": {
+        "0.01": 0.2505536538017537,
+        "0.1": 0.2505532925515775,
+        "1.0": 0.25054970312607455,
+        "10.0": 0.25051598262647246,
+        "100.0": 0.25031263852376695
+      },
+      "n_held_games": 323,
+      "n_train_games": 527,
+      "platt_intercept": -1.0622446227256276e-06,
+      "platt_slope_raw_logit": -0.013670259383699517,
+      "platt_slope_standardized_logit": -0.05139497714752501,
+      "selected_l2": 100.0
+    },
+    {
+      "held_component": 1,
+      "inner_brier": {
+        "0.01": 0.24963206476793973,
+        "0.1": 0.24963202653341987,
+        "1.0": 0.24963165047910818,
+        "10.0": 0.24962847923925666,
+        "100.0": 0.24963081643461324
+      },
+      "n_held_games": 157,
+      "n_train_games": 693,
+      "platt_intercept": -1.4300929859924851e-05,
+      "platt_slope_raw_logit": -0.03869042800109653,
+      "platt_slope_standardized_logit": -0.14617107283410377,
+      "selected_l2": 10.0
+    },
+    {
+      "held_component": 2,
+      "inner_brier": {
+        "0.01": 0.25061442801574135,
+        "0.1": 0.25061409293839954,
+        "1.0": 0.25061075829596424,
+        "10.0": 0.25057895603511177,
+        "100.0": 0.25036713532701366
+      },
+      "n_held_games": 141,
+      "n_train_games": 709,
+      "platt_intercept": -4.639770214673898e-06,
+      "platt_slope_raw_logit": -0.02255119941695285,
+      "platt_slope_standardized_logit": -0.08576438165284901,
+      "selected_l2": 100.0
+    },
+    {
+      "held_component": 4,
+      "inner_brier": {
+        "0.01": 0.24870134783269485,
+        "0.1": 0.24870141304987187,
+        "1.0": 0.24870207560140103,
+        "10.0": 0.24870965431415462,
+        "100.0": 0.24882995020272775
+      },
+      "n_held_games": 99,
+      "n_train_games": 751,
+      "platt_intercept": -1.0091982570166068e-05,
+      "platt_slope_raw_logit": -0.04532215186249266,
+      "platt_slope_standardized_logit": -0.1703269588207829,
+      "selected_l2": 0.01
+    },
+    {
+      "held_component": 5,
+      "inner_brier": {
+        "0.01": 0.24984801875122561,
+        "0.1": 0.24984792315849347,
+        "1.0": 0.24984697415698653,
+        "10.0": 0.24983814400529644,
+        "100.0": 0.24979322090178485
+      },
+      "n_held_games": 59,
+      "n_train_games": 791,
+      "platt_intercept": -7.40222805294115e-06,
+      "platt_slope_raw_logit": -0.02719606684824469,
+      "platt_slope_standardized_logit": -0.10346362339972016,
+      "selected_l2": 100.0
+    },
+    {
+      "held_component": 7,
+      "inner_brier": {
+        "0.01": 0.24965004879544886,
+        "0.1": 0.2496499794044986,
+        "1.0": 0.24964929250935644,
+        "10.0": 0.24964308900953405,
+        "100.0": 0.24962316468291784
+      },
+      "n_held_games": 44,
+      "n_train_games": 806,
+      "platt_intercept": -7.047547139181414e-06,
+      "platt_slope_raw_logit": -0.028939154690018214,
+      "platt_slope_standardized_logit": -0.10930842096267875,
+      "selected_l2": 100.0
+    },
+    {
+      "held_component": 9,
+      "inner_brier": {
+        "0.01": 0.2491859663882976,
+        "0.1": 0.24918593095529404,
+        "1.0": 0.24918558550743772,
+        "10.0": 0.24918296821835695,
+        "100.0": 0.2492066115400092
+      },
+      "n_held_games": 25,
+      "n_train_games": 825,
+      "platt_intercept": -1.7837320639590175e-05,
+      "platt_slope_raw_logit": -0.039480856079169076,
+      "platt_slope_standardized_logit": -0.1488012368138916,
+      "selected_l2": 10.0
+    },
+    {
+      "held_component": 11,
+      "inner_brier": {
+        "0.01": 0.24947847407399829,
+        "0.1": 0.2494784238476257,
+        "1.0": 0.24947792825342668,
+        "10.0": 0.24947360518121287,
+        "100.0": 0.24947028322359213
+      },
+      "n_held_games": 2,
+      "n_train_games": 848,
+      "platt_intercept": -7.27946748983304e-06,
+      "platt_slope_raw_logit": -0.029874624714979144,
+      "platt_slope_standardized_logit": -0.11277293413390098,
+      "selected_l2": 100.0
+    }
+  ],
+  "persona_transfer": {
+    "minimal->quinn": {
+      "calibration_diagnostics": [
+        {
+          "held_component": 0,
+          "inner_brier": {
+            "0.01": 0.24702421764652024,
+            "0.1": 0.2470230957619071,
+            "1.0": 0.24701261522037907,
+            "10.0": 0.24696642922283896,
+            "100.0": 0.2477320022551943
+          },
+          "n_held_games": 166,
+          "n_train_games": 199,
+          "platt_intercept": -0.0001469641926397748,
+          "platt_slope_raw_logit": -0.061469410433407215,
+          "platt_slope_standardized_logit": -0.23711217975659596,
+          "selected_l2": 10.0
+        },
+        {
+          "held_component": 1,
+          "inner_brier": {
+            "0.01": 0.24710062794918097,
+            "0.1": 0.2470998444409062,
+            "1.0": 0.24709255414949752,
+            "10.0": 0.24706331667173165,
+            "100.0": 0.2477354918562132
+          },
+          "n_held_games": 75,
+          "n_train_games": 260,
+          "platt_intercept": -9.791301195397355e-05,
+          "platt_slope_raw_logit": -0.0571863620160704,
+          "platt_slope_standardized_logit": -0.2244140123404587,
+          "selected_l2": 10.0
+        },
+        {
+          "held_component": 2,
+          "inner_brier": {
+            "0.01": 0.24769645592972894,
+            "0.1": 0.2476961668700493,
+            "1.0": 0.24769360192147433,
+            "10.0": 0.24769412641006894,
+            "100.0": 0.2482530311207734
+          },
+          "n_held_games": 70,
+          "n_train_games": 264,
+          "platt_intercept": -7.527995666896514e-05,
+          "platt_slope_raw_logit": -0.05356220689489931,
+          "platt_slope_standardized_logit": -0.20963091101393252,
+          "selected_l2": 1.0
+        },
+        {
+          "held_component": 4,
+          "inner_brier": {
+            "0.01": 0.2453443533234521,
+            "0.1": 0.24534297891988413,
+            "1.0": 0.24532999854888235,
+            "10.0": 0.2452628850158221,
+            "100.0": 0.2461867554128325
+          },
+          "n_held_games": 49,
+          "n_train_games": 281,
+          "platt_intercept": -0.0001236961278439713,
+          "platt_slope_raw_logit": -0.06911105590438771,
+          "platt_slope_standardized_logit": -0.26974240524878823,
+          "selected_l2": 10.0
+        },
+        {
+          "held_component": 5,
+          "inner_brier": {
+            "0.01": 0.24730591270343588,
+            "0.1": 0.2473056477555351,
+            "1.0": 0.24730327417986459,
+            "10.0": 0.24730241484838358,
+            "100.0": 0.24786812674982042
+          },
+          "n_held_games": 28,
+          "n_train_games": 293,
+          "platt_intercept": -9.607297788178555e-05,
+          "platt_slope_raw_logit": -0.054196546749429406,
+          "platt_slope_standardized_logit": -0.21281368625643884,
+          "selected_l2": 10.0
+        },
+        {
+          "held_component": 7,
+          "inner_brier": {
+            "0.01": 0.24660627016762368,
+            "0.1": 0.24660564861240183,
+            "1.0": 0.24659980996708245,
+            "10.0": 0.24657307418765942,
+            "100.0": 0.24719171650111452
+          },
+          "n_held_games": 22,
+          "n_train_games": 302,
+          "platt_intercept": -0.00013577363373841323,
+          "platt_slope_raw_logit": -0.06046460420596109,
+          "platt_slope_standardized_logit": -0.23696885583662017,
+          "selected_l2": 10.0
+        },
+        {
+          "held_component": 9,
+          "inner_brier": {
+            "0.01": 0.24656948534693973,
+            "0.1": 0.24656890165040335,
+            "1.0": 0.24656341429661113,
+            "10.0": 0.24653807756255108,
+            "100.0": 0.24713900950006001
+          },
+          "n_held_games": 13,
+          "n_train_games": 309,
+          "platt_intercept": -0.00012525058848961436,
+          "platt_slope_raw_logit": -0.060747235722116016,
+          "platt_slope_standardized_logit": -0.2376510870022652,
+          "selected_l2": 10.0
+        },
+        {
+          "held_component": 11,
+          "inner_brier": {
+            "0.01": 0.2467003677132581,
+            "0.1": 0.24669992004183822,
+            "1.0": 0.24669573384730742,
+            "10.0": 0.24667857247247632,
+            "100.0": 0.24724187944868217
+          },
+          "n_held_games": 1,
+          "n_train_games": 318,
+          "platt_intercept": -0.00011482352017939226,
+          "platt_slope_raw_logit": -0.0595331917227292,
+          "platt_slope_standardized_logit": -0.2329285538757952,
+          "selected_l2": 10.0
+        }
+      ],
+      "nested_calibrated": {
+        "dialogue_ece": 0.017128,
+        "intervals": {
+          "component": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.6264,
+                  "lo": 0.538
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.5882,
+                  "lo": 0.5081
+                },
+                "dialogue_brier": {
+                  "hi": 0.2493,
+                  "lo": 0.2415
+                },
+                "dialogue_log_loss": {
+                  "hi": 0.6918,
+                  "lo": 0.6761
+                },
+                "game_accuracy": {
+                  "hi": 0.6411,
+                  "lo": 0.5478
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.2477,
+                  "lo": 0.2399
+                }
+              }
+            },
+            "n_clusters": 8
+          },
+          "game": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.6288,
+                  "lo": 0.5623
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.5884,
+                  "lo": 0.5283
+                },
+                "dialogue_brier": {
+                  "hi": 0.2472,
+                  "lo": 0.241
+                },
+                "dialogue_log_loss": {
+                  "hi": 0.6875,
+                  "lo": 0.6751
+                },
+                "game_accuracy": {
+                  "hi": 0.6509,
+                  "lo": 0.5613
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.2455,
+                  "lo": 0.2394
+                }
+              }
+            },
+            "n_clusters": 424
+          },
+          "human_witness": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.6313,
+                  "lo": 0.5614
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.5937,
+                  "lo": 0.5293
+                },
+                "dialogue_brier": {
+                  "hi": 0.2473,
+                  "lo": 0.2409
+                },
+                "dialogue_log_loss": {
+                  "hi": 0.6877,
+                  "lo": 0.6749
+                },
+                "game_accuracy": {
+                  "hi": 0.6487,
+                  "lo": 0.5548
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.2456,
+                  "lo": 0.2393
+                }
+              }
+            },
+            "n_clusters": 214
+          },
+          "interrogator": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.6261,
+                  "lo": 0.5648
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.5897,
+                  "lo": 0.5314
+                },
+                "dialogue_brier": {
+                  "hi": 0.247,
+                  "lo": 0.2414
+                },
+                "dialogue_log_loss": {
+                  "hi": 0.6872,
+                  "lo": 0.6759
+                },
+                "game_accuracy": {
+                  "hi": 0.6461,
+                  "lo": 0.5607
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.2453,
+                  "lo": 0.2397
+                }
+              }
+            },
+            "n_clusters": 228
+          },
+          "participant": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": null,
+                  "lo": null,
+                  "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+                },
+                "dialogue_balanced_accuracy": {
+                  "estimate": 0.5613,
+                  "hi": 0.5916,
+                  "lo": 0.5311,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 424,
+                  "n_participants": 236,
+                  "se": 0.015442
+                },
+                "dialogue_brier": {
+                  "estimate": 0.2441,
+                  "hi": 0.2469,
+                  "lo": 0.2412,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 424,
+                  "n_participants": 236,
+                  "se": 0.001473
+                },
+                "dialogue_log_loss": {
+                  "estimate": 0.6812,
+                  "hi": 0.687,
+                  "lo": 0.6754,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 424,
+                  "n_participants": 236,
+                  "se": 0.002972
+                },
+                "game_accuracy": {
+                  "estimate": 0.6038,
+                  "hi": 0.6447,
+                  "lo": 0.5629,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 424,
+                  "n_participants": 236,
+                  "se": 0.020857
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": null,
+                  "lo": null,
+                  "method": "majority baseline unavailable"
+                },
+                "game_brier": {
+                  "estimate": 0.2424,
+                  "hi": 0.2452,
+                  "lo": 0.2395,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 424,
+                  "n_participants": 236,
+                  "se": 0.001451
+                }
+              }
+            },
+            "method": "dyadic participant-cluster sandwich for additive metrics; component bootstrap for non-additive metrics",
+            "n_clusters": 236
+          }
+        },
+        "n_games": 424,
+        "point_estimates": {
+          "dialogue_auroc": 0.596509,
+          "dialogue_balanced_accuracy": 0.561321,
+          "dialogue_brier": 0.244052,
+          "dialogue_log_loss": 0.68118,
+          "game_accuracy": 0.603774,
+          "game_brier": 0.242358
+        }
+      },
+      "raw_zero_shot": {
+        "dialogue_ece": 0.428296,
+        "intervals": {
+          "component": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.4618,
+                  "lo": 0.3734
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.4798,
+                  "lo": 0.4138
+                },
+                "dialogue_brier": {
+                  "hi": 0.4771,
+                  "lo": 0.4311
+                },
+                "dialogue_log_loss": {
+                  "hi": 2.1595,
+                  "lo": 1.9586
+                },
+                "game_accuracy": {
+                  "hi": 0.4522,
+                  "lo": 0.3589
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.3907,
+                  "lo": 0.3243
+                }
+              }
+            },
+            "n_clusters": 8
+          },
+          "game": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.4368,
+                  "lo": 0.37
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.4623,
+                  "lo": 0.408
+                },
+                "dialogue_brier": {
+                  "hi": 0.4834,
+                  "lo": 0.4419
+                },
+                "dialogue_log_loss": {
+                  "hi": 2.2345,
+                  "lo": 1.9667
+                },
+                "game_accuracy": {
+                  "hi": 0.4387,
+                  "lo": 0.3491
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.3934,
+                  "lo": 0.3441
+                }
+              }
+            },
+            "n_clusters": 424
+          },
+          "human_witness": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.4373,
+                  "lo": 0.3673
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.464,
+                  "lo": 0.407
+                },
+                "dialogue_brier": {
+                  "hi": 0.4837,
+                  "lo": 0.4404
+                },
+                "dialogue_log_loss": {
+                  "hi": 2.2379,
+                  "lo": 1.9645
+                },
+                "game_accuracy": {
+                  "hi": 0.4452,
+                  "lo": 0.3513
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.393,
+                  "lo": 0.3441
+                }
+              }
+            },
+            "n_clusters": 214
+          },
+          "interrogator": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.4353,
+                  "lo": 0.3727
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.4647,
+                  "lo": 0.4082
+                },
+                "dialogue_brier": {
+                  "hi": 0.4838,
+                  "lo": 0.4413
+                },
+                "dialogue_log_loss": {
+                  "hi": 2.2326,
+                  "lo": 1.97
+                },
+                "game_accuracy": {
+                  "hi": 0.4393,
+                  "lo": 0.3539
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.3913,
+                  "lo": 0.3411
+                }
+              }
+            },
+            "n_clusters": 228
+          },
+          "participant": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": null,
+                  "lo": null,
+                  "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+                },
+                "dialogue_balanced_accuracy": {
+                  "estimate": 0.4351,
+                  "hi": 0.4635,
+                  "lo": 0.4068,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 424,
+                  "n_participants": 236,
+                  "se": 0.014455
+                },
+                "dialogue_brier": {
+                  "estimate": 0.4631,
+                  "hi": 0.4846,
+                  "lo": 0.4417,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 424,
+                  "n_participants": 236,
+                  "se": 0.01094
+                },
+                "dialogue_log_loss": {
+                  "estimate": 2.0994,
+                  "hi": 2.2296,
+                  "lo": 1.9691,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 424,
+                  "n_participants": 236,
+                  "se": 0.066447
+                },
+                "game_accuracy": {
+                  "estimate": 0.3962,
+                  "hi": 0.4371,
+                  "lo": 0.3553,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 424,
+                  "n_participants": 236,
+                  "se": 0.020857
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": null,
+                  "lo": null,
+                  "method": "majority baseline unavailable"
+                },
+                "game_brier": {
+                  "estimate": 0.3685,
+                  "hi": 0.3923,
+                  "lo": 0.3448,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 424,
+                  "n_participants": 236,
+                  "se": 0.012136
+                }
+              }
+            },
+            "method": "dyadic participant-cluster sandwich for additive metrics; component bootstrap for non-additive metrics",
+            "n_clusters": 236
+          }
+        },
+        "n_games": 424,
+        "point_estimates": {
+          "dialogue_auroc": 0.402651,
+          "dialogue_balanced_accuracy": 0.435142,
+          "dialogue_brier": 0.463142,
+          "dialogue_log_loss": 2.099354,
+          "game_accuracy": 0.396226,
+          "game_brier": 0.368537
+        }
+      }
+    },
+    "quinn->minimal": {
+      "calibration_diagnostics": [
+        {
+          "held_component": 0,
+          "inner_brier": {
+            "0.01": 0.2468315818546109,
+            "0.1": 0.24683157733190314,
+            "1.0": 0.24683181153356934,
+            "10.0": 0.24685707089076242,
+            "100.0": 0.24761088040322635
+          },
+          "n_held_games": 119,
+          "n_train_games": 258,
+          "platt_intercept": -0.00013680023936054933,
+          "platt_slope_raw_logit": -0.07153847007115721,
+          "platt_slope_standardized_logit": -0.2535935780585655,
+          "selected_l2": 0.1
+        },
+        {
+          "held_component": 1,
+          "inner_brier": {
+            "0.01": 0.24423316829162683,
+            "0.1": 0.24423450266093716,
+            "1.0": 0.24424796257913278,
+            "10.0": 0.24439142462396757,
+            "100.0": 0.2457845064950847
+          },
+          "n_held_games": 58,
+          "n_train_games": 349,
+          "platt_intercept": -0.00019562577784829782,
+          "platt_slope_raw_logit": -0.09833379340156992,
+          "platt_slope_standardized_logit": -0.35332583035346965,
+          "selected_l2": 0.01
+        },
+        {
+          "held_component": 2,
+          "inner_brier": {
+            "0.01": 0.24549497400313544,
+            "0.1": 0.24549588237769185,
+            "1.0": 0.24550505854320248,
+            "10.0": 0.2456041192683851,
+            "100.0": 0.24662580386906613
+          },
+          "n_held_games": 54,
+          "n_train_games": 354,
+          "platt_intercept": -0.00039028424809310814,
+          "platt_slope_raw_logit": -0.09144245759516727,
+          "platt_slope_standardized_logit": -0.3287502448619133,
+          "selected_l2": 0.01
+        },
+        {
+          "held_component": 4,
+          "inner_brier": {
+            "0.01": 0.24287858483508992,
+            "0.1": 0.24287975557231925,
+            "1.0": 0.24289164832816004,
+            "10.0": 0.24302569259030574,
+            "100.0": 0.24457711772157154
+          },
+          "n_held_games": 37,
+          "n_train_games": 375,
+          "platt_intercept": -0.0002442688166818116,
+          "platt_slope_raw_logit": -0.10406718939437745,
+          "platt_slope_standardized_logit": -0.3703990795703475,
+          "selected_l2": 0.01
+        },
+        {
+          "held_component": 5,
+          "inner_brier": {
+            "0.01": 0.24379945659635022,
+            "0.1": 0.24380023913890175,
+            "1.0": 0.24380821713787518,
+            "10.0": 0.24390082932445523,
+            "100.0": 0.24510206397390574
+          },
+          "n_held_games": 25,
+          "n_train_games": 396,
+          "platt_intercept": -0.00037330372346139004,
+          "platt_slope_raw_logit": -0.09710483109148503,
+          "platt_slope_standardized_logit": -0.3509641777683293,
+          "selected_l2": 0.01
+        },
+        {
+          "held_component": 7,
+          "inner_brier": {
+            "0.01": 0.24371000731333137,
+            "0.1": 0.24371072192840357,
+            "1.0": 0.24371802677136897,
+            "10.0": 0.2438045256451646,
+            "100.0": 0.24498667368317797
+          },
+          "n_held_games": 16,
+          "n_train_games": 402,
+          "platt_intercept": -0.00021633265406808234,
+          "platt_slope_raw_logit": -0.09828363917937107,
+          "platt_slope_standardized_logit": -0.3516278223135752,
+          "selected_l2": 0.01
+        },
+        {
+          "held_component": 9,
+          "inner_brier": {
+            "0.01": 0.24256835855346429,
+            "0.1": 0.24256897276184955,
+            "1.0": 0.24257532209402993,
+            "10.0": 0.2426565707353289,
+            "100.0": 0.24395570970404654
+          },
+          "n_held_games": 9,
+          "n_train_games": 411,
+          "platt_intercept": -0.00037949263393287716,
+          "platt_slope_raw_logit": -0.104251290595244,
+          "platt_slope_standardized_logit": -0.3726135414169982,
+          "selected_l2": 0.01
+        }
+      ],
+      "nested_calibrated": {
+        "dialogue_ece": 0.072683,
+        "intervals": {
+          "component": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.6094,
+                  "lo": 0.5314
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.5954,
+                  "lo": 0.497
+                },
+                "dialogue_brier": {
+                  "hi": 0.2532,
+                  "lo": 0.242
+                },
+                "dialogue_log_loss": {
+                  "hi": 0.6998,
+                  "lo": 0.6772
+                },
+                "game_accuracy": {
+                  "hi": 0.65,
+                  "lo": 0.5435
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.2471,
+                  "lo": 0.2358
+                }
+              }
+            },
+            "n_clusters": 7
+          },
+          "game": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.6118,
+                  "lo": 0.5232
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.5928,
+                  "lo": 0.5157
+                },
+                "dialogue_brier": {
+                  "hi": 0.2535,
+                  "lo": 0.2411
+                },
+                "dialogue_log_loss": {
+                  "hi": 0.7005,
+                  "lo": 0.6751
+                },
+                "game_accuracy": {
+                  "hi": 0.6447,
+                  "lo": 0.5377
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.2478,
+                  "lo": 0.2351
+                }
+              }
+            },
+            "n_clusters": 318
+          },
+          "human_witness": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.6156,
+                  "lo": 0.5258
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.5932,
+                  "lo": 0.5142
+                },
+                "dialogue_brier": {
+                  "hi": 0.2533,
+                  "lo": 0.2405
+                },
+                "dialogue_log_loss": {
+                  "hi": 0.7002,
+                  "lo": 0.6739
+                },
+                "game_accuracy": {
+                  "hi": 0.6486,
+                  "lo": 0.5357
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.2479,
+                  "lo": 0.2346
+                }
+              }
+            },
+            "n_clusters": 189
+          },
+          "interrogator": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.611,
+                  "lo": 0.5247
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.5909,
+                  "lo": 0.5152
+                },
+                "dialogue_brier": {
+                  "hi": 0.2533,
+                  "lo": 0.2404
+                },
+                "dialogue_log_loss": {
+                  "hi": 0.7002,
+                  "lo": 0.6738
+                },
+                "game_accuracy": {
+                  "hi": 0.6484,
+                  "lo": 0.538
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.2478,
+                  "lo": 0.2348
+                }
+              }
+            },
+            "n_clusters": 220
+          },
+          "participant": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": null,
+                  "lo": null,
+                  "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+                },
+                "dialogue_balanced_accuracy": {
+                  "estimate": 0.5535,
+                  "hi": 0.594,
+                  "lo": 0.5129,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 318,
+                  "n_participants": 231,
+                  "se": 0.020694
+                },
+                "dialogue_brier": {
+                  "estimate": 0.2471,
+                  "hi": 0.2539,
+                  "lo": 0.2402,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 318,
+                  "n_participants": 231,
+                  "se": 0.003507
+                },
+                "dialogue_log_loss": {
+                  "estimate": 0.6874,
+                  "hi": 0.7015,
+                  "lo": 0.6733,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 318,
+                  "n_participants": 231,
+                  "se": 0.00718
+                },
+                "game_accuracy": {
+                  "estimate": 0.5912,
+                  "hi": 0.6518,
+                  "lo": 0.5306,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 318,
+                  "n_participants": 231,
+                  "se": 0.030938
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": null,
+                  "lo": null,
+                  "method": "majority baseline unavailable"
+                },
+                "game_brier": {
+                  "estimate": 0.2414,
+                  "hi": 0.2484,
+                  "lo": 0.2344,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 318,
+                  "n_participants": 231,
+                  "se": 0.003592
+                }
+              }
+            },
+            "method": "dyadic participant-cluster sandwich for additive metrics; component bootstrap for non-additive metrics",
+            "n_clusters": 231
+          }
+        },
+        "n_games": 318,
+        "point_estimates": {
+          "dialogue_auroc": 0.568124,
+          "dialogue_balanced_accuracy": 0.553459,
+          "dialogue_brier": 0.247067,
+          "dialogue_log_loss": 0.687399,
+          "game_accuracy": 0.591195,
+          "game_brier": 0.2414
+        }
+      },
+      "raw_zero_shot": {
+        "dialogue_ece": 0.394258,
+        "intervals": {
+          "component": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.4627,
+                  "lo": 0.3874
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.5408,
+                  "lo": 0.4513
+                },
+                "dialogue_brier": {
+                  "hi": 0.4553,
+                  "lo": 0.3971
+                },
+                "dialogue_log_loss": {
+                  "hi": 2.3162,
+                  "lo": 2.0987
+                },
+                "game_accuracy": {
+                  "hi": 0.4565,
+                  "lo": 0.35
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.3495,
+                  "lo": 0.2824
+                }
+              }
+            },
+            "n_clusters": 7
+          },
+          "game": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.4712,
+                  "lo": 0.3812
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.5204,
+                  "lo": 0.4497
+                },
+                "dialogue_brier": {
+                  "hi": 0.4595,
+                  "lo": 0.4019
+                },
+                "dialogue_log_loss": {
+                  "hi": 2.389,
+                  "lo": 1.998
+                },
+                "game_accuracy": {
+                  "hi": 0.4623,
+                  "lo": 0.3553
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.3552,
+                  "lo": 0.2976
+                }
+              }
+            },
+            "n_clusters": 318
+          },
+          "human_witness": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.4669,
+                  "lo": 0.3795
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.52,
+                  "lo": 0.4472
+                },
+                "dialogue_brier": {
+                  "hi": 0.4594,
+                  "lo": 0.4026
+                },
+                "dialogue_log_loss": {
+                  "hi": 2.3677,
+                  "lo": 2.028
+                },
+                "game_accuracy": {
+                  "hi": 0.4643,
+                  "lo": 0.3514
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.3543,
+                  "lo": 0.2963
+                }
+              }
+            },
+            "n_clusters": 189
+          },
+          "interrogator": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": 0.4684,
+                  "lo": 0.3843
+                },
+                "dialogue_balanced_accuracy": {
+                  "hi": 0.5181,
+                  "lo": 0.4495
+                },
+                "dialogue_brier": {
+                  "hi": 0.4584,
+                  "lo": 0.4032
+                },
+                "dialogue_log_loss": {
+                  "hi": 2.3573,
+                  "lo": 2.0241
+                },
+                "game_accuracy": {
+                  "hi": 0.462,
+                  "lo": 0.3516
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": NaN,
+                  "lo": NaN
+                },
+                "game_brier": {
+                  "hi": 0.3534,
+                  "lo": 0.2965
+                }
+              }
+            },
+            "n_clusters": 220
+          },
+          "participant": {
+            "detectors": {
+              "external": {
+                "dialogue_auroc": {
+                  "hi": null,
+                  "lo": null,
+                  "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+                },
+                "dialogue_balanced_accuracy": {
+                  "estimate": 0.4843,
+                  "hi": 0.5188,
+                  "lo": 0.4497,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 318,
+                  "n_participants": 231,
+                  "se": 0.017616
+                },
+                "dialogue_brier": {
+                  "estimate": 0.4307,
+                  "hi": 0.4602,
+                  "lo": 0.4013,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 318,
+                  "n_participants": 231,
+                  "se": 0.015021
+                },
+                "dialogue_log_loss": {
+                  "estimate": 2.19,
+                  "hi": 2.3591,
+                  "lo": 2.021,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 318,
+                  "n_participants": 231,
+                  "se": 0.086254
+                },
+                "game_accuracy": {
+                  "estimate": 0.4088,
+                  "hi": 0.4694,
+                  "lo": 0.3482,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 318,
+                  "n_participants": 231,
+                  "se": 0.030938
+                },
+                "game_accuracy_diff_vs_majority": {
+                  "hi": null,
+                  "lo": null,
+                  "method": "majority baseline unavailable"
+                },
+                "game_brier": {
+                  "estimate": 0.3251,
+                  "hi": 0.3578,
+                  "lo": 0.2924,
+                  "meat_clipped_at_zero": false,
+                  "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+                  "n_games": 318,
+                  "n_participants": 231,
+                  "se": 0.016675
+                }
+              }
+            },
+            "method": "dyadic participant-cluster sandwich for additive metrics; component bootstrap for non-additive metrics",
+            "n_clusters": 231
+          }
+        },
+        "n_games": 318,
+        "point_estimates": {
+          "dialogue_auroc": 0.425804,
+          "dialogue_balanced_accuracy": 0.484277,
+          "dialogue_brier": 0.430738,
+          "dialogue_log_loss": 2.190032,
+          "game_accuracy": 0.408805,
+          "game_brier": 0.325115
+        }
+      }
+    }
+  },
+  "protocol": "v2/BRIDGE_PROTOCOL.md (frozen before detector run)",
+  "raw_zero_shot_people_only": {
+    "dialogue_ece": 0.372079,
+    "intervals": {
+      "component": {
+        "detectors": {
+          "external": {
+            "dialogue_auroc": {
+              "hi": 0.5151,
+              "lo": 0.4364
+            },
+            "dialogue_balanced_accuracy": {
+              "hi": 0.5447,
+              "lo": 0.4658
+            },
+            "dialogue_brier": {
+              "hi": 0.4327,
+              "lo": 0.3816
+            },
+            "dialogue_log_loss": {
+              "hi": 1.9738,
+              "lo": 1.8917
+            },
+            "game_accuracy": {
+              "hi": 0.5117,
+              "lo": 0.4158
+            },
+            "game_accuracy_diff_vs_majority": {
+              "hi": NaN,
+              "lo": NaN
+            },
+            "game_brier": {
+              "hi": 0.3526,
+              "lo": 0.282
+            }
+          }
+        },
+        "n_clusters": 8
+      },
+      "game": {
+        "detectors": {
+          "external": {
+            "dialogue_auroc": {
+              "hi": 0.4869,
+              "lo": 0.4364
+            },
+            "dialogue_balanced_accuracy": {
+              "hi": 0.5165,
+              "lo": 0.4712
+            },
+            "dialogue_brier": {
+              "hi": 0.4334,
+              "lo": 0.3995
+            },
+            "dialogue_log_loss": {
+              "hi": 2.0579,
+              "lo": 1.8531
+            },
+            "game_accuracy": {
+              "hi": 0.4847,
+              "lo": 0.4212
+            },
+            "game_accuracy_diff_vs_majority": {
+              "hi": NaN,
+              "lo": NaN
+            },
+            "game_brier": {
+              "hi": 0.3459,
+              "lo": 0.3097
+            }
+          }
+        },
+        "n_clusters": 850
+      },
+      "human_witness": {
+        "detectors": {
+          "external": {
+            "dialogue_auroc": {
+              "hi": 0.4907,
+              "lo": 0.4358
+            },
+            "dialogue_balanced_accuracy": {
+              "hi": 0.5171,
+              "lo": 0.4719
+            },
+            "dialogue_brier": {
+              "hi": 0.4325,
+              "lo": 0.3974
+            },
+            "dialogue_log_loss": {
+              "hi": 2.0524,
+              "lo": 1.8558
+            },
+            "game_accuracy": {
+              "hi": 0.4899,
+              "lo": 0.4183
+            },
+            "game_accuracy_diff_vs_majority": {
+              "hi": NaN,
+              "lo": NaN
+            },
+            "game_brier": {
+              "hi": 0.3456,
+              "lo": 0.3087
+            }
+          }
+        },
+        "n_clusters": 235
+      },
+      "interrogator": {
+        "detectors": {
+          "external": {
+            "dialogue_auroc": {
+              "hi": 0.4872,
+              "lo": 0.4378
+            },
+            "dialogue_balanced_accuracy": {
+              "hi": 0.5156,
+              "lo": 0.4741
+            },
+            "dialogue_brier": {
+              "hi": 0.4315,
+              "lo": 0.3986
+            },
+            "dialogue_log_loss": {
+              "hi": 2.0425,
+              "lo": 1.8599
+            },
+            "game_accuracy": {
+              "hi": 0.4884,
+              "lo": 0.422
+            },
+            "game_accuracy_diff_vs_majority": {
+              "hi": NaN,
+              "lo": NaN
+            },
+            "game_brier": {
+              "hi": 0.3452,
+              "lo": 0.3082
+            }
+          }
+        },
+        "n_clusters": 231
+      },
+      "participant": {
+        "detectors": {
+          "external": {
+            "dialogue_auroc": {
+              "hi": null,
+              "lo": null,
+              "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+            },
+            "dialogue_balanced_accuracy": {
+              "estimate": 0.4941,
+              "hi": 0.5151,
+              "lo": 0.4732,
+              "meat_clipped_at_zero": false,
+              "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+              "n_games": 850,
+              "n_participants": 239,
+              "se": 0.010682
+            },
+            "dialogue_brier": {
+              "estimate": 0.4155,
+              "hi": 0.4317,
+              "lo": 0.3993,
+              "meat_clipped_at_zero": false,
+              "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+              "n_games": 850,
+              "n_participants": 239,
+              "se": 0.008277
+            },
+            "dialogue_log_loss": {
+              "estimate": 1.9517,
+              "hi": 2.04,
+              "lo": 1.8633,
+              "meat_clipped_at_zero": false,
+              "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+              "n_games": 850,
+              "n_participants": 239,
+              "se": 0.04509
+            },
+            "game_accuracy": {
+              "estimate": 0.4541,
+              "hi": 0.4896,
+              "lo": 0.4187,
+              "meat_clipped_at_zero": false,
+              "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+              "n_games": 850,
+              "n_participants": 239,
+              "se": 0.018084
+            },
+            "game_accuracy_diff_vs_majority": {
+              "hi": null,
+              "lo": null,
+              "method": "majority baseline unavailable"
+            },
+            "game_brier": {
+              "estimate": 0.327,
+              "hi": 0.3471,
+              "lo": 0.307,
+              "meat_clipped_at_zero": false,
+              "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI",
+              "n_games": 850,
+              "n_participants": 239,
+              "se": 0.010234
+            }
+          }
+        },
+        "method": "dyadic participant-cluster sandwich for additive metrics; component bootstrap for non-additive metrics",
+        "n_clusters": 239
+      }
+    },
+    "n_games": 850,
+    "point_estimates": {
+      "dialogue_auroc": 0.463027,
+      "dialogue_balanced_accuracy": 0.494118,
+      "dialogue_brier": 0.415518,
+      "dialogue_log_loss": 1.951659,
+      "game_accuracy": 0.454118,
+      "game_brier": 0.327029
+    }
+  },
+  "scores_sha256": "2de37dddcbb912d6b41e8031d9487faa69335b70ef9a9cdd98d97f72a8e7297c",
+  "test_split": "UNTOUCHED; excluded before scoring, fitting and evaluation"
+}

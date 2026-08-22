@@ -16,6 +16,8 @@ env/
 .venv/
 .venv-*/
 ENV/
+.bridge-venv/
+v2/.cache/
 
 # === Jupyter ===
 .ipynb_checkpoints/

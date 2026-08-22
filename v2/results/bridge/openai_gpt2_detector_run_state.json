@@ -1,0 +1,20 @@
+{
+  "config": {
+    "batch_size": 16,
+    "expected_examples": 1700,
+    "limit": null,
+    "max_length": 512,
+    "model_id": "openai-community/roberta-base-openai-detector",
+    "model_revision": "6cba99c003b711c7fe94f8a3aa2be35a792cb6fa",
+    "output": "v2/results/bridge/openai_gpt2_detector_raw.jsonl",
+    "weight_sha256": "3abd6d2b005f5876b945cb5b68ddde04f6e28fbd9c5d6dc5adfb06ba647e0546"
+  },
+  "device": "cpu",
+  "processed": 1700,
+  "scores_sha256": "2de37dddcbb912d6b41e8031d9487faa69335b70ef9a9cdd98d97f72a8e7297c",
+  "seconds": 181.77002596855164,
+  "status": "complete",
+  "torch": "2.9.1",
+  "transformers": "4.57.6",
+  "updated_at": 1787432708.0
+}

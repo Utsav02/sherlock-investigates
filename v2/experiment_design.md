@@ -21,7 +21,7 @@ V2.1 deliberately separates two executable tracks:
 
 | | Passive observation | Active question selection |
 |---|---|---|
-| **Real conversations** | Track A; optional Stage D replay | **Not tested in v2.1** |
+| **Real conversations** | Track A; mandatory Stage D replay before any real-transfer claim | **Not tested in v2.1** |
 | **Synthetic respondents** | D0 passive controls | Track B |
 
 Track A measures passive identity judgment and calibration on real transcripts.
@@ -43,8 +43,9 @@ independently useful stages:
    Uncertainty-of-Thoughts-style baseline (Track B).
 4. Train one small D0 adapter and compare it with prompting and explicit
    information-seeking baselines.
-5. Optionally replay real transcripts turn by turn to test transfer of belief
-   updating only; question-policy transfer is not testable by replay.
+5. If retaining a real-investigation claim, replay real transcripts turn by turn
+   under the pre-registered mandatory Gate 3B; question-policy transfer is not
+   testable by replay.
 6. Consider new adaptive human conversations only if both tracks justify the
    cost and ethical work.
 
@@ -131,7 +132,7 @@ fixed, does an SFT adapter improve:
 - time to a correct decision threshold; and
 - robustness to changed synthetic distributions?
 
-### Optional RQ4: Does synthetic belief training transfer to real replay?
+### Conditional-mandatory RQ4: Does synthetic belief training transfer to real replay?
 
 Reveal a real transcript one turn at a time while preventing question selection.
 Compare base and D0-trained belief trajectories. This tests belief-updating
@@ -639,11 +640,13 @@ respondents.
 At least one small adapter must improve the target outcomes beyond the prompted
 base, not merely JSON compliance or stylistic confidence.
 
-### Gate 3B: optional real-passive transfer
+### Gate 3B: mandatory real-passive transfer for a real-investigation claim
 
 Only after Gate 3 passes may the D0-trained investigator enter fixed-transcript
-replay. If run, it must improve turn-wise belief updating over its own untrained
-Track B base. It cannot choose counterfactual questions, so this gate does not
+replay. The exact pass/inconclusive/fail rule is frozen in
+`v2/BRIDGE_PROTOCOL.md`. The replay is optional only if the deliverable stops at
+synthetic mechanics; it is mandatory before claiming transfer to real
+investigation. It cannot choose counterfactual questions, so this gate does not
 measure active policy transfer.
 
 ### Gate 4: real-active pilot justification
@@ -721,14 +724,15 @@ Valid stopping conclusions include:
 7. Read actual trajectories; numerical summaries are not sufficient evidence of
    a changed investigative policy.
 
-### Stage D: optional fixed-transcript transfer
+### Stage D: conditionally mandatory fixed-transcript transfer
 
 Only after Gate 3, replay real transcripts turn by turn through the Track B base
 and D0 investigator. Score belief updating only, as an out-of-distribution
 transfer comparison internal to those two models. Do not compare its absolute
 scores directly with A1–A3, which use different estimators and may use different
-checkpoints. Omit Stage D if the D0 renderer fails its held-out-surface test or no
-defensible shared belief-state mapping can be pre-registered.
+checkpoints. If the D0 renderer fails its held-out-surface test or no defensible
+shared belief-state mapping can be pre-registered, stop the real-investigation
+claim rather than silently omitting Stage D.
 
 ### Stage E: selective expansion
 

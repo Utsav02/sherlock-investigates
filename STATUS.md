@@ -318,13 +318,18 @@ frozen Track A test split.
   and resumable per-episode output — exact-likelihood BED, UoT-style secondary,
   common random responses, strict replay validation, and interruption/resume
   tests are implemented; 11 focused tests pass.
-- [ ] 3. Execute a tiny dry run, run the frozen benchmark, and preserve raw
-  trajectories/config/state ← **IN PROGRESS:** implementation is ready for the
-  separately located dry run, followed by the frozen production output.
-- [ ] 4. Apply paired scenario-family inference, inspect trajectories and failure
-  modes, and record Gate 2A pass/fail without moving the threshold.
-- [ ] 5. Verify, document, and commit each stage by exact path; leave unrelated
-  working-tree changes untouched and do not push.
+- [x] 3. Execute a tiny dry run, run the frozen benchmark, and preserve raw
+  trajectories/config/state — the dry run stopped durably at 13 rows; production
+  completed 16,384/16,384 unique rows in 36.6 seconds.
+- [x] 4. Apply paired scenario-family inference, inspect trajectories and failure
+  modes, and record Gate 2A pass/fail without moving the threshold — formal
+  **PASS**, but the audit found zero response-conditioned BED sequence changes;
+  this is an oracle-prioritization result, not an adaptive-questioning result.
+- [x] 5. Verify, document, and commit each stage by exact path; leave unrelated
+  working-tree changes untouched and do not push — 327 tests pass; full replay
+  validates 16,384/16,384 rows; a no-op resume preserves the raw SHA-256; code,
+  diagnostic, and run artifacts are in scoped commits `57b42ea`, `0b031c7`, and
+  `1b75253`. No push was performed.
 
 ## Resume
 
@@ -334,8 +339,9 @@ rg -n 'D0|Gate 2A|B0|B1|B2|surface|scenario' v2/experiment_design.md v2/DECISION
 venv/bin/python -m unittest discover -s tests -q
 ```
 
-Resume at Stage C Gate 2A stage 3. No D0 SFT, GPU work, human collection, or
-Track A test evaluation is authorized.
+Gate 2A is complete. The next work is a **new prospective design task**: freeze
+an asymmetric/state-dependent D0 and an answer-conditioned branching criterion.
+No D0 SFT, GPU work, human collection, or Track A test evaluation is authorized.
 
 ## Decisions made
 
@@ -347,3 +353,7 @@ Track A test evaluation is authorized.
   question order, all using the same question and turn budget.
 - Gate 2A is the only authorized Stage C work. Passing permits a later D0 SFT
   implementation; it does not itself authorize training or a real-active claim.
+- Gate 2A formally passed, but the symmetric D0 model made exact BED non-adaptive
+  within every family. Record this as a planning/construct failure. Before D0
+  SFT, prospectively freeze a revised model and adaptation-diversity check; do
+  not mistake the current oracle-prioritization win for active investigation.

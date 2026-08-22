@@ -852,3 +852,34 @@ specification: `v2/D0_GATE2A_PROTOCOL.md`; resolved machine config:
 **Boundary:** this simulator is a mechanics test. Passing would permit designing
 D0 SFT but would not establish realism, authorize training automatically, or
 support a real-active claim.
+
+---
+
+### 2026-08-22 — Gate 2A passes formally but does not exercise adaptive BED
+
+**Frozen decision:** PASS. On the eight held-out families, paired final-log-loss
+improvement was 0.224 nats versus random (family-clustered 95% interval
+[0.200, 0.246]) and 0.238 versus fixed ([0.159, 0.314]); all eight family means
+were positive in both comparisons. Development directions were positive and all
+16,384 trajectories passed deterministic ledger replay. The threshold was not
+moved and UoT was not used to rescue the decision.
+
+**Post-hoc diagnostic and planning failure:** BED selected exactly one question
+sequence per family across all 256 episodes. Under the frozen symmetric
+three-category likelihood model, response-driven posterior changes do not change
+question rankings. The primary policy is therefore a family-specific oracle
+ordering, not response-conditioned adaptive questioning. Its advantage over a
+global fixed order and random selection demonstrates correct prioritization and
+bookkeeping inside this constructed model; it does not demonstrate the key
+adaptive construct that motivates Stage C.
+
+This is recorded as poor experimental planning, not rewritten as a negative
+algorithm result and not hidden behind the formal PASS. The preregistered gate
+remains PASS because adaptation diversity was not a frozen criterion. However,
+the hybrid programme's methodological-failure standard makes the scientific
+consequence stricter: **do not spend GPU time on D0 SFT until a revised synthetic
+model forces response-conditioned policy branching and freezes that check before
+the run.** This is a new prospective requirement, not a retroactive gate edit.
+The mandatory real-replay Gate 3B remains unchanged.
+
+Full result and artifact hashes: `v2/results/d0_gate2a/README.md`.

@@ -23,7 +23,7 @@ Current record: [STATUS.md](STATUS.md). V2 design and decisions:
 
 ## Current result
 
-Stage C is paused at its no-training entry gate. The historical V1 pooled
+Stage C completed its no-training entry gate. The historical V1 pooled
 repeated-measures p-values are withdrawn, Track A now uses crossed-role dyadic
 participant intervals, and the smallest external-detector bridge is complete.
 
@@ -33,6 +33,14 @@ an external score contains weak information that transfers across the two prompt
 families after target calibration—not that an old GPT-2 detector works on modern
 chat. See [the bridge result](v2/results/bridge/README.md) and
 [the frozen protocol](v2/BRIDGE_PROTOCOL.md).
+
+The synthetic Gate 2A criterion also passed: exact BED reduced held-out log loss
+by 0.224 nats versus random and 0.238 versus fixed, with all family-clustered
+intervals above zero. The critical trajectory audit then exposed another
+planning failure: the symmetric response model made BED use one fixed sequence
+per family, so the result validates oracle prioritization rather than adaptive
+questioning. D0 training remains paused until a prospectively frozen revision
+forces response-conditioned branching. See [the Gate 2A result](v2/results/d0_gate2a/README.md).
 
 ## Repository layout
 

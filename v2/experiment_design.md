@@ -636,6 +636,13 @@ fixed baselines under the same synthetic budget. If none does, Gate 2A fails and
 D0 SFT does not proceed. Passing this gate says nothing yet about active real
 respondents.
 
+**Observed 2026-08-22:** the frozen numeric gate passed, but the symmetric D0
+likelihood model made BED choose one fixed sequence per family regardless of
+answers. This validates oracle question prioritization and the probability
+ledger, not response-conditioned adaptation. As a prospective correction, D0
+SFT remains paused until a revised model creates answer-dependent optimal
+branches and an adaptation-diversity criterion is frozen before evaluation.
+
 ### Gate 3: small D0 SFT value
 
 At least one small adapter must improve the target outcomes beyond the prompted
@@ -720,9 +727,12 @@ Valid stopping conclusions include:
    treating observational accuracy as causal question value.
 4. Freeze scenario-family and surface-rendering splits, then verify that the
    no-training active policy survives both before SFT.
-5. Train one D0 adapter from the frozen checkpoint.
-6. Compare it against the prompted base using the same ledger and tools.
-7. Read actual trajectories; numerical summaries are not sufficient evidence of
+5. Verify that different response histories change the optimal next question in
+   a prospectively frozen asymmetric/state-dependent D0; the first symmetric D0
+   passed numerically but failed this construct check post hoc.
+6. Only then train one D0 adapter from the frozen checkpoint.
+7. Compare it against the prompted base using the same ledger and tools.
+8. Read actual trajectories; numerical summaries are not sufficient evidence of
    a changed investigative policy.
 
 ### Stage D: conditionally mandatory fixed-transcript transfer

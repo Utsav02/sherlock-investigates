@@ -1,0 +1,458 @@
+{
+  "claim_boundary": "Synthetic mechanics only; no real-world validity claim.",
+  "comparisons": {
+    "development": {
+      "fixed": {
+        "cluster_bootstrap_95": [
+          0.10547267802111411,
+          0.3051729433426095
+        ],
+        "episode_delta": {
+          "max": 2.066642292675517,
+          "mean": 0.20352513883985437,
+          "median": 0.15489492868599802,
+          "min": -3.8571010366326184,
+          "q1": 2.220446049250313e-16,
+          "q3": 0.4978432541927141
+        },
+        "estimand": "log_loss(fixed) - log_loss(bed_eig)",
+        "family_mean_range": [
+          0.0037304183113881523,
+          0.43166230552582796
+        ],
+        "family_means": {
+          "dev_cross_register": 0.13789321261011328,
+          "dev_direct_compliance": 0.0037304183113881523,
+          "dev_embodied_local": 0.32585642620553074,
+          "dev_everyday_routine": 0.11655604562580116,
+          "dev_factual_precision": 0.43166230552582796,
+          "dev_guarded_persona": 0.044257865801779324,
+          "dev_social_affect": 0.3325844170825917,
+          "dev_sparse_partial": 0.2356604195558028
+        },
+        "positive_family_count": 8
+      },
+      "random": {
+        "cluster_bootstrap_95": [
+          0.18321566141852436,
+          0.24294166310875764
+        ],
+        "episode_delta": {
+          "max": 2.1664172276576275,
+          "mean": 0.21445304778233193,
+          "median": 0.18557258542337332,
+          "min": -4.0700381391200215,
+          "q1": 0.033746627230183394,
+          "q3": 0.5384870630834411
+        },
+        "estimand": "log_loss(random) - log_loss(bed_eig)",
+        "family_mean_range": [
+          0.1429101199921355,
+          0.2665682028328799
+        ],
+        "family_means": {
+          "dev_cross_register": 0.25540058406454674,
+          "dev_direct_compliance": 0.21623357760325776,
+          "dev_embodied_local": 0.2059016209400562,
+          "dev_everyday_routine": 0.2665682028328799,
+          "dev_factual_precision": 0.2233421145029984,
+          "dev_guarded_persona": 0.15199199004578642,
+          "dev_social_affect": 0.25327617227699456,
+          "dev_sparse_partial": 0.1429101199921355
+        },
+        "positive_family_count": 8
+      },
+      "uot_sample": {
+        "cluster_bootstrap_95": [
+          0.13404179953026882,
+          0.2655238276103544
+        ],
+        "episode_delta": {
+          "max": 2.0666422926755166,
+          "mean": 0.1962274052822961,
+          "median": 0.13799839370107908,
+          "min": -3.318258868796294,
+          "q1": 0.036117485008017786,
+          "q3": 0.4895047078620644
+        },
+        "estimand": "log_loss(uot_sample) - log_loss(bed_eig)",
+        "family_mean_range": [
+          0.06885356894772633,
+          0.39051691051595444
+        ],
+        "family_means": {
+          "dev_cross_register": 0.29049874981265394,
+          "dev_direct_compliance": 0.06885356894772633,
+          "dev_embodied_local": 0.20901892641905617,
+          "dev_everyday_routine": 0.11198911283564407,
+          "dev_factual_precision": 0.39051691051595444,
+          "dev_guarded_persona": 0.19213058688754947,
+          "dev_social_affect": 0.14929385821708946,
+          "dev_sparse_partial": 0.15751752862269483
+        },
+        "positive_family_count": 8
+      }
+    },
+    "heldout": {
+      "fixed": {
+        "cluster_bootstrap_95": [
+          0.15860984838862935,
+          0.31381642574444657
+        ],
+        "episode_delta": {
+          "max": 1.8814712908956115,
+          "mean": 0.23813264711552648,
+          "median": 0.20666619132641242,
+          "min": -4.084663039515945,
+          "q1": 0.019660230945611697,
+          "q3": 0.5371544046438677
+        },
+        "estimand": "log_loss(fixed) - log_loss(bed_eig)",
+        "family_mean_range": [
+          0.02727666933111392,
+          0.4185326018387127
+        ],
+        "family_means": {
+          "hold_diffuse_partial": 0.2594575133076227,
+          "hold_embodied_affect": 0.3176916898992915,
+          "hold_guarded_direct": 0.02727666933111392,
+          "hold_low_context": 0.3299867190085656,
+          "hold_mixed_register": 0.1661113729496679,
+          "hold_private_irony": 0.16544399006204893,
+          "hold_situated_routine": 0.22056062052718864,
+          "hold_technical_play": 0.4185326018387127
+        },
+        "positive_family_count": 8
+      },
+      "random": {
+        "cluster_bootstrap_95": [
+          0.20035173646648685,
+          0.24566727798773635
+        ],
+        "episode_delta": {
+          "max": 2.155280809726964,
+          "mean": 0.22354877473064283,
+          "median": 0.17847323868689446,
+          "min": -3.8404841430933967,
+          "q1": 0.025628036110494426,
+          "q3": 0.5347369583112516
+        },
+        "estimand": "log_loss(random) - log_loss(bed_eig)",
+        "family_mean_range": [
+          0.16799899888542727,
+          0.2767653121544676
+        ],
+        "family_means": {
+          "hold_diffuse_partial": 0.18673885341761243,
+          "hold_embodied_affect": 0.2564998461421644,
+          "hold_guarded_direct": 0.22220273500846066,
+          "hold_low_context": 0.16799899888542727,
+          "hold_mixed_register": 0.22364024434003787,
+          "hold_private_irony": 0.240885285940195,
+          "hold_situated_routine": 0.2767653121544676,
+          "hold_technical_play": 0.21365892195677727
+        },
+        "positive_family_count": 8
+      },
+      "uot_sample": {
+        "cluster_bootstrap_95": [
+          0.13912506492446117,
+          0.285300362718242
+        ],
+        "episode_delta": {
+          "max": 1.9107661349172342,
+          "mean": 0.2109837718872794,
+          "median": 0.1467818119061927,
+          "min": -4.257805864358086,
+          "q1": 0.020441741097104425,
+          "q3": 0.5056769980137172
+        },
+        "estimand": "log_loss(uot_sample) - log_loss(bed_eig)",
+        "family_mean_range": [
+          0.06661736250591704,
+          0.38752158671177533
+        ],
+        "family_means": {
+          "hold_diffuse_partial": 0.11389308426993296,
+          "hold_embodied_affect": 0.06661736250591704,
+          "hold_guarded_direct": 0.08500111757746477,
+          "hold_low_context": 0.3205806911674542,
+          "hold_mixed_register": 0.2351214549289984,
+          "hold_private_irony": 0.24392930960168058,
+          "hold_situated_routine": 0.2352055683350118,
+          "hold_technical_play": 0.38752158671177533
+        },
+        "positive_family_count": 8
+      }
+    }
+  },
+  "config_sha256": "9d41b77d8a2775fb581681b53a88618569c0b4955788098f848d91356d26c07a",
+  "gate_2a": {
+    "decision": "PASS",
+    "reasons": [
+      "all frozen criteria met"
+    ]
+  },
+  "integrity": {
+    "expected_rows": 16384,
+    "failure_count": 0,
+    "failures": [],
+    "row_count": 16384,
+    "unique_ids": 16384,
+    "valid": true
+  },
+  "posthoc_mechanics_diagnostic": {
+    "bed_response_conditioned_adaptation_observed": false,
+    "interpretation": "BED used one sequence per family: the symmetric frozen likelihoods preserve question rankings as the posterior changes. Gate 2A therefore validates exact oracle prioritization, not response-conditioned adaptive questioning.",
+    "status": "post-hoc diagnostic; not part of the frozen gate",
+    "unique_question_sequences_per_family": {
+      "bed_eig": {
+        "dev_cross_register": 1,
+        "dev_direct_compliance": 1,
+        "dev_embodied_local": 1,
+        "dev_everyday_routine": 1,
+        "dev_factual_precision": 1,
+        "dev_guarded_persona": 1,
+        "dev_social_affect": 1,
+        "dev_sparse_partial": 1,
+        "hold_diffuse_partial": 1,
+        "hold_embodied_affect": 1,
+        "hold_guarded_direct": 1,
+        "hold_low_context": 1,
+        "hold_mixed_register": 1,
+        "hold_private_irony": 1,
+        "hold_situated_routine": 1,
+        "hold_technical_play": 1
+      },
+      "fixed": {
+        "dev_cross_register": 1,
+        "dev_direct_compliance": 1,
+        "dev_embodied_local": 1,
+        "dev_everyday_routine": 1,
+        "dev_factual_precision": 1,
+        "dev_guarded_persona": 1,
+        "dev_social_affect": 1,
+        "dev_sparse_partial": 1,
+        "hold_diffuse_partial": 1,
+        "hold_embodied_affect": 1,
+        "hold_guarded_direct": 1,
+        "hold_low_context": 1,
+        "hold_mixed_register": 1,
+        "hold_private_irony": 1,
+        "hold_situated_routine": 1,
+        "hold_technical_play": 1
+      },
+      "random": {
+        "dev_cross_register": 255,
+        "dev_direct_compliance": 255,
+        "dev_embodied_local": 254,
+        "dev_everyday_routine": 254,
+        "dev_factual_precision": 254,
+        "dev_guarded_persona": 255,
+        "dev_social_affect": 255,
+        "dev_sparse_partial": 255,
+        "hold_diffuse_partial": 254,
+        "hold_embodied_affect": 252,
+        "hold_guarded_direct": 256,
+        "hold_low_context": 253,
+        "hold_mixed_register": 254,
+        "hold_private_irony": 255,
+        "hold_situated_routine": 252,
+        "hold_technical_play": 251
+      },
+      "uot_sample": {
+        "dev_cross_register": 73,
+        "dev_direct_compliance": 56,
+        "dev_embodied_local": 62,
+        "dev_everyday_routine": 66,
+        "dev_factual_precision": 82,
+        "dev_guarded_persona": 66,
+        "dev_social_affect": 54,
+        "dev_sparse_partial": 69,
+        "hold_diffuse_partial": 67,
+        "hold_embodied_affect": 55,
+        "hold_guarded_direct": 57,
+        "hold_low_context": 78,
+        "hold_mixed_register": 75,
+        "hold_private_irony": 60,
+        "hold_situated_routine": 67,
+        "hold_technical_play": 86
+      }
+    }
+  },
+  "schema_version": "d0_gate2a_v1",
+  "summaries": {
+    "development": {
+      "bed_eig": {
+        "accuracy": 0.86083984375,
+        "episodes": 2048,
+        "final_brier": {
+          "max": 0.9884127222199114,
+          "mean": 0.09949816643768737,
+          "median": 0.004299653887934061,
+          "min": 3.376214221896654e-05,
+          "q1": 0.0003156484320647272,
+          "q3": 0.07064305608726094
+        },
+        "final_log_loss": {
+          "max": 5.148085217948184,
+          "mean": 0.3199974124128417,
+          "median": 0.06782042989758491,
+          "min": 0.0058274667104320325,
+          "q1": 0.01792621626815201,
+          "q3": 0.3089554454764509
+        },
+        "mean_selected_exact_eig": 0.09755149388022581
+      },
+      "fixed": {
+        "accuracy": 0.7314453125,
+        "episodes": 2048,
+        "final_brier": {
+          "max": 0.915425143011576,
+          "mean": 0.17564934440020621,
+          "median": 0.10543759605775904,
+          "min": 8.404625240309197e-05,
+          "q1": 0.017517301038062285,
+          "q3": 0.25
+        },
+        "final_log_loss": {
+          "max": 3.1414177658291966,
+          "mean": 0.5235225512526961,
+          "median": 0.39258890000341046,
+          "min": 0.009209956059537918,
+          "q1": 0.14197026127038723,
+          "q3": 0.6931471805599454
+        },
+        "mean_selected_exact_eig": 0.04269476780869694
+      },
+      "random": {
+        "accuracy": 0.7177734375,
+        "episodes": 2048,
+        "final_brier": {
+          "max": 0.9561539169239059,
+          "mean": 0.17908670410308267,
+          "median": 0.1337655983184091,
+          "min": 3.376214221896784e-05,
+          "q1": 0.022350249999999995,
+          "q3": 0.25
+        },
+        "final_log_loss": {
+          "max": 3.809070796333482,
+          "mean": 0.5344504601951736,
+          "median": 0.4552959922101961,
+          "min": 0.005827466710432144,
+          "q1": 0.16193086714622057,
+          "q3": 0.6931471805599454
+        },
+        "mean_selected_exact_eig": 0.040545631561232184
+      },
+      "uot_sample": {
+        "accuracy": 0.7392578125,
+        "episodes": 2048,
+        "final_brier": {
+          "max": 0.9561539169239059,
+          "mean": 0.17202256209623173,
+          "median": 0.08773039199072147,
+          "min": 0.00015851001513856217,
+          "q1": 0.017407410179373133,
+          "q3": 0.25
+        },
+        "final_log_loss": {
+          "max": 3.8090707963334824,
+          "mean": 0.5162248176951377,
+          "median": 0.35124937527827604,
+          "min": 0.01267000262827391,
+          "q1": 0.1414892143642194,
+          "q3": 0.6931471805599453
+        },
+        "mean_selected_exact_eig": 0.04554389476051934
+      }
+    },
+    "heldout": {
+      "bed_eig": {
+        "accuracy": 0.8671875,
+        "episodes": 2048,
+        "final_brier": {
+          "max": 0.985896756459575,
+          "mean": 0.09419935726726578,
+          "median": 0.005307652656330127,
+          "min": 3.504214555568829e-05,
+          "q1": 0.000547158185412062,
+          "q3": 0.08055934812132186
+        },
+        "final_log_loss": {
+          "max": 4.950953044918031,
+          "mean": 0.3023749752868662,
+          "median": 0.07564383870937827,
+          "min": 0.005937231187890759,
+          "q1": 0.02366933427681979,
+          "q3": 0.3338374129473986
+        },
+        "mean_selected_exact_eig": 0.09399288726291183
+      },
+      "fixed": {
+        "accuracy": 0.69482421875,
+        "episodes": 2048,
+        "final_brier": {
+          "max": 0.9296736695173755,
+          "mean": 0.18409979891299516,
+          "median": 0.1446106079338122,
+          "min": 0.0003678140758644761,
+          "q1": 0.02756613833692675,
+          "q3": 0.2915999999999999
+        },
+        "final_log_loss": {
+          "max": 3.3296919391922506,
+          "mean": 0.5405076224023927,
+          "median": 0.478482698742487,
+          "min": 0.0193647722568962,
+          "q1": 0.18155848922545198,
+          "q3": 0.7765287894989962
+        },
+        "mean_selected_exact_eig": 0.03954352095775819
+      },
+      "random": {
+        "accuracy": 0.70263671875,
+        "episodes": 2048,
+        "final_brier": {
+          "max": 0.9210336996518229,
+          "mean": 0.1782857986202538,
+          "median": 0.1459311963210595,
+          "min": 3.504214555568829e-05,
+          "q1": 0.023785253906250005,
+          "q3": 0.2915999999999998
+        },
+        "final_log_loss": {
+          "max": 3.2115280504639405,
+          "mean": 0.525923750017509,
+          "median": 0.4812820629873221,
+          "min": 0.005937231187890759,
+          "q1": 0.1674958008169733,
+          "q3": 0.776528789498996
+        },
+        "mean_selected_exact_eig": 0.040131102274273515
+      },
+      "uot_sample": {
+        "accuracy": 0.72900390625,
+        "episodes": 2048,
+        "final_brier": {
+          "max": 0.9620476455771857,
+          "mean": 0.17168463409140267,
+          "median": 0.08410000000000002,
+          "min": 7.43568226035255e-05,
+          "q1": 0.019041178980117198,
+          "q3": 0.2500000000000001
+        },
+        "final_log_loss": {
+          "max": 3.954944873065905,
+          "mean": 0.5133587471741455,
+          "median": 0.342490308946776,
+          "min": 0.008660433748563115,
+          "q1": 0.1484881505406309,
+          "q3": 0.6931471805599455
+        },
+        "mean_selected_exact_eig": 0.0452033758701058
+      }
+    }
+  }
+}

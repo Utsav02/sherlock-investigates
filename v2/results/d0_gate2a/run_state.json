@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "v2/scripts/d0_gate2a.py",
+    "run",
+    "--resume"
+  ],
+  "completed": [
+    "simulate"
+  ],
+  "config": {
+    "config_sha256": "9d41b77d8a2775fb581681b53a88618569c0b4955788098f848d91356d26c07a",
+    "output": "/Users/utsavsingh/Desktop/Post-Uni/Projects/sherlock-investigates/v2/results/d0_gate2a/trajectories.jsonl",
+    "resume_command": "/Users/utsavsingh/Desktop/Post-Uni/Projects/sherlock-investigates/venv/bin/python /Users/utsavsingh/Desktop/Post-Uni/Projects/sherlock-investigates/v2/scripts/d0_gate2a.py run --resume",
+    "schema_version": "d0_gate2a_v1",
+    "seed": 20260822
+  },
+  "failed": null,
+  "progress": {
+    "simulate": {
+      "at": 1787438789.915803,
+      "count": 16384,
+      "elapsed": 36.56835699081421,
+      "last_trajectory_id": "hold_diffuse_partial:255:uot_sample",
+      "output_rows": 16384
+    }
+  },
+  "resumed_at": 1787439026.866091,
+  "started": 1787438753.348091
+}

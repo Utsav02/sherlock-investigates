@@ -82,6 +82,14 @@ class MechanicsTests(D0Fixture):
             self.assertEqual(len(set(qids)), 4)
             self.assertTrue(math.isfinite(row["final_log_loss"]))
 
+    def test_frozen_symmetric_model_makes_bed_nonadaptive_within_family(self):
+        sequences = {
+            tuple(turn["question_id"] for turn in
+                  d0.simulate_trajectory(self.config, self.family, episode, "bed_eig")["ledger"])
+            for episode in range(16)
+        }
+        self.assertEqual(len(sequences), 1)
+
 
 class DurabilityTests(D0Fixture):
     def tiny_config(self):

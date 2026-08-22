@@ -407,9 +407,33 @@ def analyze(config: dict[str, Any], rows: list[dict[str, Any]]) -> tuple[dict[st
                                                          config["seed"], comparator, split),
             }
     gate = evaluate_gate(config, comparisons, integrity)
+    sequence_diversity: dict[str, dict[str, int]] = {}
+    for policy in POLICIES:
+        sequence_diversity[policy] = {}
+        for family in config["families"]:
+            sequences = {
+                tuple(turn["question_id"] for turn in row["ledger"])
+                for row in rows
+                if row["policy"] == policy and row["family_id"] == family["id"]
+            }
+            sequence_diversity[policy][family["id"]] = len(sequences)
+    bed_adapts = any(count > 1 for count in sequence_diversity["bed_eig"].values())
     result = {"schema_version": config["schema_version"], "config_sha256": canonical_hash(config),
               "integrity": integrity, "summaries": summaries, "comparisons": comparisons,
-              "gate_2a": gate, "claim_boundary": "Synthetic mechanics only; no real-world validity claim."}
+              "gate_2a": gate,
+              "posthoc_mechanics_diagnostic": {
+                  "unique_question_sequences_per_family": sequence_diversity,
+                  "bed_response_conditioned_adaptation_observed": bed_adapts,
+                  "interpretation": (
+                      "BED varied its question order after observing responses."
+                      if bed_adapts else
+                      "BED used one sequence per family: the symmetric frozen likelihoods preserve "
+                      "question rankings as the posterior changes. Gate 2A therefore validates exact "
+                      "oracle prioritization, not response-conditioned adaptive questioning."
+                  ),
+                  "status": "post-hoc diagnostic; not part of the frozen gate",
+              },
+              "claim_boundary": "Synthetic mechanics only; no real-world validity claim."}
     inspection_rows = []
     held_rows = [r for r in rows if r["split"] == "heldout"]
     for policy in POLICIES:

@@ -820,3 +820,35 @@ small bridge, not confirmation.
 remains forbidden until Gate 2A passes. Gate 3B is now mandatory before any
 real-investigation transfer claim and uses the frozen paired area-under-turnwise-
 log-loss rule in `v2/BRIDGE_PROTOCOL.md`; an inconclusive interval does not pass.
+
+---
+
+### 2026-08-22 — Gate 2A freezes BED-EIG primary and UoT-style secondary
+
+**Owner authorization:** “do it,” after the bridge passed and the next permitted
+step was explained as the cheap, no-training Gate 2A mechanics.
+
+**Decision:** B2 is updated from UoT-only to exact BED-EIG as the primary
+pre-registered active policy. A UoT-style one-sample simulation heuristic is
+retained as secondary and cannot rescue the primary gate. Random and the
+prevalence-based fixed order remain required comparators.
+
+A full-text pass corrected the record: BED-LLM arXiv v3 is published at ICLR
+2026, not ICLR 2025. Its key warning is directly relevant: maximizing marginal
+response entropy under a deterministic-likelihood assumption can prefer
+ambiguous questions; the full EIG must subtract expected conditional response
+entropy. D0 exposes exact non-deterministic likelihoods, so it can compute that
+quantity without the LLM estimators used by BED-LLM or CA-BED.
+
+**Frozen experiment:** sixteen scenario families split 8/8 development/heldout,
+256 balanced episodes per family, twelve taxonomy-grounded questions, three
+partially informative answer categories, disjoint rendering banks, and a
+four-question budget. Gate 2A is based only on BED's paired held-out final-log-
+loss improvement over random and fixed, clustered by scenario family, with a
+0.05-nat practical floor and explicit family-consistency/integrity rules. Full
+specification: `v2/D0_GATE2A_PROTOCOL.md`; resolved machine config:
+`v2/configs/d0_gate2a_v1.json`.
+
+**Boundary:** this simulator is a mechanics test. Passing would permit designing
+D0 SFT but would not establish realism, authorize training automatically, or
+support a real-active claim.

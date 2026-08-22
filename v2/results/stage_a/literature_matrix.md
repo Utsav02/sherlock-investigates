@@ -92,7 +92,7 @@ its caution. **[F]**
 | source | question | method | tasks | baselines | headline | licence |
 |---|---|---|---|---|---|---|
 | **Uncertainty of Thoughts** (2402.03271) | can an LLM choose questions that maximise expected information gain? **[A]** | uncertainty-aware simulation + information-gain reward + reward propagation **[A]** | medical diagnosis, troubleshooting, 20-questions **[A]** | direct prompting **[A]** | **+38.1% average success rate** vs direct prompting **[A]** | CC BY 4.0 **[A]** |
-| **BED-LLM** (2508.21184, **ICLR 2025**) | adaptive information gathering via sequential Bayesian experimental design **[A]** | iteratively maximise **EIG** under a probabilistic model from the LLM's belief distribution; specialised EIG estimator + candidate-query proposal **[A]** | 20-questions, active user-preference inference **[A]** | direct prompting, other adaptive designs **[A]** | **"typically more than double" baseline; GPT-4o 93% vs prompt-only 45%** on Animals **[A]** | Apple ML Research **[A]** |
+| **BED-LLM** (2508.21184v3, **ICLR 2026**) | adaptive information gathering via sequential Bayesian experimental design **[F]** | iteratively maximise **EIG** under a prior-likelihood joint model; Rao-Blackwellized estimator retains response entropy and avoids deterministic likelihood assumptions **[F]** | 20 Questions and active user-preference inference **[F]** | direct prompting and adaptive-design ablations **[F]** | substantial gains across tests; exact table-level results are version-specific **[F]** | arXiv distribution; upstream code/release terms still apply **[F]** |
 | **CA-BED** (2606.01182, ICLR 2026 workshop) | question selection under ambiguous / partially informative answers **[A]** | conversation-aware BED + LLM-based likelihood estimation, inference-time planning **[A]** | two entity-deduction benchmarks **[A]** | direct prompting, other info-seeking methods **[A]** | **+21.8% success, +1.8 turns** vs direct prompting **[A]** | CC BY 4.0 **[A]** |
 | **ClarQ-LLM** (2409.06097) | can LLMs ask clarifying questions in task-oriented dialogue? **[A]** | benchmark with an **executable provider agent** replicating the human provider **[A]** | 31 task types × 10 scenarios = **310**, English–Chinese **[A]** | — | **LLAMA3.1-405B max 60.05% success** **[A]** | arXiv nonexclusive-distrib **[A]** |
 
@@ -102,7 +102,7 @@ its caution. **[F]**
 expected-information-gain policy" (arm B2). The matrix now shows that is
 out of date:
 
-- **BED-LLM (ICLR 2025)** is the same idea done more carefully — an explicit
+- **BED-LLM (ICLR 2026)** is the same idea done more carefully — an explicit
   EIG estimator over a posterior derived from the model's belief distribution,
   rather than UoT's simulation-and-propagation heuristic — and reports far larger
   gains (GPT-4o 93% vs 45% prompt-only on 20-questions-style Animals).
@@ -119,6 +119,12 @@ pre-registered non-trained active policy beats random and fixed; picking the
 weaker of two published methods would make that gate easier to pass and the
 result less meaningful. **This is a design-doc change and is not made
 unilaterally** — recorded in `v2/DECISIONS.md` as a recommendation.
+
+**Resolution, 2026-08-22:** the owner authorized Gate 2A. The required full-text
+pass on UoT v3, BED-LLM v3, and CA-BED v1 was completed before freezing it. D0
+uses BED's full non-deterministic EIG with known likelihoods; it does not import
+the papers' LLM likelihood-estimation machinery. The pass also corrected the
+BED-LLM venue/year from ICLR 2025 to ICLR 2026.
 
 ---
 

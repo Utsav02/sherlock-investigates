@@ -294,3 +294,53 @@ no D0 SFT yet.
   Upgrade logging so any future run retains prompt-level outcomes.
 - Git: owner authorised path-specific commits alongside the dirty tree. Never
   stage the unrelated scenario patch, generated datasets, draft files, or HTML.
+
+---
+
+# Stage C Gate 2A — synthetic-active mechanics
+
+**Updated:** 2026-08-22
+
+## Goal
+
+Build the smallest exact D0 simulator and determine whether a pre-registered,
+non-trained active policy beats both random and fixed question selection under
+the same budget. Do not train a D0 adapter unless Gate 2A passes. Do not read the
+frozen Track A test split.
+
+## Stages
+
+- [x] 1. Freeze the D0 generative model, entity/surface splits, policies,
+  estimands, budgets, and Gate 2A criterion — 16 families, 12 questions, 256
+  balanced episodes/family, four-turn budget, BED-EIG primary, UoT secondary,
+  and a paired family-clustered log-loss gate fixed before implementation.
+- [ ] 2. Implement the exact simulator, deterministic policies, posterior ledger,
+  and resumable per-episode output.
+- [ ] 3. Execute a tiny dry run, run the frozen benchmark, and preserve raw
+  trajectories/config/state.
+- [ ] 4. Apply paired scenario-family inference, inspect trajectories and failure
+  modes, and record Gate 2A pass/fail without moving the threshold.
+- [ ] 5. Verify, document, and commit each stage by exact path; leave unrelated
+  working-tree changes untouched and do not push.
+
+## Resume
+
+```bash
+git status --short
+rg -n 'D0|Gate 2A|B0|B1|B2|surface|scenario' v2/experiment_design.md v2/DECISIONS.md STATUS.md
+venv/bin/python -m unittest discover -s tests -q
+```
+
+Resume at Stage C Gate 2A stage 1. No D0 SFT, GPU work, human collection, or
+Track A test evaluation is authorized.
+
+## Decisions made
+
+- Primary active baseline: BED-style exact expected information gain, because D0
+  exposes the true response likelihoods and makes EIG exact rather than estimated.
+- Secondary active comparison: UoT-style one-sample simulated information gain,
+  retained to quantify the cost of heuristic approximation.
+- Required comparators: seeded random selection and one fixed pre-registered
+  question order, all using the same question and turn budget.
+- Gate 2A is the only authorized Stage C work. Passing permits a later D0 SFT
+  implementation; it does not itself authorize training or a real-active claim.

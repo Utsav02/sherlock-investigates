@@ -194,7 +194,7 @@ kind of training contamination.
 
 | Role | Conditions |
 |---|---|
-| Investigator | fixed/random/UoT policies; prompted base; one D0 SFT adapter |
+| Investigator | fixed/random/BED-EIG policies; UoT-style secondary; prompted base; one D0 SFT adapter |
 | Respondent | executable synthetic process with known hidden type and response distribution |
 | Probability authority | known synthetic distribution or a separately specified estimator arm |
 | Calculator | deterministic odds/probability arithmetic only |
@@ -517,7 +517,8 @@ exploratory and must report the actual small family count.
 |---|---|
 | B0 | Random question selection |
 | B1 | Fixed pre-registered question order |
-| B2 | UoT-style expected-information-gain policy |
+| B2 | BED-style exact expected-information-gain policy in D0 |
+| B2-UoT | UoT-style simulated information-gain policy (secondary) |
 | B3 | Prompted base with ledger and exact calculator |
 | B4 | One D0 SFT adapter from the same frozen checkpoint |
 | B5 | Optional prompted base with free scratchpad and the same ledger/tools |
@@ -713,8 +714,8 @@ Valid stopping conclusions include:
 
 1. Build D0 with exact synthetic posteriors and templated natural-language
    questions/responses whose rendering probabilities are known.
-2. Reproduce an Uncertainty-of-Thoughts-style policy and establish random/fixed
-   baselines.
+2. Run exact BED-EIG as the primary policy, retain a UoT-style heuristic as a
+   secondary comparison, and establish random/fixed baselines.
 3. Seed the question bank with real interrogator strategy classes without
    treating observational accuracy as causal question value.
 4. Freeze scenario-family and surface-rendering splits, then verify that the
@@ -747,11 +748,14 @@ human-data protocol.
 - What exact target population does "human" describe?
 - Which AI systems in the three-party corpus count as substantive families, and
   is any family holdout sufficiently supported beyond exploration?
-- How closely should the D0 question bank follow the observed human strategy
-  taxonomy versus a generic UoT sanity environment?
-- What D0 response categories, natural-language rendering banks, and held-out
+- ~~How closely should the D0 question bank follow the observed human strategy
+  taxonomy versus a generic UoT sanity environment?~~ Resolved for Gate 2A in
+  `D0_GATE2A_PROTOCOL.md`: twelve released strategy classes seed the bank; their
+  observed outcomes are not treated as causal.
+- ~~What D0 response categories, natural-language rendering banks, and held-out
   rendering split are broad enough to make Stage D informative while preserving
-  exactly known probabilities?
+  exactly known probabilities?~~ Gate 2A's minimal answer is frozen in
+  `D0_GATE2A_PROTOCOL.md`; adequacy for Stage D remains a later construct check.
 - What frozen evidence estimator and calibration method will be used?
 - What base checkpoint fits the available hardware and release requirements?
 - Which probability field is authoritative in every arm, and which fields must
@@ -789,7 +793,8 @@ A successful v2 artifact set includes:
 
 - a reproducible licence/provenance audit;
 - a canonical real-passive evaluation with explicit limitations;
-- a controlled synthetic-active benchmark with UoT/random/fixed baselines;
+- a controlled synthetic-active benchmark with BED-EIG/random/fixed baselines
+  and a secondary UoT-style heuristic;
 - one versioned, source-traceable D0 dataset and controlled adapter;
 - calibration-aware evaluation on held-out entities;
 - an explicit account of whether synthetic belief training transfers during

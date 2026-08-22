@@ -1,0 +1,63 @@
+{
+  "schema_version": "d0_gate2a_v1",
+  "seed": 20260822,
+  "episodes_per_family": 256,
+  "turn_budget": 4,
+  "prior_p_ai": 0.5,
+  "bootstrap_replicates": 10000,
+  "default_discrimination": 0.08,
+  "fixed_order": ["daily", "opinion", "personal", "direct"],
+  "response_categories": ["human_cue", "neutral", "ai_cue"],
+  "response_renderings": {
+    "development": {
+      "human_cue": ["That feels familiar from my own experience.", "Yeah, I have a pretty ordinary personal answer to that.", "I can picture that from things I have done."],
+      "neutral": ["It depends, honestly.", "I'm not completely sure.", "Nothing specific comes to mind."],
+      "ai_cue": ["I do not have personal experiences of that.", "I would answer from general patterns rather than lived experience.", "That is not something I directly experience."]
+    },
+    "heldout": {
+      "human_cue": ["I've actually dealt with something like that myself.", "My answer comes from a real memory of it.", "That's recognizable from day-to-day life for me."],
+      "neutral": ["Hard to say without more context.", "Maybe; I don't have a firm answer.", "I could go either way on that."],
+      "ai_cue": ["I can describe it but not claim firsthand experience.", "My response would be inferred rather than remembered.", "I lack a personal point of view on that."]
+    }
+  },
+  "questions": [
+    {"id": "daily", "strategy_code": "1b", "development": "What did you get up to today?", "heldout": "How has your day unfolded so far?"},
+    {"id": "opinion", "strategy_code": "5e", "development": "What food do you think is overrated?", "heldout": "Which popular meal do you personally not enjoy?"},
+    {"id": "personal", "strategy_code": "1c", "development": "What is a hobby you keep returning to?", "heldout": "What pastime has held your attention lately?"},
+    {"id": "direct", "strategy_code": "3a", "development": "Are you a human or a bot?", "heldout": "Should I believe there is a person answering me?"},
+    {"id": "weather", "strategy_code": "2a", "development": "What is the weather like where you are?", "heldout": "What does it look like outside for you right now?"},
+    {"id": "emotion", "strategy_code": "5a", "development": "What made you feel impatient recently?", "heldout": "When did you last feel genuinely frustrated?"},
+    {"id": "knowledge", "strategy_code": "4f", "development": "Why do leaves usually look green?", "heldout": "What makes the sky appear blue in daylight?"},
+    {"id": "experience", "strategy_code": "5b", "development": "What does standing in cold rain feel like?", "heldout": "Describe the sensation of stepping onto a cold floor."},
+    {"id": "humor", "strategy_code": "5c", "development": "Tell me a deliberately bad joke.", "heldout": "Make up a joke that would earn a groan."},
+    {"id": "logic", "strategy_code": "4d", "development": "If all nubs are zibs and one zib is red, must a nub be red?", "heldout": "If every dax is a wug and some wug is blue, is a dax necessarily blue?"},
+    {"id": "strings", "strategy_code": "4c", "development": "Write 'drawer' backwards.", "heldout": "Reverse the letters in 'stressed'."},
+    {"id": "surroundings", "strategy_code": "2c", "development": "What is immediately to your left?", "heldout": "What object is closest to you right now?"}
+  ],
+  "families": [
+    {"id": "dev_embodied_local", "split": "development", "neutral_mass": 0.18, "signals": {"surroundings": 0.80, "experience": 0.72, "personal": 0.45}},
+    {"id": "dev_social_affect", "split": "development", "neutral_mass": 0.22, "signals": {"emotion": 0.78, "humor": 0.69, "opinion": 0.46}},
+    {"id": "dev_factual_precision", "split": "development", "neutral_mass": 0.16, "signals": {"strings": 0.82, "logic": 0.70, "knowledge": 0.43}},
+    {"id": "dev_direct_compliance", "split": "development", "neutral_mass": 0.25, "signals": {"direct": 0.76, "personal": 0.66, "daily": 0.44}},
+    {"id": "dev_everyday_routine", "split": "development", "neutral_mass": 0.20, "signals": {"daily": 0.77, "weather": 0.68, "surroundings": 0.42}},
+    {"id": "dev_guarded_persona", "split": "development", "neutral_mass": 0.28, "signals": {"opinion": -0.75, "humor": 0.67, "direct": -0.41}},
+    {"id": "dev_cross_register", "split": "development", "neutral_mass": 0.19, "signals": {"personal": 0.73, "knowledge": -0.69, "emotion": 0.47}},
+    {"id": "dev_sparse_partial", "split": "development", "neutral_mass": 0.35, "signals": {"experience": 0.61, "strings": -0.57, "weather": 0.40}},
+    {"id": "hold_private_irony", "split": "heldout", "neutral_mass": 0.24, "signals": {"humor": 0.75, "opinion": -0.68, "direct": 0.42}},
+    {"id": "hold_situated_routine", "split": "heldout", "neutral_mass": 0.18, "signals": {"surroundings": 0.79, "daily": 0.71, "weather": 0.48}},
+    {"id": "hold_technical_play", "split": "heldout", "neutral_mass": 0.17, "signals": {"strings": 0.81, "logic": -0.68, "knowledge": 0.41}},
+    {"id": "hold_embodied_affect", "split": "heldout", "neutral_mass": 0.21, "signals": {"experience": 0.77, "emotion": 0.70, "personal": 0.45}},
+    {"id": "hold_guarded_direct", "split": "heldout", "neutral_mass": 0.29, "signals": {"direct": -0.76, "personal": 0.67, "humor": 0.40}},
+    {"id": "hold_low_context", "split": "heldout", "neutral_mass": 0.31, "signals": {"weather": 0.66, "surroundings": -0.63, "daily": 0.39}},
+    {"id": "hold_mixed_register", "split": "heldout", "neutral_mass": 0.20, "signals": {"daily": -0.69, "strings": 0.75, "opinion": 0.50}},
+    {"id": "hold_diffuse_partial", "split": "heldout", "neutral_mass": 0.36, "signals": {"emotion": 0.56, "logic": 0.53, "experience": -0.49}}
+  ],
+  "gate": {
+    "primary_policy": "bed_eig",
+    "comparators": ["random", "fixed"],
+    "min_mean_log_loss_improvement_nats": 0.05,
+    "bootstrap_lower_must_exceed": 0.0,
+    "min_positive_families": 7,
+    "bayes_tolerance": 1e-12
+  }
+}

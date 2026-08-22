@@ -276,11 +276,44 @@ class TestClusterUnits(unittest.TestCase):
         self.assertEqual(units["interrogator"]["u1"], [0, 1])
         self.assertEqual(len(units["component"]), 2)
 
-    def test_widen_picks_the_wider_interval(self):
-        narrow = {"lo": 0.4, "hi": 0.5}
-        wide = {"lo": 0.3, "hi": 0.6}
-        self.assertIs(a0.widen(narrow, wide), wide)
-        self.assertIs(a0.widen(wide, narrow), wide)
+    def test_dyadic_interval_preserves_identity_across_roles(self):
+        games = [
+            {"game_id": "1", "interrogator_user_id": "shared",
+             "human_witness_user_id": "u2", "component": 0},
+            {"game_id": "2", "interrogator_user_id": "u3",
+             "human_witness_user_id": "shared", "component": 0},
+            {"game_id": "3", "interrogator_user_id": "u4",
+             "human_witness_user_id": "u5", "component": 1},
+        ]
+        got = a0._mean_interval_dyadic([1.0, 1.0, 0.0], games, (0.0, 1.0))
+        # Five people, not six role-qualified IDs: "shared" is one cluster.
+        self.assertEqual(got["n_participants"], 5)
+        self.assertGreater(got["se"], 0.0)
+        self.assertLessEqual(0.0, got["lo"])
+        self.assertLessEqual(got["hi"], 1.0)
+        self.assertIn("dyadic", got["method"])
+
+    def test_bootstrap_reports_dyadic_participant_not_max_of_marginals(self):
+        games = [
+            {"game_id": str(i), "interrogator_user_id": f"i{i // 2}",
+             "human_witness_user_id": f"w{i % 3}", "component": i // 3}
+            for i in range(6)
+        ]
+        scored = {
+            "majority": {
+                "game_correct": [1, 0, 1, 0, 1, 0],
+                "game_prob_a_human": [0.5] * 6,
+                "game_label_a_human": [1, 0, 1, 0, 1, 0],
+                "dialogue_probs": [0.5] * 12,
+                "dialogue_labels": [0, 1] * 6,
+            }
+        }
+        got = a0.bootstrap_intervals(scored, games, n_boot=20, seed=7)
+        self.assertIn("participant", got)
+        self.assertIn("dyadic", got["participant"]["method"])
+        self.assertNotIn("max-of-marginals", got["participant"]["method"])
+        self.assertIsNone(
+            got["participant"]["detectors"]["majority"]["dialogue_auroc"]["lo"])
 
 
 if __name__ == "__main__":

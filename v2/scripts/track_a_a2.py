@@ -220,8 +220,11 @@ def _score(preds, games, by_game, n_boot):
     point = a0.metrics_from(scored["a2_frozen_rep"], list(range(len(games))))
     iv = a0.bootstrap_intervals(scored, games, n_boot, a0.SEED)
     participant = {
-        k: a0.widen(iv["interrogator"]["detectors"]["a2_frozen_rep"][k],
-                    iv["human_witness"]["detectors"]["a2_frozen_rep"][k])
+        k: iv["participant"]["detectors"]["a2_frozen_rep"][k]
+        for k in list(a0.METRIC_KEYS) + ["game_accuracy_diff_vs_majority"]
+    }
+    component = {
+        k: iv["component"]["detectors"]["a2_frozen_rep"][k]
         for k in list(a0.METRIC_KEYS) + ["game_accuracy_diff_vs_majority"]
     }
     ai = [preds[by_game[g["game_id"]][g["ai_conversation_label"]]["example_id"]]
@@ -233,6 +236,7 @@ def _score(preds, games, by_game, n_boot):
         "n_games": len(games),
         "point_estimates": {k: round(v, 4) for k, v in point.items()},
         "participant_ci": participant,
+        "component_ci": component,
         "side_recognition": {
             "mean_p_ai_on_AI_side": round(sum(ai) / len(ai), 4),
             "mean_p_ai_on_HUMAN_side": round(sum(hu) / len(hu), 4),
@@ -289,7 +293,11 @@ def main(argv=None) -> int:
         "test_split": "UNTOUCHED (Gate 5, one shot)",
         "canonical": {"source_revision": manifest["source_revision"],
                       "split_sha256": manifest["split_sha256"]},
-        "bootstrap": {"replicates": args.bootstrap, "seed": a0.SEED},
+        "inference": {
+            "bootstrap_replicates": args.bootstrap, "seed": a0.SEED,
+            "additive_metrics": "dyadic participant-cluster sandwich",
+            "nonadditive_metrics": "connected-component percentile bootstrap",
+        },
         "evalset_composition": a0.evalset_composition(games, dial),
     }
 

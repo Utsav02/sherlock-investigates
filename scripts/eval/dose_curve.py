@@ -42,9 +42,11 @@ Writes results/analysis/dose_curve_<timestamp>.json plus a printed table.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import os
+import random
 import re
 import subprocess
 import sys
@@ -128,103 +130,152 @@ def fisher_exact_two_sided(a: int, b: int, c: int, d: int) -> float:
     return min(1.0, total)
 
 
+def _percentile(values: list[float], q: float) -> float:
+    ordered = sorted(values)
+    if not ordered:
+        return float("nan")
+    pos = min(len(ordered) - 1, max(0, int(round(q * (len(ordered) - 1)))))
+    return ordered[pos]
+
+
+def _prompt_blocked_summary(early: list[dict], late: list[dict],
+                            seed: int = 20260822,
+                            n_boot: int = 5000) -> dict | None:
+    """Conditional paired summary when prompt-level outcomes are available.
+
+    Resampling prompts handles reuse of the same prompt across checkpoints. It
+    does not turn one training trajectory into replicated training evidence.
+    """
+    rows = early + late
+    if not rows or any("prompt_outcomes" not in row for row in rows):
+        return None
+    prompt_ids = [p["prompt_id"] for p in rows[0]["prompt_outcomes"]]
+    if any([p["prompt_id"] for p in row["prompt_outcomes"]] != prompt_ids
+           for row in rows):
+        return None
+
+    def rates(group: list[dict]) -> dict[str, float]:
+        values = {pid: [] for pid in prompt_ids}
+        for row in group:
+            for outcome in row["prompt_outcomes"]:
+                values[outcome["prompt_id"]].append(float(outcome["closed"]))
+        return {pid: sum(v) / len(v) for pid, v in values.items()}
+
+    e, l = rates(early), rates(late)
+    diffs = {pid: l[pid] - e[pid] for pid in prompt_ids}
+    point = sum(diffs.values()) / len(diffs)
+    rng = random.Random(seed)
+    draws = []
+    for _ in range(n_boot):
+        sample = [prompt_ids[rng.randrange(len(prompt_ids))]
+                  for _ in prompt_ids]
+        draws.append(sum(diffs[p] for p in sample) / len(sample))
+    return {
+        "n_prompts": len(prompt_ids),
+        "late_minus_early_rate": point,
+        "prompt_bootstrap_95": [_percentile(draws, 0.025),
+                                _percentile(draws, 0.975)],
+        "per_prompt_late_minus_early": diffs,
+        "interpretation": ("conditional on this fixed training trajectory and "
+                           "prompt bank; not a training-seed replication or a "
+                           "causal test of dose"),
+    }
+
+
 def analyze_rows(rows: list[dict], early_max: int = 35, late_min: int = 45,
                  z: float = 1.96) -> dict:
-    """Per-checkpoint Wilson intervals + a pooled early-vs-late Fisher test.
+    """Descriptive checkpoint trajectory plus prompt-blocked future analysis.
 
-    Pure function over the logged rows so it can be dry-parsed on historical
-    numbers without a GPU (see tests/test_dose_stats.py). Returns a dict that is
-    embedded verbatim into the output JSON.
+    Historical artifacts contain checkpoint totals only. Pooling those totals
+    into a binomial interval or Fisher test treats repeated prompts and adjacent
+    checkpoints as independent, so the former inferential output is withdrawn.
     """
     graded = [r for r in rows if r.get("step") is not None]
     per = []
     for r in sorted(graded, key=lambda x: x["step"]):
-        lo, hi = wilson_interval(r["closure"], r["n"], z)
         per.append({
             "step": r["step"], "closure": r["closure"], "n": r["n"],
             "rate": r["closure"] / r["n"] if r["n"] else 0.0,
-            "wilson_lo": lo, "wilson_hi": hi,
+            "interval": None,
+            "warning": ("fixed heterogeneous prompt bank; checkpoint rate is "
+                        "descriptive, not an iid binomial estimate"),
         })
 
     early = [r for r in graded if r["step"] <= early_max]
     late = [r for r in graded if r["step"] >= late_min]
-    pooled = None
+    descriptive = None
+    prompt_blocked = None
     if early and late:
         e_ok = sum(r["closure"] for r in early)
         e_n = sum(r["n"] for r in early)
         l_ok = sum(r["closure"] for r in late)
         l_n = sum(r["n"] for r in late)
-        pooled = {
+        descriptive = {
             "early_max": early_max, "late_min": late_min,
             "early_ok": e_ok, "early_n": e_n,
             "early_rate": e_ok / e_n if e_n else 0.0,
-            "early_wilson": list(wilson_interval(e_ok, e_n, z)),
             "late_ok": l_ok, "late_n": l_n,
             "late_rate": l_ok / l_n if l_n else 0.0,
-            "late_wilson": list(wilson_interval(l_ok, l_n, z)),
-            "fisher_p_two_sided": fisher_exact_two_sided(
-                e_ok, e_n - e_ok, l_ok, l_n - l_ok),
+            "late_minus_early_rate": ((l_ok / l_n) - (e_ok / e_n)
+                                      if e_n and l_n else float("nan")),
+            "warning": ("descriptive pooled counts only; no binomial interval "
+                        "or Fisher test because prompts and checkpoints repeat"),
         }
-    return {"per_checkpoint": per, "pooled": pooled}
+        prompt_blocked = _prompt_blocked_summary(early, late)
+    return {
+        "per_checkpoint": per,
+        "descriptive_early_late": descriptive,
+        "prompt_blocked": prompt_blocked,
+        "inference_status": (
+            "prompt-blocked conditional interval available; training-seed "
+            "replication still required for a causal mechanism claim"
+            if prompt_blocked else
+            "historical aggregate only: inferential early/late comparison withdrawn"
+        ),
+    }
 
 
 def print_analysis(analysis: dict) -> None:
-    """Print the CI-bearing table and the reframed conclusion.
-
-    The owner has decided the supportable claim is 'degradation begins near or
-    below the effect threshold', NOT 'a usable dose window exists at ~35'. The
-    earlier COLLAPSE-at-step-N / last-healthy-checkpoint framing overclaimed a
-    sharp usable boundary that n=8 per point cannot support; it is retracted.
-    """
+    """Print the descriptive table and corrected inferential status."""
     per = analysis["per_checkpoint"]
-    pooled = analysis["pooled"]
+    descriptive = analysis["descriptive_early_late"]
     print(f"\n{'='*72}")
-    print("  THINK-BLOCK CLOSURE BY CHECKPOINT  (Wilson 95% CI)")
+    print("  THINK-BLOCK CLOSURE BY CHECKPOINT  (DESCRIPTIVE)")
     print(f"{'='*72}")
-    print(f"  {'step':>6}  {'closure':>9}  {'rate':>5}   95% CI")
+    print(f"  {'step':>6}  {'closure':>9}  {'rate':>5}")
     for r in per:
         print(f"  {r['step']:>6}  {r['closure']:>4}/{r['n']:<4}  "
-              f"{r['rate']:>5.2f}   [{r['wilson_lo']:.2f}, {r['wilson_hi']:.2f}]")
+              f"{r['rate']:>5.2f}")
 
     print(f"\n{'-'*72}")
-    if not pooled:
+    if not descriptive:
         print("  Not enough checkpoints on both sides of the split to pool. Report "
               "the per-checkpoint intervals above and collect more before "
               "claiming a difference.")
         print(f"{'='*72}")
         return
 
-    print(f"  POOLED  early (step <= {pooled['early_max']})  vs  "
-          f"late (step >= {pooled['late_min']})")
-    print(f"    early : {pooled['early_ok']}/{pooled['early_n']}  "
-          f"= {pooled['early_rate']:.2f}  "
-          f"[{pooled['early_wilson'][0]:.2f}, {pooled['early_wilson'][1]:.2f}]")
-    print(f"    late  : {pooled['late_ok']}/{pooled['late_n']}  "
-          f"= {pooled['late_rate']:.2f}  "
-          f"[{pooled['late_wilson'][0]:.2f}, {pooled['late_wilson'][1]:.2f}]")
-    print(f"    Fisher exact (two-sided) p = {pooled['fisher_p_two_sided']:.4g}")
+    print(f"  DESCRIPTIVE early (step <= {descriptive['early_max']}) vs "
+          f"late (step >= {descriptive['late_min']})")
+    print(f"    early : {descriptive['early_ok']}/{descriptive['early_n']}  "
+          f"= {descriptive['early_rate']:.2f}")
+    print(f"    late  : {descriptive['late_ok']}/{descriptive['late_n']}  "
+          f"= {descriptive['late_rate']:.2f}")
+    print("    NO p-value or pooled binomial CI: repeated prompts and adjacent "
+          "checkpoints are dependent.")
 
     print(f"\n{'-'*72}")
     print("  CONCLUSION")
-    print("  Think-block closure degrades with training dose: pooled closure "
-          f"falls from {pooled['early_rate']:.2f} "
-          f"[{pooled['early_wilson'][0]:.2f}, {pooled['early_wilson'][1]:.2f}] "
-          f"over checkpoints <= {pooled['early_max']} steps to "
-          f"{pooled['late_rate']:.2f} "
-          f"[{pooled['late_wilson'][0]:.2f}, {pooled['late_wilson'][1]:.2f}] "
-          f"at >= {pooled['late_min']} steps")
-    print(f"  (Fisher exact two-sided p = {pooled['fisher_p_two_sided']:.4g}).")
-    print("  The supportable claim is that DEGRADATION BEGINS NEAR OR BELOW THE "
-          "EFFECT THRESHOLD")
-    print("  (~1M+ unique tokens, per LIMA / Betley et al.): even the early "
-          "checkpoints do not")
-    print("  hold closure at 1.0, and no checkpoint is both format-intact and "
-          "dosed heavily")
-    print("  enough to plausibly move the reasoning prior.")
-    print("  This is NOT evidence that a usable dose window exists at ~35 steps "
-          "— that framing")
-    print("  is retracted. n=8 per checkpoint cannot certify any single step as "
-          "a safe boundary.")
+    print("  On this recorded training trajectory, closure was generally lower at "
+          "later checkpoints. The historical aggregate cannot support a p-value, "
+          "a safe threshold, or a causal claim about optimizer dose.")
+    if analysis["prompt_blocked"]:
+        pb = analysis["prompt_blocked"]
+        print(f"  Prompt-blocked late-minus-early difference: "
+              f"{pb['late_minus_early_rate']:+.3f} "
+              f"[{pb['prompt_bootstrap_95'][0]:+.3f}, "
+              f"{pb['prompt_bootstrap_95'][1]:+.3f}], conditional on one "
+              "training trajectory.")
     print(f"{'='*72}")
 
 
@@ -401,7 +452,12 @@ def main() -> None:
     def measure(label) -> dict:
         ok = trunc = 0
         lens = []
-        for o in openers:
+        outcomes = []
+        for prompt_idx, o in enumerate(openers):
+            # Common random numbers across checkpoints: a prompt gets the same
+            # generation seed in every arm. This is logged per observation.
+            generation_seed = args.seed * 1_000_003 + prompt_idx
+            set_seed(generation_seed)
             ids = tok.apply_chat_template(
                 [{"role": "system", "content": getattr(sherlock_prompts, SYSTEM_PROMPT_NAME)},
                  {"role": "user", "content": o}],
@@ -416,12 +472,24 @@ def main() -> None:
             n = out.shape[-1] - ids.shape[-1]
             txt = tok.decode(out[0][ids.shape[-1]:], skip_special_tokens=False)
             think, _ = _resolve_think_block(txt, {})
-            ok += bool(think and think.strip())
-            trunc += n >= args.max_new_tokens
+            closed = bool(think and think.strip())
+            was_truncated = n >= args.max_new_tokens
+            ok += closed
+            trunc += was_truncated
             lens.append(n)
+            outcomes.append({
+                "prompt_id": f"opener-{prompt_idx:02d}",
+                "prompt_sha256": hashlib.sha256(o.encode()).hexdigest(),
+                "closed": closed,
+                "truncated": was_truncated,
+                "n_tokens": n,
+                "generation_seed": generation_seed,
+                "output_sha256": hashlib.sha256(txt.encode()).hexdigest(),
+            })
         row = {"label": label, "closure": ok, "n": len(openers),
                "closure_rate": ok / len(openers), "truncated": trunc,
-               "mean_tokens": sum(lens) // len(lens)}
+               "mean_tokens": sum(lens) // len(lens),
+               "prompt_outcomes": outcomes}
         # Append + flush + fsync: survives the process being killed outright,
         # not merely exiting cleanly. Then push off-machine.
         partial_f.write(json.dumps(row) + "\n")

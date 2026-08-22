@@ -1,5 +1,4 @@
-"""Tests for the dose-curve statistics — Wilson intervals, Fisher exact, and the
-end-to-end analysis path exercised on the real 2026-08-07 numbers.
+"""Tests for corrected dose-curve summaries and future prompt-level logging.
 
 Pure logic — no torch, no GPU, no network. dose_curve.py imports torch only
 inside main(), so the module imports cleanly here and the analysis functions are
@@ -90,26 +89,41 @@ class TestAnalysisOn20260807(unittest.TestCase):
         steps = [r["step"] for r in self.analysis["per_checkpoint"]]
         self.assertEqual(steps, [5, 15, 25, 35, 45, 55, 65, 75, 85, 95, 103])
 
-    def test_every_checkpoint_has_a_wilson_interval(self):
+    def test_historical_checkpoint_rows_are_descriptive(self):
         for r in self.analysis["per_checkpoint"]:
-            self.assertLessEqual(r["wilson_lo"], r["rate"])
-            self.assertGreaterEqual(r["wilson_hi"], r["rate"])
+            self.assertIsNone(r["interval"])
+            self.assertIn("descriptive", r["warning"])
 
-    def test_pooled_early_vs_late(self):
-        pooled = self.analysis["pooled"]
+    def test_early_vs_late_is_descriptive_without_inference(self):
+        pooled = self.analysis["descriptive_early_late"]
         # early = steps 5,15,25,35 -> 8+7+6+6 = 27 of 32
         self.assertEqual((pooled["early_ok"], pooled["early_n"]), (27, 32))
         # late = steps 45..103 -> 5+3+3+5+5+5+2 = 28 of 56
         self.assertEqual((pooled["late_ok"], pooled["late_n"]), (28, 56))
         self.assertGreater(pooled["early_rate"], pooled["late_rate"])
-        self.assertGreater(pooled["fisher_p_two_sided"], 0.0)
-        self.assertLessEqual(pooled["fisher_p_two_sided"], 1.0)
+        self.assertNotIn("fisher_p_two_sided", pooled)
+        self.assertNotIn("early_wilson", pooled)
+        self.assertIn("descriptive", pooled["warning"])
+        self.assertIsNone(self.analysis["prompt_blocked"])
+        self.assertIn("withdrawn", self.analysis["inference_status"])
 
-    def test_early_upper_ci_does_not_reach_one(self):
-        # The load-bearing claim in the reframed conclusion: even the early arm
-        # does not hold closure at 1.0, so there is no certified-intact window.
-        pooled = self.analysis["pooled"]
-        self.assertLess(pooled["early_wilson"][1], 1.0)
+    def test_prompt_blocked_summary_when_outcomes_exist(self):
+        rows = []
+        for step, outcomes in ((5, [1, 1, 0, 0]), (10, [1, 1, 1, 0]),
+                               (45, [0, 1, 0, 0]), (50, [0, 0, 0, 0])):
+            rows.append({
+                "label": f"step-{step}", "step": step,
+                "closure": sum(outcomes), "n": len(outcomes),
+                "prompt_outcomes": [
+                    {"prompt_id": f"p{i}", "closed": bool(v)}
+                    for i, v in enumerate(outcomes)
+                ],
+            })
+        got = dose_curve.analyze_rows(rows)["prompt_blocked"]
+        self.assertEqual(got["n_prompts"], 4)
+        self.assertLess(got["late_minus_early_rate"], 0.0)
+        self.assertEqual(len(got["prompt_bootstrap_95"]), 2)
+        self.assertIn("not a training-seed replication", got["interpretation"])
 
     def test_print_analysis_runs(self):
         # Smoke: the printer must not raise on real data.

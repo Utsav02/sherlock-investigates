@@ -12,10 +12,8 @@ What this script is, stated precisely so the result is not over-read
     P2  Out-of-fold calibration of the same estimator: Brier score and
         reliability curve, with clustered 95% intervals.
 
-**A2 does not exist yet.** A2 is a classifier head on a temporally clean frozen
-representation model, and choosing that checkpoint is still an open design
-decision (§19). So P1 *as frozen* is NOT evaluated here and this script does not
-claim to have evaluated it. What runs here is:
+A2 was implemented later as a frozen-representation probabilistic head. This A0
+module supplies the shared scoring and inference machinery. What runs here is:
 
   * the P1 **procedure** — the same 11 folds, the same pairing, the same
     clustered intervals — with A0's trained detectors in the estimator slot and
@@ -44,21 +42,21 @@ Two different graph facts govern this evaluation and are easy to conflate:
     user's ~4 games are correlated, but two users in the same component who
     never shared a game are not thereby correlated.
 
-Games are clustered by interrogator AND by human witness — crossed, not nested.
-A single-level bootstrap on either role alone understates that. This script
-therefore reports intervals under every unit, so the reader can see the size of
-the choice rather than take it on trust:
+Games are participant dyads, and a person may appear in either role. A
+single-role bootstrap understates that dependence. This script reports:
 
     game            each game independent (ANTI-conservative; the naive default)
     interrogator    cluster bootstrap on the interrogator
     human_witness   cluster bootstrap on the human witness
-    participant     the wider of the two above (conservative stand-in for a
-                    proper two-way crossed bootstrap, which is NOT implemented)
+    participant     dyadic participant-cluster sandwich interval for additive
+                    metrics, preserving one identity across both roles
     component       cluster bootstrap on the 11 co-occurrence components
-                    (valid but only 11 clusters, one holding ~a third of games)
+                    (primary for non-additive metrics such as AUROC; valid but
+                    only 11 clusters, one holding ~a third of games)
 
-The headline interval is `participant`. `game` is reported to make the
-understatement visible, not to be used.
+The headline interval for additive outcomes is `participant`; the component
+interval is the sensitivity analysis and the headline for non-additive outcomes.
+`game` and the role-specific marginals are diagnostics, not inference.
 
 Stdlib only (no numpy/sklearn in this venv), so the logistic regressions are
 implemented here: ridge-IRLS for the low-dimensional dense feature sets and
@@ -1024,12 +1022,131 @@ def bootstrap_intervals(scored_by_detector: dict[str, dict],
                 for name in names
             },
         }
+    out["participant"] = dyadic_participant_intervals(scored_by_detector, games)
     return out
 
 
-def widen(a: dict, b: dict) -> dict:
-    """The wider of two intervals — the conservative crossed-cluster stand-in."""
-    return a if (a["hi"] - a["lo"]) >= (b["hi"] - b["lo"]) else b
+def _mean_interval_dyadic(values: list[float], games: list[dict],
+                          bounds: tuple[float | None, float | None] = (None, None),
+                          z: float = 1.96) -> dict:
+    """Sandwich interval for an additive outcome on participant dyads.
+
+    A game belongs to both endpoint participants. Participants retain one
+    identity across interrogator and human-witness roles. The covariance meat
+    sums endpoint-cluster scores and subtracts the observation intersection,
+    counting covariance between any two games that share either participant.
+    """
+    if len(values) != len(games):
+        raise ValueError("one value is required per game")
+    n = len(values)
+    if n < 2:
+        return {"lo": float("nan"), "hi": float("nan"),
+                "estimate": float("nan"), "se": float("nan"),
+                "n_games": n, "n_participants": 0,
+                "method": "dyadic participant-cluster sandwich"}
+    estimate = sum(values) / n
+    centered = [v - estimate for v in values]
+    cluster_scores: dict[str, float] = defaultdict(float)
+    for i, (g, score) in enumerate(zip(games, centered)):
+        interrogator = g.get("interrogator_user_id") or f"?I:{i}"
+        witness = g.get("human_witness_user_id") or f"?W:{i}"
+        for participant in {interrogator, witness}:
+            cluster_scores[participant] += score
+    meat_raw = (sum(s * s for s in cluster_scores.values())
+                - sum(s * s for s in centered))
+    n_participants = len(cluster_scores)
+    correction = ((n / (n - 1)) * (n_participants / (n_participants - 1))
+                  if n_participants > 1 else 1.0)
+    variance = max(0.0, correction * meat_raw / (n * n))
+    se = math.sqrt(variance)
+    lo, hi = estimate - z * se, estimate + z * se
+    lower, upper = bounds
+    if lower is not None:
+        lo = max(lower, lo)
+    if upper is not None:
+        hi = min(upper, hi)
+    return {
+        "lo": round(lo, 4), "hi": round(hi, 4),
+        "estimate": round(estimate, 4), "se": round(se, 6),
+        "n_games": n, "n_participants": n_participants,
+        "meat_clipped_at_zero": meat_raw < 0,
+        "method": ("dyadic participant-cluster sandwich; same participant ID "
+                   "is shared across interrogator/witness roles; normal 95% CI"),
+    }
+
+
+def _additive_metric_values(scored: dict) -> dict[str, list[float]]:
+    values = {
+        "game_accuracy": list(scored["game_correct"]),
+        "game_brier": [],
+        "dialogue_balanced_accuracy": [],
+        "dialogue_brier": [],
+        "dialogue_log_loss": [],
+    }
+    for i, (q, y) in enumerate(zip(scored["game_prob_a_human"],
+                                   scored["game_label_a_human"])):
+        values["game_brier"].append((q - y) ** 2)
+        probs = scored["dialogue_probs"][2 * i:2 * i + 2]
+        labels = scored["dialogue_labels"][2 * i:2 * i + 2]
+        values["dialogue_balanced_accuracy"].append(sum(
+            int((p >= 0.5) == bool(label)) for p, label in zip(probs, labels)
+        ) / 2)
+        values["dialogue_brier"].append(sum(
+            (p - label) ** 2 for p, label in zip(probs, labels)
+        ) / 2)
+        values["dialogue_log_loss"].append(sum(
+            -(label * math.log(min(max(p, 1e-12), 1 - 1e-12))
+              + (1 - label) * math.log(1 - min(max(p, 1e-12), 1 - 1e-12)))
+            for p, label in zip(probs, labels)
+        ) / 2)
+    return values
+
+
+def dyadic_participant_intervals(scored_by_detector: dict[str, dict],
+                                 games: list[dict]) -> dict:
+    """Correct crossed-role participant intervals for additive outcomes.
+
+    AUROC is non-additive and is deliberately delegated to the connected-
+    component bootstrap, whose independent unit is explicit.
+    """
+    base = scored_by_detector.get("majority")
+    base_accuracy = list(base["game_correct"]) if base else None
+    detectors = {}
+    bounded = {
+        "game_accuracy": (0.0, 1.0), "game_brier": (0.0, 1.0),
+        "dialogue_balanced_accuracy": (0.0, 1.0),
+        "dialogue_brier": (0.0, 1.0),
+        "dialogue_log_loss": (0.0, None),
+    }
+    for name, scored in scored_by_detector.items():
+        row = {
+            metric: _mean_interval_dyadic(values, games, bounded[metric])
+            for metric, values in _additive_metric_values(scored).items()
+        }
+        row["dialogue_auroc"] = {
+            "lo": None, "hi": None,
+            "method": ("non-additive; use the connected-component bootstrap "
+                       "interval reported alongside this result"),
+        }
+        if base_accuracy is not None:
+            diff = [a - b for a, b in zip(scored["game_correct"], base_accuracy)]
+            row["game_accuracy_diff_vs_majority"] = _mean_interval_dyadic(
+                diff, games, (-1.0, 1.0))
+        else:
+            row["game_accuracy_diff_vs_majority"] = {
+                "lo": None, "hi": None, "method": "majority baseline unavailable"
+            }
+        detectors[name] = row
+    return {
+        "n_clusters": len({
+            p for i, g in enumerate(games)
+            for p in (g.get("interrogator_user_id") or f"?I:{i}",
+                      g.get("human_witness_user_id") or f"?W:{i}")
+        }),
+        "detectors": detectors,
+        "method": ("dyadic participant-cluster sandwich for additive metrics; "
+                   "component bootstrap for non-additive metrics"),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -1087,22 +1204,6 @@ def run_variant(dialogues: list[dict], games: list[dict], variant: str,
     }
 
     intervals = bootstrap_intervals(scored, eval_games, n_boot, SEED)
-    # participant = wider of interrogator / human_witness, per metric
-    participant = {"n_clusters": None, "detectors": {}}
-    for name in sorted(scored):
-        row = {}
-        for key in list(METRIC_KEYS) + ["game_accuracy_diff_vs_majority"]:
-            row[key] = widen(
-                intervals["interrogator"]["detectors"][name][key],
-                intervals["human_witness"]["detectors"][name][key],
-            )
-        participant["detectors"][name] = row
-    participant["n_clusters"] = (
-        f"{intervals['interrogator']['n_clusters']} interrogators / "
-        f"{intervals['human_witness']['n_clusters']} human witnesses (max-of-marginals)"
-    )
-    intervals["participant"] = participant
-
     # --- descriptive: accuracy by witness system (NOT a frozen contrast) ------
     by_system: dict[str, dict[str, float]] = {}
     for name, s in scored.items():
@@ -1261,8 +1362,12 @@ def main(argv: list[str] | None = None) -> int:
             "dialogues_sha256": manifest["dialogues_sha256"],
             "games_sha256": manifest["games_sha256"],
         },
-        "bootstrap": {"replicates": args.bootstrap, "seed": SEED,
-                      "method": "percentile, cluster resampled with replacement"},
+        "inference": {
+            "bootstrap_replicates": args.bootstrap, "seed": SEED,
+            "additive_metrics": "dyadic participant-cluster sandwich",
+            "nonadditive_metrics": "connected-component percentile bootstrap",
+            "diagnostics": "game and role-specific percentile bootstraps",
+        },
         "conditions": {},
     }
 

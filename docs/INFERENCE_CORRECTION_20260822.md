@@ -91,6 +91,12 @@ bootstrap as the primary interval unless a separately tested influence-function
 implementation is added. Do not synthesize a "participant" interval by selecting
 the wider of two role-specific intervals.
 
+These intervals condition on the already fitted cross-fold models. They quantify
+variation across the observed participant/game structure, not the additional
+variation that would arise from drawing a new training corpus and refitting the
+whole algorithm. Any claim about algorithm-level generalization requires repeated
+training samples or seeds; label the present intervals accordingly.
+
 ### Calibration
 
 Calibration evaluation and calibration fitting remain distinct. Any new

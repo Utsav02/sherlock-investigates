@@ -1,0 +1,2729 @@
+{
+  "generated_by": "v2/scripts/track_a_a0.py",
+  "generated_at_utc": "20260822_202851",
+  "arm": "A0",
+  "not_implemented": {
+    "A1": "Inverse Turing Bench reproduction. Its 557 games are 48.9% of the corpus and biased long (90.5 vs 65.0 mean tokens); the A2-vs-A1 contrast was demoted to interval reporting. Needs its own session with the coverage bias stated.",
+    "A2": "Classifier head on a temporally clean frozen representation model. The frozen checkpoint is still an open design decision (\u00a719), so contrast P1 AS FROZEN is not evaluated here."
+  },
+  "test_split": "UNTOUCHED (Gate 5, one shot)",
+  "canonical": {
+    "source_revision": "6891d9a8a2c4",
+    "split_sha256": "256543688a5da35879e157771cf1b527b82014923a1134ff06f10e8b24b8a8c7",
+    "dialogues_sha256": "8c1050dc0f84eda143de1237b9105a416897f9077f5616b05b16ed340e23a596",
+    "games_sha256": "807963d4d896ab1b511d96b2960ecd214c337f550c2b96878435e28325294a1f"
+  },
+  "inference": {
+    "bootstrap_replicates": 2000,
+    "seed": 20260817,
+    "additive_metrics": "dyadic participant-cluster sandwich",
+    "nonadditive_metrics": "connected-component percentile bootstrap",
+    "diagnostics": "game and role-specific percentile bootstraps"
+  },
+  "conditions": {
+    "A0-wit-nolen": {
+      "variants": {
+        "raw": {
+          "variant": "raw",
+          "condition": {
+            "name": "A0-wit-nolen",
+            "sides": "witness",
+            "drop_length": true,
+            "token_cap": null,
+            "note": "witness turns only AND every length-derived feature removed"
+          },
+          "evalset_composition": {
+            "all": {
+              "games": 851,
+              "dialogues": 1702,
+              "human_dialogues": 851,
+              "ai_dialogues": 851,
+              "class_balance_exact": true,
+              "human_in_slot_A": 439,
+              "silent_witness_dialogues": 0,
+              "silent_human": 0,
+              "silent_ai": 0
+            },
+            "prolific": {
+              "games": 465,
+              "dialogues": 930,
+              "human_dialogues": 465,
+              "ai_dialogues": 465,
+              "class_balance_exact": true,
+              "human_in_slot_A": 248,
+              "silent_witness_dialogues": 0,
+              "silent_human": 0,
+              "silent_ai": 0
+            },
+            "sona_ucsd": {
+              "games": 386,
+              "dialogues": 772,
+              "human_dialogues": 386,
+              "ai_dialogues": 386,
+              "class_balance_exact": true,
+              "human_in_slot_A": 191,
+              "silent_witness_dialogues": 0,
+              "silent_human": 0,
+              "silent_ai": 0
+            }
+          },
+          "evalset_policy": "empty-witness games DROPPED (same set in every condition)",
+          "n_games_dropped": 72,
+          "surviving_features": {
+            "length": {
+              "total": 10,
+              "kept": 0,
+              "dropped": [
+                "empty",
+                "frac_long",
+                "frac_short",
+                "max_chars",
+                "mean_chars",
+                "mean_words",
+                "n_messages",
+                "sd_chars",
+                "total_chars",
+                "total_words"
+              ]
+            },
+            "punctuation": {
+              "total": 19,
+              "kept": 18,
+              "dropped": [
+                "empty"
+              ]
+            },
+            "function_words": {
+              "total": 116,
+              "kept": 114,
+              "dropped": [
+                "empty",
+                "fw_type_token"
+              ]
+            }
+          },
+          "folds": 8,
+          "n_eval_games": 851,
+          "point_estimates": {
+            "random": {
+              "game_accuracy": 0.5,
+              "game_brier": 0.25,
+              "dialogue_auroc": 0.5,
+              "dialogue_balanced_accuracy": 0.5,
+              "dialogue_brier": 0.25,
+              "dialogue_log_loss": 0.6931
+            },
+            "majority": {
+              "game_accuracy": 0.5159,
+              "game_brier": 0.25,
+              "dialogue_auroc": 0.5,
+              "dialogue_balanced_accuracy": 0.5,
+              "dialogue_brier": 0.25,
+              "dialogue_log_loss": 0.6931
+            },
+            "length": {
+              "game_accuracy": 0.5,
+              "game_brier": 0.25,
+              "dialogue_auroc": 0.5,
+              "dialogue_balanced_accuracy": 0.5,
+              "dialogue_brier": 0.25,
+              "dialogue_log_loss": 0.6931
+            },
+            "punctuation": {
+              "game_accuracy": 0.792,
+              "game_brier": 0.1777,
+              "dialogue_auroc": 0.7774,
+              "dialogue_balanced_accuracy": 0.7068,
+              "dialogue_brier": 0.1918,
+              "dialogue_log_loss": 0.5763
+            },
+            "function_words": {
+              "game_accuracy": 0.8437,
+              "game_brier": 0.1307,
+              "dialogue_auroc": 0.8348,
+              "dialogue_balanced_accuracy": 0.762,
+              "dialogue_brier": 0.1672,
+              "dialogue_log_loss": 0.5583
+            },
+            "tfidf_lr": {
+              "game_accuracy": 0.96,
+              "game_brier": 0.0983,
+              "dialogue_auroc": 0.9566,
+              "dialogue_balanced_accuracy": 0.8972,
+              "dialogue_brier": 0.1139,
+              "dialogue_log_loss": 0.3898
+            }
+          },
+          "P1_paired_vs_majority": {
+            "random": {
+              "game_accuracy": 0.5,
+              "baseline_game_accuracy": 0.5159,
+              "difference_pp": -1.59,
+              "discordant_b": 0,
+              "discordant_c": 439,
+              "discordance_rate": 0.5159,
+              "mcnemar_exact_p_unclustered": 1.4088407314736535e-132,
+              "ties": 851
+            },
+            "majority": {
+              "game_accuracy": 0.5159,
+              "baseline_game_accuracy": 0.5159,
+              "difference_pp": 0.0,
+              "discordant_b": 0,
+              "discordant_c": 0,
+              "discordance_rate": 0.0,
+              "mcnemar_exact_p_unclustered": 1.0,
+              "ties": 851
+            },
+            "length": {
+              "game_accuracy": 0.5,
+              "baseline_game_accuracy": 0.5159,
+              "difference_pp": -1.59,
+              "discordant_b": 0,
+              "discordant_c": 439,
+              "discordance_rate": 0.5159,
+              "mcnemar_exact_p_unclustered": 1.4088407314736535e-132,
+              "ties": 851
+            },
+            "punctuation": {
+              "game_accuracy": 0.792,
+              "baseline_game_accuracy": 0.5159,
+              "difference_pp": 27.61,
+              "discordant_b": 319,
+              "discordant_c": 84,
+              "discordance_rate": 0.4736,
+              "mcnemar_exact_p_unclustered": 2.48707115410911e-33,
+              "ties": 0
+            },
+            "function_words": {
+              "game_accuracy": 0.8437,
+              "baseline_game_accuracy": 0.5159,
+              "difference_pp": 32.78,
+              "discordant_b": 350,
+              "discordant_c": 73,
+              "discordance_rate": 0.4971,
+              "mcnemar_exact_p_unclustered": 1.8688677299465588e-44,
+              "ties": 4
+            },
+            "tfidf_lr": {
+              "game_accuracy": 0.96,
+              "baseline_game_accuracy": 0.5159,
+              "difference_pp": 44.42,
+              "discordant_b": 399,
+              "discordant_c": 21,
+              "discordance_rate": 0.4935,
+              "mcnemar_exact_p_unclustered": 1.1243682293818709e-91,
+              "ties": 0
+            }
+          },
+          "P2_calibration": {
+            "random": {
+              "dialogue_brier": 0.25,
+              "dialogue_log_loss": 0.6931,
+              "dialogue_ece": 0.0,
+              "game_brier": 0.25,
+              "reliability_dialogue": [
+                {
+                  "bin": 0,
+                  "lo": 0.0,
+                  "hi": 0.1,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 1,
+                  "lo": 0.1,
+                  "hi": 0.2,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 2,
+                  "lo": 0.2,
+                  "hi": 0.3,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 3,
+                  "lo": 0.3,
+                  "hi": 0.4,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 4,
+                  "lo": 0.4,
+                  "hi": 0.5,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 5,
+                  "lo": 0.5,
+                  "hi": 0.6,
+                  "n": 1702,
+                  "mean_p": 0.5,
+                  "observed": 0.5
+                },
+                {
+                  "bin": 6,
+                  "lo": 0.6,
+                  "hi": 0.7,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 7,
+                  "lo": 0.7,
+                  "hi": 0.8,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 8,
+                  "lo": 0.8,
+                  "hi": 0.9,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 9,
+                  "lo": 0.9,
+                  "hi": 1.0,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                }
+              ]
+            },
+            "majority": {
+              "dialogue_brier": 0.25,
+              "dialogue_log_loss": 0.6931,
+              "dialogue_ece": 0.0,
+              "game_brier": 0.25,
+              "reliability_dialogue": [
+                {
+                  "bin": 0,
+                  "lo": 0.0,
+                  "hi": 0.1,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 1,
+                  "lo": 0.1,
+                  "hi": 0.2,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 2,
+                  "lo": 0.2,
+                  "hi": 0.3,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 3,
+                  "lo": 0.3,
+                  "hi": 0.4,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 4,
+                  "lo": 0.4,
+                  "hi": 0.5,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 5,
+                  "lo": 0.5,
+                  "hi": 0.6,
+                  "n": 1702,
+                  "mean_p": 0.5,
+                  "observed": 0.5
+                },
+                {
+                  "bin": 6,
+                  "lo": 0.6,
+                  "hi": 0.7,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 7,
+                  "lo": 0.7,
+                  "hi": 0.8,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 8,
+                  "lo": 0.8,
+                  "hi": 0.9,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 9,
+                  "lo": 0.9,
+                  "hi": 1.0,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                }
+              ]
+            },
+            "length": {
+              "dialogue_brier": 0.25,
+              "dialogue_log_loss": 0.6931,
+              "dialogue_ece": 0.0,
+              "game_brier": 0.25,
+              "reliability_dialogue": [
+                {
+                  "bin": 0,
+                  "lo": 0.0,
+                  "hi": 0.1,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 1,
+                  "lo": 0.1,
+                  "hi": 0.2,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 2,
+                  "lo": 0.2,
+                  "hi": 0.3,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 3,
+                  "lo": 0.3,
+                  "hi": 0.4,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 4,
+                  "lo": 0.4,
+                  "hi": 0.5,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 5,
+                  "lo": 0.5,
+                  "hi": 0.6,
+                  "n": 1702,
+                  "mean_p": 0.5,
+                  "observed": 0.5
+                },
+                {
+                  "bin": 6,
+                  "lo": 0.6,
+                  "hi": 0.7,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 7,
+                  "lo": 0.7,
+                  "hi": 0.8,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 8,
+                  "lo": 0.8,
+                  "hi": 0.9,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                },
+                {
+                  "bin": 9,
+                  "lo": 0.9,
+                  "hi": 1.0,
+                  "n": 0,
+                  "mean_p": null,
+                  "observed": null
+                }
+              ]
+            },
+            "punctuation": {
+              "dialogue_brier": 0.1918,
+              "dialogue_log_loss": 0.5763,
+              "dialogue_ece": 0.0949,
+              "game_brier": 0.1777,
+              "reliability_dialogue": [
+                {
+                  "bin": 0,
+                  "lo": 0.0,
+                  "hi": 0.1,
+                  "n": 99,
+                  "mean_p": 0.0396,
+                  "observed": 0.0808
+                },
+                {
+                  "bin": 1,
+                  "lo": 0.1,
+                  "hi": 0.2,
+                  "n": 143,
+                  "mean_p": 0.1553,
+                  "observed": 0.049
+                },
+                {
+                  "bin": 2,
+                  "lo": 0.2,
+                  "hi": 0.3,
+                  "n": 160,
+                  "mean_p": 0.2498,
+                  "observed": 0.1375
+                },
+                {
+                  "bin": 3,
+                  "lo": 0.3,
+                  "hi": 0.4,
+                  "n": 139,
+                  "mean_p": 0.3556,
+                  "observed": 0.2734
+                },
+                {
+                  "bin": 4,
+                  "lo": 0.4,
+                  "hi": 0.5,
+                  "n": 267,
+                  "mean_p": 0.4562,
+                  "observed": 0.573
+                },
+                {
+                  "bin": 5,
+                  "lo": 0.5,
+                  "hi": 0.6,
+                  "n": 328,
+                  "mean_p": 0.5511,
+                  "observed": 0.6799
+                },
+                {
+                  "bin": 6,
+                  "lo": 0.6,
+                  "hi": 0.7,
+                  "n": 183,
+                  "mean_p": 0.644,
+                  "observed": 0.623
+                },
+                {
+                  "bin": 7,
+                  "lo": 0.7,
+                  "hi": 0.8,
+                  "n": 128,
+                  "mean_p": 0.7506,
+                  "observed": 0.6641
+                },
+                {
+                  "bin": 8,
+                  "lo": 0.8,
+                  "hi": 0.9,
+                  "n": 160,
+                  "mean_p": 0.8523,
+                  "observed": 0.7812
+                },
+                {
+                  "bin": 9,
+                  "lo": 0.9,
+                  "hi": 1.0,
+                  "n": 95,
+                  "mean_p": 0.938,
+                  "observed": 0.8
+                }
+              ]
+            },
+            "function_words": {
+              "dialogue_brier": 0.1672,
+              "dialogue_log_loss": 0.5583,
+              "dialogue_ece": 0.0634,
+              "game_brier": 0.1307,
+              "reliability_dialogue": [
+                {
+                  "bin": 0,
+                  "lo": 0.0,
+                  "hi": 0.1,
+                  "n": 331,
+                  "mean_p": 0.0353,
+                  "observed": 0.0665
+                },
+                {
+                  "bin": 1,
+                  "lo": 0.1,
+                  "hi": 0.2,
+                  "n": 141,
+                  "mean_p": 0.1463,
+                  "observed": 0.2553
+                },
+                {
+                  "bin": 2,
+                  "lo": 0.2,
+                  "hi": 0.3,
+                  "n": 132,
+                  "mean_p": 0.2486,
+                  "observed": 0.2879
+                },
+                {
+                  "bin": 3,
+                  "lo": 0.3,
+                  "hi": 0.4,
+                  "n": 111,
+                  "mean_p": 0.3518,
+                  "observed": 0.3423
+                },
+                {
+                  "bin": 4,
+                  "lo": 0.4,
+                  "hi": 0.5,
+                  "n": 91,
+                  "mean_p": 0.4515,
+                  "observed": 0.5055
+                },
+                {
+                  "bin": 5,
+                  "lo": 0.5,
+                  "hi": 0.6,
+                  "n": 109,
+                  "mean_p": 0.553,
+                  "observed": 0.4771
+                },
+                {
+                  "bin": 6,
+                  "lo": 0.6,
+                  "hi": 0.7,
+                  "n": 130,
+                  "mean_p": 0.6494,
+                  "observed": 0.7308
+                },
+                {
+                  "bin": 7,
+                  "lo": 0.7,
+                  "hi": 0.8,
+                  "n": 149,
+                  "mean_p": 0.7499,
+                  "observed": 0.698
+                },
+                {
+                  "bin": 8,
+                  "lo": 0.8,
+                  "hi": 0.9,
+                  "n": 203,
+                  "mean_p": 0.848,
+                  "observed": 0.7734
+                },
+                {
+                  "bin": 9,
+                  "lo": 0.9,
+                  "hi": 1.0,
+                  "n": 305,
+                  "mean_p": 0.9582,
+                  "observed": 0.8623
+                }
+              ]
+            },
+            "tfidf_lr": {
+              "dialogue_brier": 0.1139,
+              "dialogue_log_loss": 0.3898,
+              "dialogue_ece": 0.1815,
+              "game_brier": 0.0983,
+              "reliability_dialogue": [
+                {
+                  "bin": 0,
+                  "lo": 0.0,
+                  "hi": 0.1,
+                  "n": 26,
+                  "mean_p": 0.0813,
+                  "observed": 0.0
+                },
+                {
+                  "bin": 1,
+                  "lo": 0.1,
+                  "hi": 0.2,
+                  "n": 172,
+                  "mean_p": 0.1592,
+                  "observed": 0.0058
+                },
+                {
+                  "bin": 2,
+                  "lo": 0.2,
+                  "hi": 0.3,
+                  "n": 261,
+                  "mean_p": 0.2488,
+                  "observed": 0.0536
+                },
+                {
+                  "bin": 3,
+                  "lo": 0.3,
+                  "hi": 0.4,
+                  "n": 241,
+                  "mean_p": 0.3508,
+                  "observed": 0.1286
+                },
+                {
+                  "bin": 4,
+                  "lo": 0.4,
+                  "hi": 0.5,
+                  "n": 174,
+                  "mean_p": 0.45,
+                  "observed": 0.3046
+                },
+                {
+                  "bin": 5,
+                  "lo": 0.5,
+                  "hi": 0.6,
+                  "n": 161,
+                  "mean_p": 0.5487,
+                  "observed": 0.677
+                },
+                {
+                  "bin": 6,
+                  "lo": 0.6,
+                  "hi": 0.7,
+                  "n": 167,
+                  "mean_p": 0.6527,
+                  "observed": 0.9162
+                },
+                {
+                  "bin": 7,
+                  "lo": 0.7,
+                  "hi": 0.8,
+                  "n": 230,
+                  "mean_p": 0.7487,
+                  "observed": 0.9696
+                },
+                {
+                  "bin": 8,
+                  "lo": 0.8,
+                  "hi": 0.9,
+                  "n": 221,
+                  "mean_p": 0.8449,
+                  "observed": 0.9864
+                },
+                {
+                  "bin": 9,
+                  "lo": 0.9,
+                  "hi": 1.0,
+                  "n": 49,
+                  "mean_p": 0.9211,
+                  "observed": 1.0
+                }
+              ]
+            }
+          },
+          "intervals": {
+            "game": {
+              "n_clusters": 851,
+              "detectors": {
+                "function_words": {
+                  "game_accuracy": {
+                    "lo": 0.8196,
+                    "hi": 0.8672
+                  },
+                  "game_brier": {
+                    "lo": 0.1195,
+                    "hi": 0.1427
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.8169,
+                    "hi": 0.8533
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.7427,
+                    "hi": 0.7814
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.156,
+                    "hi": 0.178
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.5087,
+                    "hi": 0.613
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.2826,
+                    "hi": 0.3684
+                  }
+                },
+                "length": {
+                  "game_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": -0.0523,
+                    "hi": 0.0159
+                  }
+                },
+                "majority": {
+                  "game_accuracy": {
+                    "lo": 0.4841,
+                    "hi": 0.5523
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.0,
+                    "hi": 0.0
+                  }
+                },
+                "punctuation": {
+                  "game_accuracy": {
+                    "lo": 0.765,
+                    "hi": 0.8179
+                  },
+                  "game_brier": {
+                    "lo": 0.1674,
+                    "hi": 0.1886
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.7549,
+                    "hi": 0.7991
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.6857,
+                    "hi": 0.7274
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.1829,
+                    "hi": 0.2009
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.5519,
+                    "hi": 0.6016
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.235,
+                    "hi": 0.3173
+                  }
+                },
+                "random": {
+                  "game_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": -0.0523,
+                    "hi": 0.0159
+                  }
+                },
+                "tfidf_lr": {
+                  "game_accuracy": {
+                    "lo": 0.9459,
+                    "hi": 0.973
+                  },
+                  "game_brier": {
+                    "lo": 0.0934,
+                    "hi": 0.1032
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.9481,
+                    "hi": 0.9651
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.8837,
+                    "hi": 0.9113
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.1089,
+                    "hi": 0.1188
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.3785,
+                    "hi": 0.4009
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.4054,
+                    "hi": 0.4794
+                  }
+                }
+              }
+            },
+            "interrogator": {
+              "n_clusters": 231,
+              "detectors": {
+                "function_words": {
+                  "game_accuracy": {
+                    "lo": 0.8221,
+                    "hi": 0.8665
+                  },
+                  "game_brier": {
+                    "lo": 0.1185,
+                    "hi": 0.143
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.8161,
+                    "hi": 0.8542
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.7422,
+                    "hi": 0.7818
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.1555,
+                    "hi": 0.1786
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.5084,
+                    "hi": 0.6148
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.289,
+                    "hi": 0.3669
+                  }
+                },
+                "length": {
+                  "game_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": -0.0507,
+                    "hi": 0.018
+                  }
+                },
+                "majority": {
+                  "game_accuracy": {
+                    "lo": 0.482,
+                    "hi": 0.5507
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.0,
+                    "hi": 0.0
+                  }
+                },
+                "punctuation": {
+                  "game_accuracy": {
+                    "lo": 0.7641,
+                    "hi": 0.8207
+                  },
+                  "game_brier": {
+                    "lo": 0.1671,
+                    "hi": 0.1891
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.7535,
+                    "hi": 0.8004
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.6868,
+                    "hi": 0.7275
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.1826,
+                    "hi": 0.2014
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.5491,
+                    "hi": 0.6044
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.2327,
+                    "hi": 0.3194
+                  }
+                },
+                "random": {
+                  "game_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": -0.0507,
+                    "hi": 0.018
+                  }
+                },
+                "tfidf_lr": {
+                  "game_accuracy": {
+                    "lo": 0.9467,
+                    "hi": 0.9729
+                  },
+                  "game_brier": {
+                    "lo": 0.0929,
+                    "hi": 0.1035
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.9473,
+                    "hi": 0.9652
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.8833,
+                    "hi": 0.9107
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.1087,
+                    "hi": 0.1193
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.3779,
+                    "hi": 0.4023
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.4072,
+                    "hi": 0.4807
+                  }
+                }
+              }
+            },
+            "human_witness": {
+              "n_clusters": 235,
+              "detectors": {
+                "function_words": {
+                  "game_accuracy": {
+                    "lo": 0.8202,
+                    "hi": 0.8692
+                  },
+                  "game_brier": {
+                    "lo": 0.1187,
+                    "hi": 0.143
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.8158,
+                    "hi": 0.853
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.7407,
+                    "hi": 0.7836
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.1562,
+                    "hi": 0.1784
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.5097,
+                    "hi": 0.6111
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.2858,
+                    "hi": 0.3701
+                  }
+                },
+                "length": {
+                  "game_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": -0.0512,
+                    "hi": 0.0181
+                  }
+                },
+                "majority": {
+                  "game_accuracy": {
+                    "lo": 0.4819,
+                    "hi": 0.5512
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.0,
+                    "hi": 0.0
+                  }
+                },
+                "punctuation": {
+                  "game_accuracy": {
+                    "lo": 0.7608,
+                    "hi": 0.8219
+                  },
+                  "game_brier": {
+                    "lo": 0.1659,
+                    "hi": 0.1898
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.7504,
+                    "hi": 0.8037
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.6823,
+                    "hi": 0.7306
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.1811,
+                    "hi": 0.2024
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.5469,
+                    "hi": 0.6045
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.2307,
+                    "hi": 0.3224
+                  }
+                },
+                "random": {
+                  "game_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": -0.0512,
+                    "hi": 0.0181
+                  }
+                },
+                "tfidf_lr": {
+                  "game_accuracy": {
+                    "lo": 0.9477,
+                    "hi": 0.9724
+                  },
+                  "game_brier": {
+                    "lo": 0.0935,
+                    "hi": 0.1032
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.9482,
+                    "hi": 0.9646
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.8836,
+                    "hi": 0.9107
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.109,
+                    "hi": 0.1187
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.3781,
+                    "hi": 0.4012
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.4078,
+                    "hi": 0.4804
+                  }
+                }
+              }
+            },
+            "component": {
+              "n_clusters": 8,
+              "detectors": {
+                "function_words": {
+                  "game_accuracy": {
+                    "lo": 0.8245,
+                    "hi": 0.8701
+                  },
+                  "game_brier": {
+                    "lo": 0.1178,
+                    "hi": 0.1403
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.8222,
+                    "hi": 0.8561
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.7472,
+                    "hi": 0.7845
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.1545,
+                    "hi": 0.1762
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.4943,
+                    "hi": 0.5945
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.2905,
+                    "hi": 0.3821
+                  }
+                },
+                "length": {
+                  "game_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": -0.0435,
+                    "hi": 0.0179
+                  }
+                },
+                "majority": {
+                  "game_accuracy": {
+                    "lo": 0.4821,
+                    "hi": 0.5435
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.0,
+                    "hi": 0.0
+                  }
+                },
+                "punctuation": {
+                  "game_accuracy": {
+                    "lo": 0.7403,
+                    "hi": 0.8205
+                  },
+                  "game_brier": {
+                    "lo": 0.1638,
+                    "hi": 0.205
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.7129,
+                    "hi": 0.8226
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.6814,
+                    "hi": 0.7203
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.1768,
+                    "hi": 0.2174
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.5324,
+                    "hi": 0.6456
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.2053,
+                    "hi": 0.3123
+                  }
+                },
+                "random": {
+                  "game_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": -0.0435,
+                    "hi": 0.0179
+                  }
+                },
+                "tfidf_lr": {
+                  "game_accuracy": {
+                    "lo": 0.9553,
+                    "hi": 0.9705
+                  },
+                  "game_brier": {
+                    "lo": 0.0833,
+                    "hi": 0.1063
+                  },
+                  "dialogue_auroc": {
+                    "lo": 0.9494,
+                    "hi": 0.9702
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.8888,
+                    "hi": 0.9119
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.1025,
+                    "hi": 0.1203
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.3607,
+                    "hi": 0.4061
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.4197,
+                    "hi": 0.4819
+                  }
+                }
+              }
+            },
+            "participant": {
+              "n_clusters": 239,
+              "detectors": {
+                "random": {
+                  "game_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5,
+                    "estimate": 0.5,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25,
+                    "estimate": 0.25,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5,
+                    "estimate": 0.5,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25,
+                    "estimate": 0.25,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931,
+                    "estimate": 0.6931,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_auroc": {
+                    "lo": null,
+                    "hi": null,
+                    "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": -0.0501,
+                    "hi": 0.0184,
+                    "estimate": -0.0159,
+                    "se": 0.017489,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  }
+                },
+                "majority": {
+                  "game_accuracy": {
+                    "lo": 0.4816,
+                    "hi": 0.5501,
+                    "estimate": 0.5159,
+                    "se": 0.017489,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25,
+                    "estimate": 0.25,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5,
+                    "estimate": 0.5,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25,
+                    "estimate": 0.25,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931,
+                    "estimate": 0.6931,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_auroc": {
+                    "lo": null,
+                    "hi": null,
+                    "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.0,
+                    "hi": 0.0,
+                    "estimate": 0.0,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  }
+                },
+                "length": {
+                  "game_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5,
+                    "estimate": 0.5,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "game_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25,
+                    "estimate": 0.25,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.5,
+                    "hi": 0.5,
+                    "estimate": 0.5,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.25,
+                    "hi": 0.25,
+                    "estimate": 0.25,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.6931,
+                    "hi": 0.6931,
+                    "estimate": 0.6931,
+                    "se": 0.0,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_auroc": {
+                    "lo": null,
+                    "hi": null,
+                    "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": -0.0501,
+                    "hi": 0.0184,
+                    "estimate": -0.0159,
+                    "se": 0.017489,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  }
+                },
+                "punctuation": {
+                  "game_accuracy": {
+                    "lo": 0.7606,
+                    "hi": 0.8234,
+                    "estimate": 0.792,
+                    "se": 0.016031,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "game_brier": {
+                    "lo": 0.1658,
+                    "hi": 0.1897,
+                    "estimate": 0.1777,
+                    "se": 0.006116,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.685,
+                    "hi": 0.7287,
+                    "estimate": 0.7068,
+                    "se": 0.011154,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.1807,
+                    "hi": 0.2029,
+                    "estimate": 0.1918,
+                    "se": 0.005671,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.5447,
+                    "hi": 0.6079,
+                    "estimate": 0.5763,
+                    "se": 0.016117,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_auroc": {
+                    "lo": null,
+                    "hi": null,
+                    "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.2285,
+                    "hi": 0.3238,
+                    "estimate": 0.2761,
+                    "se": 0.024299,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  }
+                },
+                "function_words": {
+                  "game_accuracy": {
+                    "lo": 0.8208,
+                    "hi": 0.8666,
+                    "estimate": 0.8437,
+                    "se": 0.01167,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "game_brier": {
+                    "lo": 0.1197,
+                    "hi": 0.1417,
+                    "estimate": 0.1307,
+                    "se": 0.005599,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.7407,
+                    "hi": 0.7834,
+                    "estimate": 0.762,
+                    "se": 0.010909,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.156,
+                    "hi": 0.1784,
+                    "estimate": 0.1672,
+                    "se": 0.005712,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.5078,
+                    "hi": 0.6088,
+                    "estimate": 0.5583,
+                    "se": 0.025763,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_auroc": {
+                    "lo": null,
+                    "hi": null,
+                    "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.2863,
+                    "hi": 0.3694,
+                    "estimate": 0.3278,
+                    "se": 0.02118,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  }
+                },
+                "tfidf_lr": {
+                  "game_accuracy": {
+                    "lo": 0.9497,
+                    "hi": 0.9704,
+                    "estimate": 0.96,
+                    "se": 0.005262,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "game_brier": {
+                    "lo": 0.0927,
+                    "hi": 0.1039,
+                    "estimate": 0.0983,
+                    "se": 0.002871,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_balanced_accuracy": {
+                    "lo": 0.8852,
+                    "hi": 0.9091,
+                    "estimate": 0.8972,
+                    "se": 0.006104,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_brier": {
+                    "lo": 0.1088,
+                    "hi": 0.119,
+                    "estimate": 0.1139,
+                    "se": 0.002614,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_log_loss": {
+                    "lo": 0.3777,
+                    "hi": 0.402,
+                    "estimate": 0.3898,
+                    "se": 0.00619,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  },
+                  "dialogue_auroc": {
+                    "lo": null,
+                    "hi": null,
+                    "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+                  },
+                  "game_accuracy_diff_vs_majority": {
+                    "lo": 0.4113,
+                    "hi": 0.4771,
+                    "estimate": 0.4442,
+                    "se": 0.01679,
+                    "n_games": 851,
+                    "n_participants": 239,
+                    "meat_clipped_at_zero": false,
+                    "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+                  }
+                }
+              },
+              "method": "dyadic participant-cluster sandwich for additive metrics; component bootstrap for non-additive metrics"
+            }
+          },
+          "descriptive_accuracy_by_witness_system": {
+            "random": {
+              "eliza": 0.5,
+              "gpt-4.5_minimal": 0.5,
+              "gpt-4.5_quinn": 0.5,
+              "gpt-4o_minimal": 0.5,
+              "llama-405b_minimal": 0.5,
+              "llama-405b_quinn": 0.5
+            },
+            "majority": {
+              "eliza": 0.5278,
+              "gpt-4.5_minimal": 0.5351,
+              "gpt-4.5_quinn": 0.528,
+              "gpt-4o_minimal": 0.4811,
+              "llama-405b_minimal": 0.5657,
+              "llama-405b_quinn": 0.481
+            },
+            "length": {
+              "eliza": 0.5,
+              "gpt-4.5_minimal": 0.5,
+              "gpt-4.5_quinn": 0.5,
+              "gpt-4o_minimal": 0.5,
+              "llama-405b_minimal": 0.5,
+              "llama-405b_quinn": 0.5
+            },
+            "punctuation": {
+              "eliza": 0.8333,
+              "gpt-4.5_minimal": 0.8509,
+              "gpt-4.5_quinn": 0.743,
+              "gpt-4o_minimal": 0.9245,
+              "llama-405b_minimal": 0.8283,
+              "llama-405b_quinn": 0.7048
+            },
+            "function_words": {
+              "eliza": 0.8519,
+              "gpt-4.5_minimal": 0.8246,
+              "gpt-4.5_quinn": 0.8762,
+              "gpt-4o_minimal": 0.783,
+              "llama-405b_minimal": 0.8182,
+              "llama-405b_quinn": 0.8595
+            },
+            "tfidf_lr": {
+              "eliza": 0.9907,
+              "gpt-4.5_minimal": 0.9561,
+              "gpt-4.5_quinn": 0.972,
+              "gpt-4o_minimal": 0.9434,
+              "llama-405b_minimal": 0.9091,
+              "llama-405b_quinn": 0.9667
+            }
+          },
+          "witness_system_game_counts": {
+            "eliza": 108,
+            "gpt-4.5_minimal": 114,
+            "gpt-4.5_quinn": 214,
+            "gpt-4o_minimal": 106,
+            "llama-405b_minimal": 99,
+            "llama-405b_quinn": 210
+          },
+          "descriptive_accuracy_by_subset": {
+            "random": {
+              "all": 0.5,
+              "excl_eliza": 0.5,
+              "excl_empty_side": 0.5,
+              "excl_eliza_and_empty": 0.5,
+              "persona_only": 0.5,
+              "minimal_only": 0.5
+            },
+            "majority": {
+              "all": 0.5159,
+              "excl_eliza": 0.5141,
+              "excl_empty_side": 0.5159,
+              "excl_eliza_and_empty": 0.5141,
+              "persona_only": 0.5047,
+              "minimal_only": 0.5266
+            },
+            "length": {
+              "all": 0.5,
+              "excl_eliza": 0.5,
+              "excl_empty_side": 0.5,
+              "excl_eliza_and_empty": 0.5,
+              "persona_only": 0.5,
+              "minimal_only": 0.5
+            },
+            "punctuation": {
+              "all": 0.792,
+              "excl_eliza": 0.786,
+              "excl_empty_side": 0.792,
+              "excl_eliza_and_empty": 0.786,
+              "persona_only": 0.7241,
+              "minimal_only": 0.8683
+            },
+            "function_words": {
+              "all": 0.8437,
+              "excl_eliza": 0.8425,
+              "excl_empty_side": 0.8437,
+              "excl_eliza_and_empty": 0.8425,
+              "persona_only": 0.8679,
+              "minimal_only": 0.8088
+            },
+            "tfidf_lr": {
+              "all": 0.96,
+              "excl_eliza": 0.9556,
+              "excl_empty_side": 0.96,
+              "excl_eliza_and_empty": 0.9556,
+              "persona_only": 0.9693,
+              "minimal_only": 0.9373
+            }
+          },
+          "subset_game_counts": {
+            "all": 851,
+            "excl_eliza": 743,
+            "excl_empty_side": 851,
+            "excl_eliza_and_empty": 743,
+            "persona_only": 424,
+            "minimal_only": 319
+          },
+          "descriptive_top_tfidf_terms": {
+            "toward_ai": [
+              [
+                "fr",
+                3.298
+              ],
+              [
+                "yeah",
+                2.833
+              ],
+              [
+                "ngl",
+                2.533
+              ],
+              [
+                "lol",
+                2.178
+              ],
+              [
+                "u",
+                2.074
+              ],
+              [
+                "tho",
+                1.97
+              ],
+              [
+                "mostly",
+                1.793
+              ],
+              [
+                "gaming",
+                1.734
+              ],
+              [
+                "do_you",
+                1.661
+              ],
+              [
+                "kinda",
+                1.537
+              ],
+              [
+                "idk",
+                1.535
+              ],
+              [
+                "chill",
+                1.518
+              ],
+              [
+                "about_you",
+                1.476
+              ],
+              [
+                "nah",
+                1.467
+              ],
+              [
+                "whats",
+                1.401
+              ],
+              [
+                "pretty",
+                1.374
+              ],
+              [
+                "how_about",
+                1.356
+              ],
+              [
+                "how's",
+                1.344
+              ],
+              [
+                "psyc",
+                1.326
+              ],
+              [
+                "about",
+                1.303
+              ],
+              [
+                "you",
+                1.297
+              ],
+              [
+                "guess",
+                1.293
+              ],
+              [
+                "up",
+                1.284
+              ],
+              [
+                "got",
+                1.274
+              ],
+              [
+                "what's",
+                1.253
+              ],
+              [
+                "it's",
+                1.248
+              ],
+              [
+                "i_guess",
+                1.248
+              ],
+              [
+                "your",
+                1.221
+              ],
+              [
+                "hey",
+                1.147
+              ],
+              [
+                "just",
+                1.147
+              ]
+            ],
+            "toward_human": [
+              [
+                "and_i",
+                -0.765
+              ],
+              [
+                "thank",
+                -0.804
+              ],
+              [
+                "eat",
+                -0.822
+              ],
+              [
+                "it_is",
+                -0.826
+              ],
+              [
+                "fine",
+                -0.838
+              ],
+              [
+                "and_you",
+                -0.842
+              ],
+              [
+                "have",
+                -0.865
+              ],
+              [
+                "going_to",
+                -0.923
+              ],
+              [
+                "know",
+                -0.939
+              ],
+              [
+                "im",
+                -0.955
+              ],
+              [
+                "i_m",
+                -1.018
+              ],
+              [
+                "very",
+                -1.053
+              ],
+              [
+                "doing",
+                -1.08
+              ],
+              [
+                "m",
+                -1.146
+              ],
+              [
+                "but_i",
+                -1.197
+              ],
+              [
+                "i_have",
+                -1.265
+              ],
+              [
+                "good",
+                -1.27
+              ],
+              [
+                "and",
+                -1.292
+              ],
+              [
+                "is",
+                -1.374
+              ],
+              [
+                "how_are",
+                -1.389
+              ],
+              [
+                "i_am",
+                -1.403
+              ],
+              [
+                "am",
+                -1.537
+              ],
+              [
+                "to",
+                -1.563
+              ],
+              [
+                "my",
+                -1.705
+              ],
+              [
+                "no",
+                -1.732
+              ],
+              [
+                "hello",
+                -1.92
+              ],
+              [
+                "yes",
+                -1.934
+              ],
+              [
+                "hi",
+                -2.149
+              ],
+              [
+                "but",
+                -2.183
+              ],
+              [
+                "i",
+                -3.162
+              ]
+            ],
+            "note": "fit on all of train+dev for inspection only; not used for any score"
+          },
+          "descriptive_harness_asymmetry": {
+            "empty_witness_side_dialogues": {},
+            "mean_witness_messages": {
+              "ai": 4.33,
+              "human": 3.519
+            },
+            "note": "AI witnesses emitted more messages and fell silent less often. Per the Stage A inspection \u00a710 item 6, AI turns were released with an artificial per-character delay, so message count is partly a property of the harness rather than of the writer."
+          },
+          "fit_diagnostics": {
+            "random": [
+              {
+                "fold": 0,
+                "component": 0,
+                "n_train": 1056,
+                "n_held": 646,
+                "seconds": 0.0
+              },
+              {
+                "fold": 1,
+                "component": 1,
+                "n_train": 1388,
+                "n_held": 314,
+                "seconds": 0.0
+              },
+              {
+                "fold": 2,
+                "component": 2,
+                "n_train": 1418,
+                "n_held": 284,
+                "seconds": 0.0
+              },
+              {
+                "fold": 3,
+                "component": 4,
+                "n_train": 1504,
+                "n_held": 198,
+                "seconds": 0.0
+              },
+              {
+                "fold": 4,
+                "component": 5,
+                "n_train": 1584,
+                "n_held": 118,
+                "seconds": 0.0
+              },
+              {
+                "fold": 5,
+                "component": 7,
+                "n_train": 1614,
+                "n_held": 88,
+                "seconds": 0.0
+              },
+              {
+                "fold": 6,
+                "component": 9,
+                "n_train": 1652,
+                "n_held": 50,
+                "seconds": 0.0
+              },
+              {
+                "fold": 7,
+                "component": 11,
+                "n_train": 1698,
+                "n_held": 4,
+                "seconds": 0.0
+              }
+            ],
+            "majority": [
+              {
+                "majority_human_position": "A",
+                "fold": 0,
+                "component": 0,
+                "n_train": 1056,
+                "n_held": 646,
+                "seconds": 0.0
+              },
+              {
+                "majority_human_position": "A",
+                "fold": 1,
+                "component": 1,
+                "n_train": 1388,
+                "n_held": 314,
+                "seconds": 0.0
+              },
+              {
+                "majority_human_position": "A",
+                "fold": 2,
+                "component": 2,
+                "n_train": 1418,
+                "n_held": 284,
+                "seconds": 0.0
+              },
+              {
+                "majority_human_position": "A",
+                "fold": 3,
+                "component": 4,
+                "n_train": 1504,
+                "n_held": 198,
+                "seconds": 0.0
+              },
+              {
+                "majority_human_position": "A",
+                "fold": 4,
+                "component": 5,
+                "n_train": 1584,
+                "n_held": 118,
+                "seconds": 0.0
+              },
+              {
+                "majority_human_position": "A",
+                "fold": 5,
+                "component": 7,
+                "n_train": 1614,
+                "n_held": 88,
+                "seconds": 0.0
+              },
+              {
+                "majority_human_position": "A",
+                "fold": 6,
+                "component": 9,
+                "n_train": 1652,
+                "n_held": 50,
+                "seconds": 0.0
+              },
+              {
+                "majority_human_position": "A",
+                "fold": 7,
+                "component": 11,
+                "n_train": 1698,
+                "n_held": 4,
+                "seconds": 0.0
+              }
+            ],
+            "length": [
+              {
+                "n_features": 0,
+                "features_removed_as_length": true,
+                "degenerate_no_features": true,
+                "fold": 0,
+                "component": 0,
+                "n_train": 1056,
+                "n_held": 646,
+                "seconds": 0.01
+              },
+              {
+                "n_features": 0,
+                "features_removed_as_length": true,
+                "degenerate_no_features": true,
+                "fold": 1,
+                "component": 1,
+                "n_train": 1388,
+                "n_held": 314,
+                "seconds": 0.03
+              },
+              {
+                "n_features": 0,
+                "features_removed_as_length": true,
+                "degenerate_no_features": true,
+                "fold": 2,
+                "component": 2,
+                "n_train": 1418,
+                "n_held": 284,
+                "seconds": 0.01
+              },
+              {
+                "n_features": 0,
+                "features_removed_as_length": true,
+                "degenerate_no_features": true,
+                "fold": 3,
+                "component": 4,
+                "n_train": 1504,
+                "n_held": 198,
+                "seconds": 0.01
+              },
+              {
+                "n_features": 0,
+                "features_removed_as_length": true,
+                "degenerate_no_features": true,
+                "fold": 4,
+                "component": 5,
+                "n_train": 1584,
+                "n_held": 118,
+                "seconds": 0.01
+              },
+              {
+                "n_features": 0,
+                "features_removed_as_length": true,
+                "degenerate_no_features": true,
+                "fold": 5,
+                "component": 7,
+                "n_train": 1614,
+                "n_held": 88,
+                "seconds": 0.01
+              },
+              {
+                "n_features": 0,
+                "features_removed_as_length": true,
+                "degenerate_no_features": true,
+                "fold": 6,
+                "component": 9,
+                "n_train": 1652,
+                "n_held": 50,
+                "seconds": 0.01
+              },
+              {
+                "n_features": 0,
+                "features_removed_as_length": true,
+                "degenerate_no_features": true,
+                "fold": 7,
+                "component": 11,
+                "n_train": 1698,
+                "n_held": 4,
+                "seconds": 0.01
+              }
+            ],
+            "punctuation": [
+              {
+                "n_features": 18,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 0,
+                "component": 0,
+                "n_train": 1056,
+                "n_held": 646,
+                "seconds": 0.32
+              },
+              {
+                "n_features": 18,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 1,
+                "component": 1,
+                "n_train": 1388,
+                "n_held": 314,
+                "seconds": 0.34
+              },
+              {
+                "n_features": 18,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 2,
+                "component": 2,
+                "n_train": 1418,
+                "n_held": 284,
+                "seconds": 0.29
+              },
+              {
+                "n_features": 18,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 3,
+                "component": 4,
+                "n_train": 1504,
+                "n_held": 198,
+                "seconds": 0.31
+              },
+              {
+                "n_features": 18,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 4,
+                "component": 5,
+                "n_train": 1584,
+                "n_held": 118,
+                "seconds": 0.32
+              },
+              {
+                "n_features": 18,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 5,
+                "component": 7,
+                "n_train": 1614,
+                "n_held": 88,
+                "seconds": 0.33
+              },
+              {
+                "n_features": 18,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 6,
+                "component": 9,
+                "n_train": 1652,
+                "n_held": 50,
+                "seconds": 0.33
+              },
+              {
+                "n_features": 18,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 7,
+                "component": 11,
+                "n_train": 1698,
+                "n_held": 4,
+                "seconds": 0.34
+              }
+            ],
+            "function_words": [
+              {
+                "n_features": 114,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 0,
+                "component": 0,
+                "n_train": 1056,
+                "n_held": 646,
+                "seconds": 8.19
+              },
+              {
+                "n_features": 114,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 1,
+                "component": 1,
+                "n_train": 1388,
+                "n_held": 314,
+                "seconds": 9.11
+              },
+              {
+                "n_features": 114,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 2,
+                "component": 2,
+                "n_train": 1418,
+                "n_held": 284,
+                "seconds": 7.45
+              },
+              {
+                "n_features": 114,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 3,
+                "component": 4,
+                "n_train": 1504,
+                "n_held": 198,
+                "seconds": 7.82
+              },
+              {
+                "n_features": 114,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 4,
+                "component": 5,
+                "n_train": 1584,
+                "n_held": 118,
+                "seconds": 8.44
+              },
+              {
+                "n_features": 114,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 5,
+                "component": 7,
+                "n_train": 1614,
+                "n_held": 88,
+                "seconds": 8.76
+              },
+              {
+                "n_features": 114,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 6,
+                "component": 9,
+                "n_train": 1652,
+                "n_held": 50,
+                "seconds": 8.65
+              },
+              {
+                "n_features": 114,
+                "features_removed_as_length": true,
+                "degenerate_no_features": false,
+                "fold": 7,
+                "component": 11,
+                "n_train": 1698,
+                "n_held": 4,
+                "seconds": 8.82
+              }
+            ],
+            "tfidf_lr": [
+              {
+                "iterations": 165,
+                "final_objective": 0.439534,
+                "vocab": 3144,
+                "fold": 0,
+                "component": 0,
+                "n_train": 1056,
+                "n_held": 646,
+                "seconds": 2.91
+              },
+              {
+                "iterations": 225,
+                "final_objective": 0.425913,
+                "vocab": 3859,
+                "fold": 1,
+                "component": 1,
+                "n_train": 1388,
+                "n_held": 314,
+                "seconds": 2.03
+              },
+              {
+                "iterations": 230,
+                "final_objective": 0.422616,
+                "vocab": 4045,
+                "fold": 2,
+                "component": 2,
+                "n_train": 1418,
+                "n_held": 284,
+                "seconds": 2.23
+              },
+              {
+                "iterations": 244,
+                "final_objective": 0.424139,
+                "vocab": 4148,
+                "fold": 3,
+                "component": 4,
+                "n_train": 1504,
+                "n_held": 198,
+                "seconds": 2.4
+              },
+              {
+                "iterations": 250,
+                "final_objective": 0.415751,
+                "vocab": 4415,
+                "fold": 4,
+                "component": 5,
+                "n_train": 1584,
+                "n_held": 118,
+                "seconds": 2.68
+              },
+              {
+                "iterations": 250,
+                "final_objective": 0.417737,
+                "vocab": 4455,
+                "fold": 5,
+                "component": 7,
+                "n_train": 1614,
+                "n_held": 88,
+                "seconds": 2.7
+              },
+              {
+                "iterations": 250,
+                "final_objective": 0.415477,
+                "vocab": 4557,
+                "fold": 6,
+                "component": 9,
+                "n_train": 1652,
+                "n_held": 50,
+                "seconds": 2.73
+              },
+              {
+                "iterations": 250,
+                "final_objective": 0.413651,
+                "vocab": 4690,
+                "fold": 7,
+                "component": 11,
+                "n_train": 1698,
+                "n_held": 4,
+                "seconds": 2.84
+              }
+            ]
+          },
+          "seconds": 193.0
+        }
+      }
+    }
+  }
+}

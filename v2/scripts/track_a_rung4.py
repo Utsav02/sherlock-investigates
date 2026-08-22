@@ -93,15 +93,6 @@ def _score(preds, ties, games, by_game, n_boot, dialogues):
     index = list(range(len(games)))
     point = {n: a0.metrics_from(s, index) for n, s in scored.items()}
     intervals = a0.bootstrap_intervals(scored, games, n_boot, a0.SEED)
-    participant = {"detectors": {}}
-    for n in sorted(scored):
-        participant["detectors"][n] = {
-            k: a0.widen(intervals["interrogator"]["detectors"][n][k],
-                        intervals["human_witness"]["detectors"][n][k])
-            for k in list(a0.METRIC_KEYS) + ["game_accuracy_diff_vs_majority"]
-        }
-    intervals["participant"] = participant
-
     # Did the model actually RECOGNISE the unseen AI, or just recognise humans?
     # The paired task can be won from the human side alone, so this separates
     # the two.
@@ -239,7 +230,11 @@ def main(argv=None) -> int:
         "test_split": "UNTOUCHED (Gate 5, one shot)",
         "canonical": {"source_revision": manifest["source_revision"],
                       "split_sha256": manifest["split_sha256"]},
-        "bootstrap": {"replicates": args.bootstrap, "seed": a0.SEED},
+        "inference": {
+            "bootstrap_replicates": args.bootstrap, "seed": a0.SEED,
+            "additive_metrics": "dyadic participant-cluster sandwich",
+            "nonadditive_metrics": "connected-component percentile bootstrap",
+        },
         "cuts_run": args.cuts,
         "loso_system": systems,
         "loso_persona": personas,

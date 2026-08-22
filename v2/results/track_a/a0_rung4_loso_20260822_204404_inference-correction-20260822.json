@@ -1,0 +1,2601 @@
+{
+  "generated_by": "v2/scripts/track_a_rung4.py",
+  "generated_at_utc": "20260822_204404",
+  "gate": "Gate 1 rung 4 (held-out witness system / held-out persona)",
+  "condition": {
+    "name": "A0-wit-nolen",
+    "sides": "witness",
+    "drop_length": true,
+    "token_cap": null,
+    "note": "witness turns only AND every length-derived feature removed"
+  },
+  "evalset_policy": "empty-witness games DROPPED (silence is not a text property); same set in every cell",
+  "n_games_dropped_from_eval_pool": 60,
+  "n_train_dev_games_before_drop": 911,
+  "evalset_composition": {
+    "all": {
+      "games": 851,
+      "dialogues": 1702,
+      "human_dialogues": 851,
+      "ai_dialogues": 851,
+      "class_balance_exact": true,
+      "human_in_slot_A": 439,
+      "silent_witness_dialogues": 0,
+      "silent_human": 0,
+      "silent_ai": 0
+    },
+    "prolific": {
+      "games": 465,
+      "dialogues": 930,
+      "human_dialogues": 465,
+      "ai_dialogues": 465,
+      "class_balance_exact": true,
+      "human_in_slot_A": 248,
+      "silent_witness_dialogues": 0,
+      "silent_human": 0,
+      "silent_ai": 0
+    },
+    "sona_ucsd": {
+      "games": 386,
+      "dialogues": 772,
+      "human_dialogues": 386,
+      "ai_dialogues": 386,
+      "class_balance_exact": true,
+      "human_in_slot_A": 191,
+      "silent_witness_dialogues": 0,
+      "silent_human": 0,
+      "silent_ai": 0
+    }
+  },
+  "nesting": "component holdout NESTED inside the system/persona holdout: train = (system != held) AND (component != held); eval = (system == held) AND (component == held). No eval game shares a witness system OR a participant with its training set.",
+  "test_split": "UNTOUCHED (Gate 5, one shot)",
+  "canonical": {
+    "source_revision": "6891d9a8a2c4",
+    "split_sha256": "256543688a5da35879e157771cf1b527b82014923a1134ff06f10e8b24b8a8c7"
+  },
+  "inference": {
+    "bootstrap_replicates": 2000,
+    "seed": 20260817,
+    "additive_metrics": "dyadic participant-cluster sandwich",
+    "nonadditive_metrics": "connected-component percentile bootstrap"
+  },
+  "cuts_run": [
+    "persona"
+  ],
+  "loso_system": {},
+  "loso_persona": {
+    "minimal->quinn": {
+      "n_games": 424,
+      "point_estimates": {
+        "random": {
+          "game_accuracy": 0.5,
+          "game_brier": 0.25,
+          "dialogue_auroc": 0.5,
+          "dialogue_balanced_accuracy": 0.5,
+          "dialogue_brier": 0.25,
+          "dialogue_log_loss": 0.6931
+        },
+        "majority": {
+          "game_accuracy": 0.5047,
+          "game_brier": 0.25,
+          "dialogue_auroc": 0.5,
+          "dialogue_balanced_accuracy": 0.5,
+          "dialogue_brier": 0.25,
+          "dialogue_log_loss": 0.6931
+        },
+        "length": {
+          "game_accuracy": 0.5,
+          "game_brier": 0.25,
+          "dialogue_auroc": 0.5,
+          "dialogue_balanced_accuracy": 0.5,
+          "dialogue_brier": 0.25,
+          "dialogue_log_loss": 0.6931
+        },
+        "punctuation": {
+          "game_accuracy": 0.3373,
+          "game_brier": 0.3131,
+          "dialogue_auroc": 0.3462,
+          "dialogue_balanced_accuracy": 0.4481,
+          "dialogue_brier": 0.4937,
+          "dialogue_log_loss": 1.9506
+        },
+        "function_words": {
+          "game_accuracy": 0.6698,
+          "game_brier": 0.2394,
+          "dialogue_auroc": 0.6609,
+          "dialogue_balanced_accuracy": 0.6085,
+          "dialogue_brier": 0.294,
+          "dialogue_log_loss": 1.1409
+        },
+        "tfidf_lr": {
+          "game_accuracy": 0.6038,
+          "game_brier": 0.2403,
+          "dialogue_auroc": 0.6156,
+          "dialogue_balanced_accuracy": 0.5212,
+          "dialogue_brier": 0.2608,
+          "dialogue_log_loss": 0.7164
+        }
+      },
+      "intervals": {
+        "game": {
+          "n_clusters": 424,
+          "detectors": {
+            "function_words": {
+              "game_accuracy": {
+                "lo": 0.625,
+                "hi": 0.7146
+              },
+              "game_brier": {
+                "lo": 0.2157,
+                "hi": 0.2632
+              },
+              "dialogue_auroc": {
+                "lo": 0.6231,
+                "hi": 0.6972
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5778,
+                "hi": 0.6403
+              },
+              "dialogue_brier": {
+                "lo": 0.2709,
+                "hi": 0.3163
+              },
+              "dialogue_log_loss": {
+                "lo": 1.0053,
+                "hi": 1.2872
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0943,
+                "hi": 0.2323
+              }
+            },
+            "length": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0542,
+                "hi": 0.0425
+              }
+            },
+            "majority": {
+              "game_accuracy": {
+                "lo": 0.4575,
+                "hi": 0.5542
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0,
+                "hi": 0.0
+              }
+            },
+            "punctuation": {
+              "game_accuracy": {
+                "lo": 0.2948,
+                "hi": 0.3844
+              },
+              "game_brier": {
+                "lo": 0.2994,
+                "hi": 0.3287
+              },
+              "dialogue_auroc": {
+                "lo": 0.3095,
+                "hi": 0.3834
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4304,
+                "hi": 0.4646
+              },
+              "dialogue_brier": {
+                "lo": 0.4817,
+                "hi": 0.5063
+              },
+              "dialogue_log_loss": {
+                "lo": 1.8855,
+                "hi": 2.0147
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.2335,
+                "hi": -0.1038
+              }
+            },
+            "random": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0542,
+                "hi": 0.0425
+              }
+            },
+            "tfidf_lr": {
+              "game_accuracy": {
+                "lo": 0.5566,
+                "hi": 0.6486
+              },
+              "game_brier": {
+                "lo": 0.2342,
+                "hi": 0.2463
+              },
+              "dialogue_auroc": {
+                "lo": 0.5788,
+                "hi": 0.6525
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5436
+              },
+              "dialogue_brier": {
+                "lo": 0.2536,
+                "hi": 0.2678
+              },
+              "dialogue_log_loss": {
+                "lo": 0.7004,
+                "hi": 0.7322
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.033,
+                "hi": 0.1651
+              }
+            }
+          }
+        },
+        "interrogator": {
+          "n_clusters": 228,
+          "detectors": {
+            "function_words": {
+              "game_accuracy": {
+                "lo": 0.625,
+                "hi": 0.7111
+              },
+              "game_brier": {
+                "lo": 0.2168,
+                "hi": 0.2649
+              },
+              "dialogue_auroc": {
+                "lo": 0.6237,
+                "hi": 0.6956
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5779,
+                "hi": 0.6388
+              },
+              "dialogue_brier": {
+                "lo": 0.2724,
+                "hi": 0.3171
+              },
+              "dialogue_log_loss": {
+                "lo": 1.0154,
+                "hi": 1.2755
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.1014,
+                "hi": 0.2243
+              }
+            },
+            "length": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0506,
+                "hi": 0.0414
+              }
+            },
+            "majority": {
+              "game_accuracy": {
+                "lo": 0.4586,
+                "hi": 0.5506
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0,
+                "hi": 0.0
+              }
+            },
+            "punctuation": {
+              "game_accuracy": {
+                "lo": 0.2953,
+                "hi": 0.3803
+              },
+              "game_brier": {
+                "lo": 0.2991,
+                "hi": 0.3287
+              },
+              "dialogue_auroc": {
+                "lo": 0.3107,
+                "hi": 0.3818
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4299,
+                "hi": 0.4663
+              },
+              "dialogue_brier": {
+                "lo": 0.4812,
+                "hi": 0.5067
+              },
+              "dialogue_log_loss": {
+                "lo": 1.8867,
+                "hi": 2.0175
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.2315,
+                "hi": -0.1045
+              }
+            },
+            "random": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0506,
+                "hi": 0.0414
+              }
+            },
+            "tfidf_lr": {
+              "game_accuracy": {
+                "lo": 0.5577,
+                "hi": 0.6478
+              },
+              "game_brier": {
+                "lo": 0.2344,
+                "hi": 0.247
+              },
+              "dialogue_auroc": {
+                "lo": 0.576,
+                "hi": 0.6513
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4988,
+                "hi": 0.5426
+              },
+              "dialogue_brier": {
+                "lo": 0.2539,
+                "hi": 0.2683
+              },
+              "dialogue_log_loss": {
+                "lo": 0.7008,
+                "hi": 0.7337
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0327,
+                "hi": 0.16
+              }
+            }
+          }
+        },
+        "human_witness": {
+          "n_clusters": 214,
+          "detectors": {
+            "function_words": {
+              "game_accuracy": {
+                "lo": 0.6235,
+                "hi": 0.7126
+              },
+              "game_brier": {
+                "lo": 0.2139,
+                "hi": 0.2665
+              },
+              "dialogue_auroc": {
+                "lo": 0.6213,
+                "hi": 0.6974
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5778,
+                "hi": 0.6388
+              },
+              "dialogue_brier": {
+                "lo": 0.2717,
+                "hi": 0.319
+              },
+              "dialogue_log_loss": {
+                "lo": 1.0107,
+                "hi": 1.2891
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0922,
+                "hi": 0.2335
+              }
+            },
+            "length": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0543,
+                "hi": 0.0429
+              }
+            },
+            "majority": {
+              "game_accuracy": {
+                "lo": 0.4571,
+                "hi": 0.5543
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0,
+                "hi": 0.0
+              }
+            },
+            "punctuation": {
+              "game_accuracy": {
+                "lo": 0.2867,
+                "hi": 0.3872
+              },
+              "game_brier": {
+                "lo": 0.2981,
+                "hi": 0.33
+              },
+              "dialogue_auroc": {
+                "lo": 0.3037,
+                "hi": 0.3863
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4287,
+                "hi": 0.4669
+              },
+              "dialogue_brier": {
+                "lo": 0.4808,
+                "hi": 0.5075
+              },
+              "dialogue_log_loss": {
+                "lo": 1.8868,
+                "hi": 2.0141
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.2407,
+                "hi": -0.0963
+              }
+            },
+            "random": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0543,
+                "hi": 0.0429
+              }
+            },
+            "tfidf_lr": {
+              "game_accuracy": {
+                "lo": 0.5585,
+                "hi": 0.6481
+              },
+              "game_brier": {
+                "lo": 0.2338,
+                "hi": 0.2473
+              },
+              "dialogue_auroc": {
+                "lo": 0.5747,
+                "hi": 0.6542
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4988,
+                "hi": 0.544
+              },
+              "dialogue_brier": {
+                "lo": 0.2536,
+                "hi": 0.2685
+              },
+              "dialogue_log_loss": {
+                "lo": 0.7004,
+                "hi": 0.7335
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.035,
+                "hi": 0.1628
+              }
+            }
+          }
+        },
+        "component": {
+          "n_clusters": 8,
+          "detectors": {
+            "function_words": {
+              "game_accuracy": {
+                "lo": 0.6343,
+                "hi": 0.7067
+              },
+              "game_brier": {
+                "lo": 0.2136,
+                "hi": 0.2565
+              },
+              "dialogue_auroc": {
+                "lo": 0.6458,
+                "hi": 0.6783
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5997,
+                "hi": 0.6272
+              },
+              "dialogue_brier": {
+                "lo": 0.2779,
+                "hi": 0.3044
+              },
+              "dialogue_log_loss": {
+                "lo": 1.0175,
+                "hi": 1.2156
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.1427,
+                "hi": 0.2037
+              }
+            },
+            "length": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0336,
+                "hi": 0.0396
+              }
+            },
+            "majority": {
+              "game_accuracy": {
+                "lo": 0.4604,
+                "hi": 0.5336
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0,
+                "hi": 0.0
+              }
+            },
+            "punctuation": {
+              "game_accuracy": {
+                "lo": 0.2866,
+                "hi": 0.4249
+              },
+              "game_brier": {
+                "lo": 0.2902,
+                "hi": 0.3245
+              },
+              "dialogue_auroc": {
+                "lo": 0.2927,
+                "hi": 0.4318
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4381,
+                "hi": 0.4619
+              },
+              "dialogue_brier": {
+                "lo": 0.4836,
+                "hi": 0.5088
+              },
+              "dialogue_log_loss": {
+                "lo": 1.8677,
+                "hi": 2.0946
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.247,
+                "hi": -0.0368
+              }
+            },
+            "random": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0336,
+                "hi": 0.0396
+              }
+            },
+            "tfidf_lr": {
+              "game_accuracy": {
+                "lo": 0.5575,
+                "hi": 0.6695
+              },
+              "game_brier": {
+                "lo": 0.2288,
+                "hi": 0.2477
+              },
+              "dialogue_auroc": {
+                "lo": 0.5743,
+                "hi": 0.6755
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5044,
+                "hi": 0.5529
+              },
+              "dialogue_brier": {
+                "lo": 0.248,
+                "hi": 0.2687
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6885,
+                "hi": 0.7339
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0576,
+                "hi": 0.1548
+              }
+            }
+          }
+        },
+        "participant": {
+          "n_clusters": 236,
+          "detectors": {
+            "random": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5,
+                "estimate": 0.5,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25,
+                "estimate": 0.25,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5,
+                "estimate": 0.5,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25,
+                "estimate": 0.25,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931,
+                "estimate": 0.6931,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_auroc": {
+                "lo": null,
+                "hi": null,
+                "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0571,
+                "hi": 0.0477,
+                "estimate": -0.0047,
+                "se": 0.026729,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              }
+            },
+            "majority": {
+              "game_accuracy": {
+                "lo": 0.4523,
+                "hi": 0.5571,
+                "estimate": 0.5047,
+                "se": 0.026729,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25,
+                "estimate": 0.25,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5,
+                "estimate": 0.5,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25,
+                "estimate": 0.25,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931,
+                "estimate": 0.6931,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_auroc": {
+                "lo": null,
+                "hi": null,
+                "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0,
+                "hi": 0.0,
+                "estimate": 0.0,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              }
+            },
+            "length": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5,
+                "estimate": 0.5,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25,
+                "estimate": 0.25,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5,
+                "estimate": 0.5,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25,
+                "estimate": 0.25,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931,
+                "estimate": 0.6931,
+                "se": 0.0,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_auroc": {
+                "lo": null,
+                "hi": null,
+                "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0571,
+                "hi": 0.0477,
+                "estimate": -0.0047,
+                "se": 0.026729,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              }
+            },
+            "punctuation": {
+              "game_accuracy": {
+                "lo": 0.2916,
+                "hi": 0.3829,
+                "estimate": 0.3373,
+                "se": 0.023307,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "game_brier": {
+                "lo": 0.2967,
+                "hi": 0.3295,
+                "estimate": 0.3131,
+                "se": 0.008367,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4284,
+                "hi": 0.4678,
+                "estimate": 0.4481,
+                "se": 0.010042,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_brier": {
+                "lo": 0.481,
+                "hi": 0.5063,
+                "estimate": 0.4937,
+                "se": 0.006449,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_log_loss": {
+                "lo": 1.8863,
+                "hi": 2.0149,
+                "estimate": 1.9506,
+                "se": 0.032801,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_auroc": {
+                "lo": null,
+                "hi": null,
+                "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.2363,
+                "hi": -0.0986,
+                "estimate": -0.1675,
+                "se": 0.035139,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              }
+            },
+            "function_words": {
+              "game_accuracy": {
+                "lo": 0.6277,
+                "hi": 0.712,
+                "estimate": 0.6698,
+                "se": 0.021501,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "game_brier": {
+                "lo": 0.2149,
+                "hi": 0.2638,
+                "estimate": 0.2394,
+                "se": 0.012478,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5809,
+                "hi": 0.6361,
+                "estimate": 0.6085,
+                "se": 0.01407,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_brier": {
+                "lo": 0.2715,
+                "hi": 0.3165,
+                "estimate": 0.294,
+                "se": 0.011477,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_log_loss": {
+                "lo": 1.0125,
+                "hi": 1.2694,
+                "estimate": 1.1409,
+                "se": 0.065537,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_auroc": {
+                "lo": null,
+                "hi": null,
+                "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0967,
+                "hi": 0.2335,
+                "estimate": 0.1651,
+                "se": 0.034898,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              }
+            },
+            "tfidf_lr": {
+              "game_accuracy": {
+                "lo": 0.5538,
+                "hi": 0.6537,
+                "estimate": 0.6038,
+                "se": 0.025476,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "game_brier": {
+                "lo": 0.2336,
+                "hi": 0.247,
+                "estimate": 0.2403,
+                "se": 0.003424,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5015,
+                "hi": 0.5409,
+                "estimate": 0.5212,
+                "se": 0.010054,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_brier": {
+                "lo": 0.2535,
+                "hi": 0.2681,
+                "estimate": 0.2608,
+                "se": 0.003726,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6998,
+                "hi": 0.7331,
+                "estimate": 0.7164,
+                "se": 0.008493,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_auroc": {
+                "lo": null,
+                "hi": null,
+                "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0304,
+                "hi": 0.1677,
+                "estimate": 0.0991,
+                "se": 0.035013,
+                "n_games": 424,
+                "n_participants": 236,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              }
+            }
+          },
+          "method": "dyadic participant-cluster sandwich for additive metrics; component bootstrap for non-additive metrics"
+        }
+      },
+      "side_recognition": {
+        "random": {
+          "mean_p_ai_on_AI_side": 0.5,
+          "mean_p_ai_on_HUMAN_side": 0.5,
+          "ai_side_above_half": 1.0,
+          "human_side_below_half": 0.0
+        },
+        "majority": {
+          "mean_p_ai_on_AI_side": 0.5,
+          "mean_p_ai_on_HUMAN_side": 0.5,
+          "ai_side_above_half": 1.0,
+          "human_side_below_half": 0.0
+        },
+        "length": {
+          "mean_p_ai_on_AI_side": 0.5,
+          "mean_p_ai_on_HUMAN_side": 0.5,
+          "ai_side_above_half": 1.0,
+          "human_side_below_half": 0.0
+        },
+        "punctuation": {
+          "mean_p_ai_on_AI_side": 0.0638,
+          "mean_p_ai_on_HUMAN_side": 0.1861,
+          "ai_side_above_half": 0.0212,
+          "human_side_below_half": 0.875
+        },
+        "function_words": {
+          "mean_p_ai_on_AI_side": 0.4793,
+          "mean_p_ai_on_HUMAN_side": 0.2975,
+          "ai_side_above_half": 0.4906,
+          "human_side_below_half": 0.7264
+        },
+        "tfidf_lr": {
+          "mean_p_ai_on_AI_side": 0.3858,
+          "mean_p_ai_on_HUMAN_side": 0.3463,
+          "ai_side_above_half": 0.1462,
+          "human_side_below_half": 0.8962
+        }
+      },
+      "calibration": {
+        "random": {
+          "dialogue_ece": 0.0
+        },
+        "majority": {
+          "dialogue_ece": 0.0
+        },
+        "length": {
+          "dialogue_ece": 0.0
+        },
+        "punctuation": {
+          "dialogue_ece": 0.4926
+        },
+        "function_words": {
+          "dialogue_ece": 0.2266
+        },
+        "tfidf_lr": {
+          "dialogue_ece": 0.1521
+        }
+      },
+      "eval_witness_systems": {
+        "gpt-4.5_quinn": 214,
+        "llama-405b_quinn": 210
+      }
+    },
+    "quinn->minimal": {
+      "n_games": 319,
+      "point_estimates": {
+        "random": {
+          "game_accuracy": 0.5,
+          "game_brier": 0.25,
+          "dialogue_auroc": 0.5,
+          "dialogue_balanced_accuracy": 0.5,
+          "dialogue_brier": 0.25,
+          "dialogue_log_loss": 0.6931
+        },
+        "majority": {
+          "game_accuracy": 0.5266,
+          "game_brier": 0.25,
+          "dialogue_auroc": 0.5,
+          "dialogue_balanced_accuracy": 0.5,
+          "dialogue_brier": 0.25,
+          "dialogue_log_loss": 0.6931
+        },
+        "length": {
+          "game_accuracy": 0.5,
+          "game_brier": 0.25,
+          "dialogue_auroc": 0.5,
+          "dialogue_balanced_accuracy": 0.5,
+          "dialogue_brier": 0.25,
+          "dialogue_log_loss": 0.6931
+        },
+        "punctuation": {
+          "game_accuracy": 0.1944,
+          "game_brier": 0.3477,
+          "dialogue_auroc": 0.2131,
+          "dialogue_balanced_accuracy": 0.3966,
+          "dialogue_brier": 0.5484,
+          "dialogue_log_loss": 5.4722
+        },
+        "function_words": {
+          "game_accuracy": 0.605,
+          "game_brier": 0.2697,
+          "dialogue_auroc": 0.6049,
+          "dialogue_balanced_accuracy": 0.4969,
+          "dialogue_brier": 0.3937,
+          "dialogue_log_loss": 1.471
+        },
+        "tfidf_lr": {
+          "game_accuracy": 0.4953,
+          "game_brier": 0.2522,
+          "dialogue_auroc": 0.4981,
+          "dialogue_balanced_accuracy": 0.5063,
+          "dialogue_brier": 0.3303,
+          "dialogue_log_loss": 0.9153
+        }
+      },
+      "intervals": {
+        "game": {
+          "n_clusters": 319,
+          "detectors": {
+            "function_words": {
+              "game_accuracy": {
+                "lo": 0.5517,
+                "hi": 0.6583
+              },
+              "game_brier": {
+                "lo": 0.2498,
+                "hi": 0.2909
+              },
+              "dialogue_auroc": {
+                "lo": 0.5619,
+                "hi": 0.648
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4702,
+                "hi": 0.5235
+              },
+              "dialogue_brier": {
+                "lo": 0.3723,
+                "hi": 0.4154
+              },
+              "dialogue_log_loss": {
+                "lo": 1.3527,
+                "hi": 1.5899
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0,
+                "hi": 0.1567
+              }
+            },
+            "length": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0831,
+                "hi": 0.0298
+              }
+            },
+            "majority": {
+              "game_accuracy": {
+                "lo": 0.4702,
+                "hi": 0.5831
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0,
+                "hi": 0.0
+              }
+            },
+            "punctuation": {
+              "game_accuracy": {
+                "lo": 0.1536,
+                "hi": 0.2414
+              },
+              "game_brier": {
+                "lo": 0.3287,
+                "hi": 0.369
+              },
+              "dialogue_auroc": {
+                "lo": 0.179,
+                "hi": 0.2501
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.3699,
+                "hi": 0.4216
+              },
+              "dialogue_brier": {
+                "lo": 0.5311,
+                "hi": 0.5656
+              },
+              "dialogue_log_loss": {
+                "lo": 5.2364,
+                "hi": 5.7123
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.4013,
+                "hi": -0.2539
+              }
+            },
+            "random": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0831,
+                "hi": 0.0298
+              }
+            },
+            "tfidf_lr": {
+              "game_accuracy": {
+                "lo": 0.4389,
+                "hi": 0.5517
+              },
+              "game_brier": {
+                "lo": 0.245,
+                "hi": 0.2598
+              },
+              "dialogue_auroc": {
+                "lo": 0.4568,
+                "hi": 0.5397
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4906,
+                "hi": 0.5219
+              },
+              "dialogue_brier": {
+                "lo": 0.3199,
+                "hi": 0.3402
+              },
+              "dialogue_log_loss": {
+                "lo": 0.8863,
+                "hi": 0.9425
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.1097,
+                "hi": 0.0439
+              }
+            }
+          }
+        },
+        "interrogator": {
+          "n_clusters": 220,
+          "detectors": {
+            "function_words": {
+              "game_accuracy": {
+                "lo": 0.5545,
+                "hi": 0.657
+              },
+              "game_brier": {
+                "lo": 0.2503,
+                "hi": 0.2896
+              },
+              "dialogue_auroc": {
+                "lo": 0.564,
+                "hi": 0.648
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.471,
+                "hi": 0.5232
+              },
+              "dialogue_brier": {
+                "lo": 0.3733,
+                "hi": 0.414
+              },
+              "dialogue_log_loss": {
+                "lo": 1.3616,
+                "hi": 1.5828
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0,
+                "hi": 0.1568
+              }
+            },
+            "length": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0805,
+                "hi": 0.0287
+              }
+            },
+            "majority": {
+              "game_accuracy": {
+                "lo": 0.4713,
+                "hi": 0.5805
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0,
+                "hi": 0.0
+              }
+            },
+            "punctuation": {
+              "game_accuracy": {
+                "lo": 0.1524,
+                "hi": 0.2397
+              },
+              "game_brier": {
+                "lo": 0.3266,
+                "hi": 0.3699
+              },
+              "dialogue_auroc": {
+                "lo": 0.1772,
+                "hi": 0.2482
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.3694,
+                "hi": 0.4234
+              },
+              "dialogue_brier": {
+                "lo": 0.53,
+                "hi": 0.5669
+              },
+              "dialogue_log_loss": {
+                "lo": 5.2296,
+                "hi": 5.715
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.4025,
+                "hi": -0.2617
+              }
+            },
+            "random": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0805,
+                "hi": 0.0287
+              }
+            },
+            "tfidf_lr": {
+              "game_accuracy": {
+                "lo": 0.4455,
+                "hi": 0.5443
+              },
+              "game_brier": {
+                "lo": 0.2452,
+                "hi": 0.2598
+              },
+              "dialogue_auroc": {
+                "lo": 0.4608,
+                "hi": 0.5356
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4893,
+                "hi": 0.5223
+              },
+              "dialogue_brier": {
+                "lo": 0.3209,
+                "hi": 0.3393
+              },
+              "dialogue_log_loss": {
+                "lo": 0.8895,
+                "hi": 0.94
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.1069,
+                "hi": 0.0404
+              }
+            }
+          }
+        },
+        "human_witness": {
+          "n_clusters": 190,
+          "detectors": {
+            "function_words": {
+              "game_accuracy": {
+                "lo": 0.5492,
+                "hi": 0.6603
+              },
+              "game_brier": {
+                "lo": 0.2499,
+                "hi": 0.2909
+              },
+              "dialogue_auroc": {
+                "lo": 0.5587,
+                "hi": 0.6503
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4697,
+                "hi": 0.5231
+              },
+              "dialogue_brier": {
+                "lo": 0.3734,
+                "hi": 0.4151
+              },
+              "dialogue_log_loss": {
+                "lo": 1.3549,
+                "hi": 1.6003
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0,
+                "hi": 0.1543
+              }
+            },
+            "length": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0779,
+                "hi": 0.026
+              }
+            },
+            "majority": {
+              "game_accuracy": {
+                "lo": 0.474,
+                "hi": 0.5779
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0,
+                "hi": 0.0
+              }
+            },
+            "punctuation": {
+              "game_accuracy": {
+                "lo": 0.1476,
+                "hi": 0.2437
+              },
+              "game_brier": {
+                "lo": 0.3246,
+                "hi": 0.3728
+              },
+              "dialogue_auroc": {
+                "lo": 0.1717,
+                "hi": 0.2562
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.3652,
+                "hi": 0.4241
+              },
+              "dialogue_brier": {
+                "lo": 0.5297,
+                "hi": 0.5684
+              },
+              "dialogue_log_loss": {
+                "lo": 5.2363,
+                "hi": 5.7128
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.4025,
+                "hi": -0.2564
+              }
+            },
+            "random": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0779,
+                "hi": 0.026
+              }
+            },
+            "tfidf_lr": {
+              "game_accuracy": {
+                "lo": 0.4361,
+                "hi": 0.5534
+              },
+              "game_brier": {
+                "lo": 0.2446,
+                "hi": 0.2605
+              },
+              "dialogue_auroc": {
+                "lo": 0.4536,
+                "hi": 0.5419
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4903,
+                "hi": 0.5221
+              },
+              "dialogue_brier": {
+                "lo": 0.3201,
+                "hi": 0.3406
+              },
+              "dialogue_log_loss": {
+                "lo": 0.8869,
+                "hi": 0.9439
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.1111,
+                "hi": 0.0492
+              }
+            }
+          }
+        },
+        "component": {
+          "n_clusters": 7,
+          "detectors": {
+            "function_words": {
+              "game_accuracy": {
+                "lo": 0.4963,
+                "hi": 0.6754
+              },
+              "game_brier": {
+                "lo": 0.2522,
+                "hi": 0.2984
+              },
+              "dialogue_auroc": {
+                "lo": 0.4989,
+                "hi": 0.6724
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4635,
+                "hi": 0.5168
+              },
+              "dialogue_brier": {
+                "lo": 0.3779,
+                "hi": 0.4203
+              },
+              "dialogue_log_loss": {
+                "lo": 1.4032,
+                "hi": 1.5575
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0485,
+                "hi": 0.1725
+              }
+            },
+            "length": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0829,
+                "hi": 0.0127
+              }
+            },
+            "majority": {
+              "game_accuracy": {
+                "lo": 0.4873,
+                "hi": 0.5829
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0,
+                "hi": 0.0
+              }
+            },
+            "punctuation": {
+              "game_accuracy": {
+                "lo": 0.1359,
+                "hi": 0.2261
+              },
+              "game_brier": {
+                "lo": 0.3178,
+                "hi": 0.4104
+              },
+              "dialogue_auroc": {
+                "lo": 0.1503,
+                "hi": 0.241
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.3172,
+                "hi": 0.4323
+              },
+              "dialogue_brier": {
+                "lo": 0.5309,
+                "hi": 0.5843
+              },
+              "dialogue_log_loss": {
+                "lo": 5.155,
+                "hi": 5.6795
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.4149,
+                "hi": -0.29
+              }
+            },
+            "random": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_auroc": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0829,
+                "hi": 0.0127
+              }
+            },
+            "tfidf_lr": {
+              "game_accuracy": {
+                "lo": 0.4435,
+                "hi": 0.5942
+              },
+              "game_brier": {
+                "lo": 0.2435,
+                "hi": 0.2596
+              },
+              "dialogue_auroc": {
+                "lo": 0.4772,
+                "hi": 0.5387
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4959,
+                "hi": 0.5224
+              },
+              "dialogue_brier": {
+                "lo": 0.3161,
+                "hi": 0.3358
+              },
+              "dialogue_log_loss": {
+                "lo": 0.8784,
+                "hi": 0.9315
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0774,
+                "hi": 0.0744
+              }
+            }
+          }
+        },
+        "participant": {
+          "n_clusters": 231,
+          "detectors": {
+            "random": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5,
+                "estimate": 0.5,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25,
+                "estimate": 0.25,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5,
+                "estimate": 0.5,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25,
+                "estimate": 0.25,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931,
+                "estimate": 0.6931,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_auroc": {
+                "lo": null,
+                "hi": null,
+                "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0804,
+                "hi": 0.0271,
+                "estimate": -0.0266,
+                "se": 0.027407,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              }
+            },
+            "majority": {
+              "game_accuracy": {
+                "lo": 0.4729,
+                "hi": 0.5804,
+                "estimate": 0.5266,
+                "se": 0.027407,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25,
+                "estimate": 0.25,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5,
+                "estimate": 0.5,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25,
+                "estimate": 0.25,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931,
+                "estimate": 0.6931,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_auroc": {
+                "lo": null,
+                "hi": null,
+                "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0,
+                "hi": 0.0,
+                "estimate": 0.0,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              }
+            },
+            "length": {
+              "game_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5,
+                "estimate": 0.5,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "game_brier": {
+                "lo": 0.25,
+                "hi": 0.25,
+                "estimate": 0.25,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.5,
+                "hi": 0.5,
+                "estimate": 0.5,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_brier": {
+                "lo": 0.25,
+                "hi": 0.25,
+                "estimate": 0.25,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_log_loss": {
+                "lo": 0.6931,
+                "hi": 0.6931,
+                "estimate": 0.6931,
+                "se": 0.0,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_auroc": {
+                "lo": null,
+                "hi": null,
+                "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.0804,
+                "hi": 0.0271,
+                "estimate": -0.0266,
+                "se": 0.027407,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              }
+            },
+            "punctuation": {
+              "game_accuracy": {
+                "lo": 0.144,
+                "hi": 0.2447,
+                "estimate": 0.1944,
+                "se": 0.025694,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "game_brier": {
+                "lo": 0.3193,
+                "hi": 0.3761,
+                "estimate": 0.3477,
+                "se": 0.014492,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.3603,
+                "hi": 0.4328,
+                "estimate": 0.3966,
+                "se": 0.018484,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_brier": {
+                "lo": 0.5271,
+                "hi": 0.5697,
+                "estimate": 0.5484,
+                "se": 0.010852,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_log_loss": {
+                "lo": 5.2374,
+                "hi": 5.7071,
+                "estimate": 5.4722,
+                "se": 0.119819,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_auroc": {
+                "lo": null,
+                "hi": null,
+                "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.4142,
+                "hi": -0.2504,
+                "estimate": -0.3323,
+                "se": 0.041779,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              }
+            },
+            "function_words": {
+              "game_accuracy": {
+                "lo": 0.5514,
+                "hi": 0.6587,
+                "estimate": 0.605,
+                "se": 0.027374,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "game_brier": {
+                "lo": 0.2514,
+                "hi": 0.288,
+                "estimate": 0.2697,
+                "se": 0.009344,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4722,
+                "hi": 0.5215,
+                "estimate": 0.4969,
+                "se": 0.012577,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_brier": {
+                "lo": 0.3758,
+                "hi": 0.4116,
+                "estimate": 0.3937,
+                "se": 0.009133,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_log_loss": {
+                "lo": 1.3651,
+                "hi": 1.5769,
+                "estimate": 1.471,
+                "se": 0.054041,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_auroc": {
+                "lo": null,
+                "hi": null,
+                "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": 0.0018,
+                "hi": 0.1549,
+                "estimate": 0.0784,
+                "se": 0.039052,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              }
+            },
+            "tfidf_lr": {
+              "game_accuracy": {
+                "lo": 0.4401,
+                "hi": 0.5505,
+                "estimate": 0.4953,
+                "se": 0.028162,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "game_brier": {
+                "lo": 0.2457,
+                "hi": 0.2587,
+                "estimate": 0.2522,
+                "se": 0.003316,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_balanced_accuracy": {
+                "lo": 0.4933,
+                "hi": 0.5192,
+                "estimate": 0.5063,
+                "se": 0.006605,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_brier": {
+                "lo": 0.3216,
+                "hi": 0.339,
+                "estimate": 0.3303,
+                "se": 0.004432,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_log_loss": {
+                "lo": 0.8911,
+                "hi": 0.9394,
+                "estimate": 0.9153,
+                "se": 0.012339,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              },
+              "dialogue_auroc": {
+                "lo": null,
+                "hi": null,
+                "method": "non-additive; use the connected-component bootstrap interval reported alongside this result"
+              },
+              "game_accuracy_diff_vs_majority": {
+                "lo": -0.108,
+                "hi": 0.0453,
+                "estimate": -0.0313,
+                "se": 0.039121,
+                "n_games": 319,
+                "n_participants": 231,
+                "meat_clipped_at_zero": false,
+                "method": "dyadic participant-cluster sandwich; same participant ID is shared across interrogator/witness roles; normal 95% CI"
+              }
+            }
+          },
+          "method": "dyadic participant-cluster sandwich for additive metrics; component bootstrap for non-additive metrics"
+        }
+      },
+      "side_recognition": {
+        "random": {
+          "mean_p_ai_on_AI_side": 0.5,
+          "mean_p_ai_on_HUMAN_side": 0.5,
+          "ai_side_above_half": 1.0,
+          "human_side_below_half": 0.0
+        },
+        "majority": {
+          "mean_p_ai_on_AI_side": 0.5,
+          "mean_p_ai_on_HUMAN_side": 0.5,
+          "ai_side_above_half": 1.0,
+          "human_side_below_half": 0.0
+        },
+        "length": {
+          "mean_p_ai_on_AI_side": 0.5,
+          "mean_p_ai_on_HUMAN_side": 0.5,
+          "ai_side_above_half": 1.0,
+          "human_side_below_half": 0.0
+        },
+        "punctuation": {
+          "mean_p_ai_on_AI_side": 0.0338,
+          "mean_p_ai_on_HUMAN_side": 0.2147,
+          "ai_side_above_half": 0.0251,
+          "human_side_below_half": 0.768
+        },
+        "function_words": {
+          "mean_p_ai_on_AI_side": 0.2145,
+          "mean_p_ai_on_HUMAN_side": 0.179,
+          "ai_side_above_half": 0.1348,
+          "human_side_below_half": 0.8589
+        },
+        "tfidf_lr": {
+          "mean_p_ai_on_AI_side": 0.2458,
+          "mean_p_ai_on_HUMAN_side": 0.2413,
+          "ai_side_above_half": 0.0564,
+          "human_side_below_half": 0.9561
+        }
+      },
+      "calibration": {
+        "random": {
+          "dialogue_ece": 0.0
+        },
+        "majority": {
+          "dialogue_ece": 0.0
+        },
+        "length": {
+          "dialogue_ece": 0.0
+        },
+        "punctuation": {
+          "dialogue_ece": 0.5545
+        },
+        "function_words": {
+          "dialogue_ece": 0.3807
+        },
+        "tfidf_lr": {
+          "dialogue_ece": 0.2617
+        }
+      },
+      "eval_witness_systems": {
+        "gpt-4.5_minimal": 114,
+        "gpt-4o_minimal": 106,
+        "llama-405b_minimal": 99
+      }
+    }
+  },
+  "cells": [],
+  "seconds": 150.4
+}

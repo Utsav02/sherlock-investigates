@@ -12,17 +12,17 @@ ONLY difference is corpus breadth. That makes a clean 2x2:
   pilot  (311K)  [a]                  [b]
   canon  (3.36M) [c]                  [d]
 
-Four contrasts, each Fisher exact + Wilson CIs:
+  Four descriptive contrasts:
   STEPS effect at low breadth : a vs b   (pilot early vs late)
   STEPS effect at high breadth: c vs d   (canon early vs late)   -- known sig.
   BREADTH effect at low steps : a vs c   (early: pilot vs canon)
   BREADTH effect at high steps: b vs d   (late:  pilot vs canon)
 
-Verdict:
-  breadth significant, steps-at-low-breadth NOT  -> BREADTH drives it
-                                                    (rehearsal mandatory)
-  steps-at-low-breadth significant               -> WEIGHT MOVEMENT contributes
-                                                    (low-LR / low-rank worth trying)
+Historical limitation:
+  Each cell pools the same prompts over adjacent checkpoints from one training
+  trajectory. Those are repeated, correlated observations. The former Fisher
+  tests and mechanism verdict are withdrawn; this script now reports effect
+  patterns only. Independent training seeds are required for causal attribution.
 
 Usage:
     python scripts/eval/confound_analysis.py \
@@ -38,11 +38,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts" / "eval"))
-
-from dose_curve import fisher_exact_two_sided, wilson_interval
-
-SIG = 0.05
-
 
 def _pool(rows: list[dict], lo: int | None = None, hi: int | None = None) -> tuple[int, int]:
     """Sum (closure, n) over graded checkpoints whose step is in [lo, hi]."""
@@ -61,14 +56,15 @@ def _pool(rows: list[dict], lo: int | None = None, hi: int | None = None) -> tup
 
 
 def _contrast(name: str, ok1: int, n1: int, ok2: int, n2: int) -> dict:
+    rate1 = ok1 / n1 if n1 else 0.0
+    rate2 = ok2 / n2 if n2 else 0.0
     return {
         "name": name,
-        "a": {"ok": ok1, "n": n1, "rate": ok1 / n1 if n1 else 0.0,
-              "wilson": list(wilson_interval(ok1, n1))},
-        "b": {"ok": ok2, "n": n2, "rate": ok2 / n2 if n2 else 0.0,
-              "wilson": list(wilson_interval(ok2, n2))},
-        "fisher_p": fisher_exact_two_sided(ok1, n1 - ok1, ok2, n2 - ok2)
-        if n1 and n2 else 1.0,
+        "a": {"ok": ok1, "n": n1, "rate": rate1},
+        "b": {"ok": ok2, "n": n2, "rate": rate2},
+        "b_minus_a_rate": rate2 - rate1,
+        "warning": ("descriptive only; pooled rows repeat prompts and adjacent "
+                    "checkpoints from one training trajectory"),
     }
 
 
@@ -89,40 +85,19 @@ def analyze_confound(fullcanon_rows: list[dict], pilot_rows: list[dict],
     breadth_late = _contrast("BREADTH @ high steps (late: pilot vs canon)",
                             p_l_ok, p_l_n, c_l_ok, c_l_n)
 
-    # Direction matters, not just significance. "steps hurt" = pilot closure
-    # FALLS from early to late. "breadth hurts" = pilot (fewer unique) closes
-    # BETTER than canon.
-    steps_hurt = (steps_pilot["fisher_p"] < SIG
-                  and steps_pilot["a"]["rate"] > steps_pilot["b"]["rate"])
-    breadth_hurt = (
-        (breadth_early["fisher_p"] < SIG
-         and breadth_early["a"]["rate"] > breadth_early["b"]["rate"])
-        or (breadth_late["fisher_p"] < SIG
-            and breadth_late["a"]["rate"] > breadth_late["b"]["rate"]))
-
-    if breadth_hurt and not steps_hurt:
-        verdict = ("UNIQUE-TOKEN BREADTH drives the collapse. Steps alone, at low "
-                   "breadth, do not break closure (pilot stays healthy across "
-                   "steps) while canon decays. The effect dose (~1M+ unique "
-                   "tokens) cannot be reached without the breadth that breaks the "
-                   "format -> low-LR / low-rank / early-stop CANNOT open a window; "
-                   "REHEARSAL (base-model-generated think blocks) is the only "
-                   "mitigation with a mechanism.")
-    elif steps_hurt and not breadth_hurt:
-        verdict = ("OPTIMIZER STEPS / weight movement drive the collapse, "
-                   "independent of breadth (pilot decays with steps even at 1/11th "
-                   "the unique tokens). Fewer/smaller updates should preserve the "
-                   "format -> low-LR, low-rank, and early-stop are worth trying "
-                   "before the more involved rehearsal pipeline.")
-    elif steps_hurt and breadth_hurt:
-        verdict = ("BOTH contribute: closure falls with steps even at low breadth, "
-                   "AND at matched steps the broader corpus is worse. Rehearsal is "
-                   "the robust mitigation; low-LR/rank may buy headroom but will "
-                   "not fully protect the format at an effect dose.")
-    else:
-        verdict = ("INCONCLUSIVE at this n — no contrast reaches p<0.05 in the "
-                   "damaging direction. Increase --n-prompts on both curves or add "
-                   "checkpoints before drawing a mechanism.")
+    observed_steps_decline = (
+        steps_pilot["b"]["rate"] < steps_pilot["a"]["rate"])
+    observed_breadth_gap = (
+        breadth_early["b"]["rate"] < breadth_early["a"]["rate"] or
+        breadth_late["b"]["rate"] < breadth_late["a"]["rate"])
+    verdict = (
+        "NO CAUSAL MECHANISM VERDICT. These recorded trajectories can describe "
+        "whether closure was lower at later checkpoints or under broader data, "
+        "but repeated prompts, serially related checkpoints, and one training "
+        "trajectory per condition make the old Fisher tests invalid. Replicate "
+        "independent training seeds and retain prompt-level outcomes before "
+        "attributing the pattern to steps or unique-token breadth."
+    )
 
     return {
         "early_max": early_max, "late_min": late_min,
@@ -132,7 +107,9 @@ def analyze_confound(fullcanon_rows: list[dict], pilot_rows: list[dict],
             "breadth_at_low_steps": breadth_early,
             "breadth_at_high_steps": breadth_late,
         },
-        "steps_hurt": steps_hurt, "breadth_hurt": breadth_hurt,
+        "observed_steps_decline": observed_steps_decline,
+        "observed_breadth_gap": observed_breadth_gap,
+        "inference_status": "historical inferential verdict withdrawn",
         "verdict": verdict,
     }
 
@@ -146,10 +123,8 @@ def print_confound(a: dict) -> None:
         aa, bb = c["a"], c["b"]
         print(f"\n  {c['name']}")
         print(f"    {aa['ok']:>3}/{aa['n']:<3} = {aa['rate']:.2f} "
-              f"[{aa['wilson'][0]:.2f}, {aa['wilson'][1]:.2f}]   vs   "
-              f"{bb['ok']:>3}/{bb['n']:<3} = {bb['rate']:.2f} "
-              f"[{bb['wilson'][0]:.2f}, {bb['wilson'][1]:.2f}]   "
-              f"Fisher p={c['fisher_p']:.4g}")
+              f"vs {bb['ok']:>3}/{bb['n']:<3} = {bb['rate']:.2f}   "
+              f"delta={c['b_minus_a_rate']:+.2f}")
     print(f"\n{'-'*72}")
     print("  VERDICT")
     for line in _wrap(a["verdict"], 70):

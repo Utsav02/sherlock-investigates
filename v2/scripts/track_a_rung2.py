@@ -89,19 +89,6 @@ def transfer(dialogues, games, condition, train_src, eval_src, n_boot, variant="
     point = {n: a0.metrics_from(s, index) for n, s in scored.items()}
     intervals = a0.bootstrap_intervals(scored, held_games, n_boot, a0.SEED)
 
-    participant = {"detectors": {}}
-    for name in sorted(scored):
-        participant["detectors"][name] = {
-            key: a0.widen(intervals["interrogator"]["detectors"][name][key],
-                          intervals["human_witness"]["detectors"][name][key])
-            for key in list(a0.METRIC_KEYS) + ["game_accuracy_diff_vs_majority"]
-        }
-    participant["n_clusters"] = (
-        f"{intervals['interrogator']['n_clusters']} interrogators / "
-        f"{intervals['human_witness']['n_clusters']} human witnesses "
-        f"(max-of-marginals)")
-    intervals["participant"] = participant
-
     by_system = {}
     for name, s in scored.items():
         rows = defaultdict(list)
@@ -151,7 +138,11 @@ def main(argv=None) -> int:
         "test_split": "UNTOUCHED (Gate 5, one shot)",
         "canonical": {"source_revision": manifest["source_revision"],
                       "split_sha256": manifest["split_sha256"]},
-        "bootstrap": {"replicates": args.bootstrap, "seed": a0.SEED},
+        "inference": {
+            "bootstrap_replicates": args.bootstrap, "seed": a0.SEED,
+            "additive_metrics": "dyadic participant-cluster sandwich",
+            "nonadditive_metrics": "connected-component percentile bootstrap",
+        },
         "directions": {},
     }
 

@@ -245,20 +245,21 @@ untouched, and the unrelated uncommitted V1 scenario patch is out of scope.
 
 ## Stages
 
-- [x] 1. Audit raw observations and freeze a correction specification — see
-  `docs/INFERENCE_CORRECTION_20260822.md`; historical V1 prompt outcomes are not
-  recoverable from committed aggregates.
-- [ ] 2. Implement corrected V1 repeated-measures and Track A crossed-participant
-  inference ← **IN PROGRESS:** remove invalid historical pooled inference,
-  persist future prompt outcomes, add dyadic/component intervals and tests, then
-  write append-only correction artifacts.
+- [x] 1. Audit raw observations and freeze a correction specification — commit
+  `3c33064`; historical V1 prompt outcomes are not recoverable from committed
+  aggregates.
+- [x] 2. Implement corrected V1 repeated-measures and Track A crossed-participant
+  inference — historical p-values withdrawn; future prompt outcomes persisted;
+  dyadic/component intervals implemented; corrected A0/A2 artifacts generated;
+  304 tests green.
 - [x] 3. Explain the deliverable fork and record the owner's decision —
   **HYBRID:** finish an honest methodological failure study, explicitly including
   poor planning/ordering as a cause, then continue the real-active programme
   behind the bridge gates.
-- [ ] 4. Implement the selected smallest bridge experiment: if real-active,
-  provenance-locked out-of-corpus baseline + nested calibration + mandatory D0
-  real-replay criterion; if methodological, close and package the negative study.
+- [ ] 4. Implement the selected smallest bridge experiment ← **IN PROGRESS:**
+  select and provenance-lock an out-of-corpus detector that can be executed
+  reproducibly, add nested calibration, and freeze D0's mandatory real-replay
+  criterion before any Stage C implementation.
 - [ ] 5. Verify the complete record, update the public README/status, and commit
   each clean stage by exact path. No push without owner authorization.
 
@@ -271,7 +272,7 @@ rg -n 'bootstrap_intervals|cluster_units|widen' v2/scripts/track_a_a0.py
 venv/bin/python -m unittest discover -s tests
 ```
 
-Resume at Stage 2. Do not begin Stage C or read the frozen Track A test split.
+Resume at Stage 4. Do not begin Stage C or read the frozen Track A test split.
 
 ## Decisions made
 

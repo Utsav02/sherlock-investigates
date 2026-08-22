@@ -1,9 +1,7 @@
 """Tests for the low-rank mitigation analysis (closure x effect overlay).
 
-Pure logic — no torch, no GPU. Exercises all three verdict branches:
-RESCUED, COUPLED, TOO_WEAK. The low-rank run has not happened yet; this proves
-the overlay reads the two curves correctly so the verdict is trustworthy the
-moment both JSONs land.
+Pure logic — no torch, no GPU. This is a checkpoint screen, not evidence that a
+reasoning intervention succeeded.
 """
 
 import sys
@@ -37,7 +35,7 @@ class TestMitigation(unittest.TestCase):
         effect = _effect([(5, 1), (10, 2), (15, 4), (20, 6), (25, 7), (30, 8),
                           (35, 9), (40, 10), (45, 11), (50, 12)])
         a = ma.analyze_mitigation(closure, effect)
-        self.assertEqual(a["verdict_key"], "RESCUED")
+        self.assertEqual(a["verdict_key"], "CANDIDATE_WINDOW")
         self.assertTrue(a["window"])
         # step-20 is the first with closure>=0.75 (8/8) AND drop>=5 (6%)
         self.assertTrue(any(j["step"] == 20 for j in a["window"]))
@@ -47,7 +45,7 @@ class TestMitigation(unittest.TestCase):
         closure = _closure([(s, 8 if s <= 15 else 2) for s in STEPS])
         effect = _effect([(s, 0.0 if s <= 15 else 9.0) for s in STEPS])
         a = ma.analyze_mitigation(closure, effect)
-        self.assertEqual(a["verdict_key"], "COUPLED")
+        self.assertEqual(a["verdict_key"], "PROXY_COUPLED")
         self.assertFalse(a["window"])
 
     def test_too_weak_when_no_effect_anywhere(self):
@@ -55,7 +53,7 @@ class TestMitigation(unittest.TestCase):
         closure = _closure([(s, 8 if s <= 30 else 5) for s in STEPS])
         effect = _effect([(s, 1.0) for s in STEPS])  # never reaches 5%
         a = ma.analyze_mitigation(closure, effect)
-        self.assertEqual(a["verdict_key"], "TOO_WEAK")
+        self.assertEqual(a["verdict_key"], "NO_PROXY_WINDOW")
         self.assertFalse(a["window"])
 
     def test_join_is_on_shared_steps_only(self):

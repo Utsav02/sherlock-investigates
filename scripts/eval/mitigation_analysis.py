@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
-"""Overlay the closure curve and the effect curve — does low rank RESCUE the run?
+"""Overlay closure and perplexity curves to screen candidate checkpoints.
 
 The dual measurement that decides whether rehearsal is needed at all:
   closure curve (dose_curve.py)  -> does the <think> format SURVIVE?  (a)
-  effect curve  (effect_curve.py) -> did the fine-tune LEARN Holmes?  (b)
+  effect curve  (effect_curve.py) -> did held-out perplexity move?     (b)
 
-A checkpoint rescues the design iff BOTH hold at once: closure intact AND
-held-out perplexity dropped past the H1 gate. This script finds such a window
-and, when there is none, distinguishes the two failure modes — because they
-point at different next steps:
+A checkpoint is only a candidate for behavioral evaluation when both thresholds
+hold. Perplexity is a proxy, not evidence that Holmes-like reasoning was learned;
+the 2026-08-14 behavioral check was null. This screen must not declare a rescue.
 
-  window exists (closure ok AND effect)   -> RESCUED. rehearsal NOT needed.
+  window exists (closure ok AND proxy)    -> CANDIDATE. run behavior checks.
   effect only where closure collapsed     -> COUPLED. rehearsal needed
                                              (low rank cannot decouple them).
   effect never appears at any checkpoint  -> TOO WEAK. low rank learned nothing;
@@ -59,7 +58,7 @@ def _effect_by_step(effect_rows: list[dict]) -> dict[int, dict]:
 def analyze_mitigation(closure_rows: list[dict], effect_rows: list[dict],
                        closure_ok: float = CLOSURE_OK,
                        effect_min: float = EFFECT_MIN) -> dict:
-    """Pure overlay. Returns per-step joins, the rescue window, and a verdict."""
+    """Pure overlay. Returns per-step joins and a non-inferential screen."""
     cbys = _closure_by_step(closure_rows)
     ebys = _effect_by_step(effect_rows)
     steps = sorted(set(cbys) & set(ebys))
@@ -82,35 +81,34 @@ def analyze_mitigation(closure_rows: list[dict], effect_rows: list[dict],
 
     if window:
         best = max(window, key=lambda j: j["drop_pct"])
-        verdict_key = "RESCUED"
+        verdict_key = "CANDIDATE_WINDOW"
         verdict = (
-            f"RESCUED. A window exists at step {best['step']}: closure "
+            f"CANDIDATE WINDOW at step {best['step']}: closure "
             f"{best['closure_rate']:.2f} (>= {closure_ok}) AND held-out PPL drop "
-            f"{best['drop_pct']:+.1f}% (>= {effect_min}% H1 gate). Low rank keeps "
-            f"the format intact at a dose that also produces the effect -> "
-            f"REHEARSAL IS NOT NEEDED. Confirm with the full eval gates on the "
-            f"step-{best['step']} checkpoint.")
+            f"{best['drop_pct']:+.1f}% (>= {effect_min}% proxy gate). This only "
+            f"selects step-{best['step']} for behavioral evaluation; it does not "
+            f"show a reasoning shift, establish rescue, or decide whether "
+            f"rehearsal is needed.")
     elif any_effect:
-        verdict_key = "COUPLED"
+        verdict_key = "PROXY_COUPLED"
         best_effect = max(any_effect, key=lambda j: j["drop_pct"])
         verdict = (
-            f"COUPLED — rehearsal needed. The effect appears (max PPL drop "
+            f"PROXY COUPLED. The perplexity effect appears (max PPL drop "
             f"{best_effect['drop_pct']:+.1f}% at step {best_effect['step']}) but "
             f"ONLY where closure has already collapsed (closure "
             f"{best_effect['closure_rate']:.2f} there); the best drop while "
             f"closure is intact is "
             f"{max_drop_intact if max_drop_intact is not None else float('nan'):+.1f}%, "
             f"below the {effect_min}% gate. Low rank does not decouple format from "
-            f"effect -> rehearsal is the remaining path.")
+            f"proxy effect. This screen alone cannot prescribe rehearsal.")
     else:
-        verdict_key = "TOO_WEAK"
+        verdict_key = "NO_PROXY_WINDOW"
         verdict = (
-            f"TOO WEAK — rehearsal needed. No checkpoint reaches the {effect_min}% "
+            f"NO PROXY WINDOW. No checkpoint reaches the {effect_min}% "
             f"held-out PPL drop at all (best while closure intact: "
             f"{max_drop_intact if max_drop_intact is not None else float('nan'):+.1f}%). "
             f"Rank 8 preserved closure by learning too little to matter. More "
-            f"capacity would be needed, which reintroduces the collapse -> "
-            f"rehearsal (which reinforces the format directly) is the path.")
+            f"This screen cannot infer what behavioral intervention is needed.")
 
     return {
         "closure_ok_threshold": closure_ok, "effect_min_pct": effect_min,
@@ -121,7 +119,7 @@ def analyze_mitigation(closure_rows: list[dict], effect_rows: list[dict],
 
 def print_mitigation(a: dict) -> None:
     print(f"\n{'='*72}")
-    print("  MITIGATION ANALYSIS — closure (format) vs effect (held-out PPL drop)")
+    print("  MITIGATION SCREEN — closure vs held-out PPL proxy")
     print(f"  intact = closure >= {a['closure_ok_threshold']}, "
           f"effect = PPL drop >= {a['effect_min_pct']}%")
     print(f"{'='*72}")
@@ -137,7 +135,7 @@ def print_mitigation(a: dict) -> None:
         print(f"  {j['step']:>6}  {j['closure_rate']:>7.2f}  {d:>9}  "
               f"{', '.join(flags):<28}{star}")
     print(f"\n{'-'*72}")
-    print("  VERDICT")
+    print("  SCREEN RESULT")
     for line in _wrap(a["verdict"], 70):
         print(f"  {line}")
     print(f"{'='*72}")

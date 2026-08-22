@@ -1,11 +1,7 @@
-"""Tests for the confound separator (steps vs unique-token breadth).
+"""Tests for the corrected descriptive confound comparison.
 
-Pure logic — no torch, no GPU. Exercises both verdict branches against the REAL
-full-canon dose-curve numbers plus two synthetic pilot@103 scenarios:
-  - pilot stays healthy across steps  -> BREADTH verdict
-  - pilot decays with steps like canon -> STEPS verdict
-The pilot run has not happened yet; this proves the analysis reads the 2x2
-correctly so the verdict is trustworthy the moment the JSON lands.
+The historical aggregate cannot support Fisher tests or a causal mechanism
+verdict because prompts and checkpoints repeat within one training trajectory.
 """
 
 import sys
@@ -36,45 +32,41 @@ def _pilot(closure_by_step):
 
 
 class TestConfound(unittest.TestCase):
-    def test_breadth_verdict_when_pilot_stays_healthy(self):
+    def test_reports_observed_breadth_pattern_without_causal_verdict(self):
         # Pilot at 1/11th the breadth holds closure ~8/8 across all steps.
         pilot = _pilot([(s, 8) for s in STEPS])
         a = ca.analyze_confound(FULLCANON, pilot)
-        self.assertTrue(a["breadth_hurt"])
-        self.assertFalse(a["steps_hurt"])
-        self.assertIn("BREADTH", a["verdict"])
-        self.assertIn("REHEARSAL", a["verdict"])
-        # breadth-at-high-steps should be strongly significant (8/8 vs ~2-3/8)
-        self.assertLess(
-            a["contrasts"]["breadth_at_high_steps"]["fisher_p"], 0.01)
+        self.assertTrue(a["observed_breadth_gap"])
+        self.assertFalse(a["observed_steps_decline"])
+        self.assertIn("NO CAUSAL MECHANISM VERDICT", a["verdict"])
+        self.assertIn("withdrawn", a["inference_status"])
 
     def test_steps_verdict_when_pilot_decays_like_canon(self):
         # Pilot decays with steps just like canon -> no breadth gap, steps hurt.
         pilot = _pilot([(s, c["closure"]) for s, c in zip(STEPS, FULLCANON)])
         a = ca.analyze_confound(FULLCANON, pilot)
-        self.assertTrue(a["steps_hurt"])
-        self.assertFalse(a["breadth_hurt"])
-        self.assertIn("STEPS", a["verdict"])
+        self.assertTrue(a["observed_steps_decline"])
+        self.assertFalse(a["observed_breadth_gap"])
+        self.assertIn("one training trajectory", a["verdict"])
 
     def test_inconclusive_when_flat_and_matched(self):
         # Pilot flat AND canon-like-flat impossible here; use a pilot that
         # matches canon's early rate and shows no step decay and no breadth gap.
-        # Construct a pilot equal to canon everywhere -> steps_hurt True actually.
-        # For inconclusive, make pilot mirror canon's EARLY pooled rate flat.
+        # A flat pilot has no observed within-pilot decline.
         flat = [(s, 5) for s in STEPS]  # constant 5/8, no step trend
         # canon early pooled ~0.70; pilot flat 0.625 -> breadth gap small/not sig
         pilot = _pilot(flat)
         a = ca.analyze_confound(FULLCANON, pilot)
-        # constant pilot -> steps_hurt False (early==late)
-        self.assertFalse(a["steps_hurt"])
+        self.assertFalse(a["observed_steps_decline"])
 
-    def test_contrasts_have_wilson_and_p(self):
+    def test_contrasts_have_effect_sizes_but_no_p_values(self):
         pilot = _pilot([(s, 8) for s in STEPS])
         a = ca.analyze_confound(FULLCANON, pilot)
         for c in a["contrasts"].values():
-            self.assertIn("wilson", c["a"])
-            self.assertGreaterEqual(c["fisher_p"], 0.0)
-            self.assertLessEqual(c["fisher_p"], 1.0)
+            self.assertIn("b_minus_a_rate", c)
+            self.assertNotIn("wilson", c["a"])
+            self.assertNotIn("fisher_p", c)
+            self.assertIn("descriptive", c["warning"])
 
     def test_print_runs(self):
         pilot = _pilot([(s, 8) for s in STEPS])

@@ -256,12 +256,13 @@ untouched, and the unrelated uncommitted V1 scenario patch is out of scope.
   **HYBRID:** finish an honest methodological failure study, explicitly including
   poor planning/ordering as a cause, then continue the real-active programme
   behind the bridge gates.
-- [ ] 4. Implement the selected smallest bridge experiment ← **IN PROGRESS:**
-  select and provenance-lock an out-of-corpus detector that can be executed
-  reproducibly, add nested calibration, and freeze D0's mandatory real-replay
-  criterion before any Stage C implementation.
-- [ ] 5. Verify the complete record, update the public README/status, and commit
-  each clean stage by exact path. No push without owner authorization.
+- [x] 4. Implement the selected smallest bridge experiment — pinned external
+  detector scored 1,700 train+dev dialogues; nested calibration and corrected
+  inference complete; pre-registered bridge PASS with the inverse-score caveat;
+  D0's mandatory real-replay criterion frozen before Stage C.
+- [x] 5. Verify the complete record and update the public README/status — full
+  suite and environment doctor green; artifacts checked for count, uniqueness,
+  split exclusion, hashes and schema; scoped commits created without a push.
 
 ## Resume
 
@@ -272,7 +273,9 @@ rg -n 'bootstrap_intervals|cluster_units|widen' v2/scripts/track_a_a0.py
 venv/bin/python -m unittest discover -s tests
 ```
 
-Resume at Stage 4. Do not begin Stage C or read the frozen Track A test split.
+The correction programme is complete. Do not read the frozen Track A test split.
+The next authorized work is the cheap, no-training Stage C Gate 2A mechanics;
+no D0 SFT yet.
 
 ## Decisions made
 

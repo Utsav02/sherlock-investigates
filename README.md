@@ -1,12 +1,38 @@
 # Sherlock Investigates
 
-A fine-tuning and adversarial conversation experiment at the intersection of LLM fine-tuning, deception detection, and chain-of-thought analysis.
+A hybrid methodological failure study and gated investigation experiment about
+LLM identity judgment, calibration, and active information seeking.
 
 ## What this is
 
-Two phases: (1) fine-tune small open-weights models on different corpora to produce variants with distinguishable reasoning priors; (2) place pairs of variants into adversarial conversations where each agent tries to identify the other as human or AI while passing as human itself. The novel measurement is the temporal gap between when an agent first becomes suspicious in its private chain of thought and when it commits to a decision in its visible utterances.
+The original code-first programme did not establish its intended reasoning or
+conversation claims. The record now separates genuine negative evidence from
+instrument failures and planning failures, including training prose before
+validating the behavioural construct and launching conversation machinery before
+the measurement was sound.
 
-Full design rationale and all decisions: [EXPERIMENT_DESIGN.md](EXPERIMENT_DESIGN.md).
+The retained extension is evidence-first: Track A tests passive identity signal
+on real transcripts; Track B may test active information seeking in a synthetic
+environment with known response distributions. Synthetic success is not evidence
+of real-active success. A fixed real-transcript replay is mandatory before any
+such transfer claim.
+
+Current record: [STATUS.md](STATUS.md). V2 design and decisions:
+[v2/experiment_design.md](v2/experiment_design.md) and
+[v2/DECISIONS.md](v2/DECISIONS.md).
+
+## Current result
+
+Stage C is paused at its no-training entry gate. The historical V1 pooled
+repeated-measures p-values are withdrawn, Track A now uses crossed-role dyadic
+participant intervals, and the smallest external-detector bridge is complete.
+
+The bridge's pre-registered criterion passed after properly nested calibration,
+but the raw 2019 detector is inverted on this corpus. The narrow result is that
+an external score contains weak information that transfers across the two prompt
+families after target calibration—not that an old GPT-2 detector works on modern
+chat. See [the bridge result](v2/results/bridge/README.md) and
+[the frozen protocol](v2/BRIDGE_PROTOCOL.md).
 
 ## Repository layout
 

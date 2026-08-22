@@ -314,10 +314,13 @@ frozen Track A test split.
   estimands, budgets, and Gate 2A criterion — 16 families, 12 questions, 256
   balanced episodes/family, four-turn budget, BED-EIG primary, UoT secondary,
   and a paired family-clustered log-loss gate fixed before implementation.
-- [ ] 2. Implement the exact simulator, deterministic policies, posterior ledger,
-  and resumable per-episode output.
+- [x] 2. Implement the exact simulator, deterministic policies, posterior ledger,
+  and resumable per-episode output — exact-likelihood BED, UoT-style secondary,
+  common random responses, strict replay validation, and interruption/resume
+  tests are implemented; 11 focused tests pass.
 - [ ] 3. Execute a tiny dry run, run the frozen benchmark, and preserve raw
-  trajectories/config/state.
+  trajectories/config/state ← **IN PROGRESS:** implementation is ready for the
+  separately located dry run, followed by the frozen production output.
 - [ ] 4. Apply paired scenario-family inference, inspect trajectories and failure
   modes, and record Gate 2A pass/fail without moving the threshold.
 - [ ] 5. Verify, document, and commit each stage by exact path; leave unrelated
@@ -331,7 +334,7 @@ rg -n 'D0|Gate 2A|B0|B1|B2|surface|scenario' v2/experiment_design.md v2/DECISION
 venv/bin/python -m unittest discover -s tests -q
 ```
 
-Resume at Stage C Gate 2A stage 1. No D0 SFT, GPU work, human collection, or
+Resume at Stage C Gate 2A stage 3. No D0 SFT, GPU work, human collection, or
 Track A test evaluation is authorized.
 
 ## Decisions made

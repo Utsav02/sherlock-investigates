@@ -29,6 +29,7 @@ OVERSAMPLE ?= 3
         v2-splits v2-precision v2-paper-exclusions v2-policy \
         v2-canonical v2-track-a0 v2-track-a0-ablation v2-rung2 v2-rung4 v2-a2 \
         v2-bridge-setup v2-bridge-score v2-bridge-analyze \
+        v2-d0-validate v2-d0-run v2-d0-analyze \
         test lint
 
 help:
@@ -65,6 +66,9 @@ help:
 	@echo "  v2-bridge-setup  build and verify the pinned external-detector environment"
 	@echo "  v2-bridge-score  resumably score train+dev with the pinned external detector"
 	@echo "  v2-bridge-analyze nested calibration + corrected bridge inference"
+	@echo "  v2-d0-validate   validate the frozen no-training Gate 2A config"
+	@echo "  v2-d0-run        run/resume the exact 16,384-trajectory D0 benchmark"
+	@echo "  v2-d0-analyze    apply the frozen family-clustered Gate 2A analysis"
 
 install:
 	python3 -m venv venv
@@ -238,6 +242,16 @@ v2-bridge-score:
 
 v2-bridge-analyze:
 	$(PY) v2/scripts/track_a_bridge.py analyze --bootstrap 1000
+
+# Exact synthetic mechanics only: no model, GPU, human data, or Track A test.
+v2-d0-validate:
+	$(PY) v2/scripts/d0_gate2a.py validate
+
+v2-d0-run: v2-d0-validate
+	$(PY) v2/scripts/d0_gate2a.py run --resume
+
+v2-d0-analyze:
+	$(PY) v2/scripts/d0_gate2a.py analyze
 
 test:
 	$(PY) -m unittest discover -s tests -v

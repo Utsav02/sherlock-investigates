@@ -343,6 +343,14 @@ Gate 2A is complete. The next work is a **new prospective design task**: freeze
 an asymmetric/state-dependent D0 and an answer-conditioned branching criterion.
 No D0 SFT, GPU work, human collection, or Track A test evaluation is authorized.
 
+**Superseded 2026-08-28:** do not freeze that revision yet. The design work went
+one branch deeper than the evidence justified: it showed how Gate 2B could force
+adaptive Bayesian policy branching before establishing that such a synthetic
+result would be a useful bridge to language-level or real-active investigation.
+The resulting owner decision is recorded in
+`v2/D0_BRIDGE_VALIDITY_DECISION.md`: **stop the active extension**. No further
+Gate 2B/D0 work is authorized.
+
 ## Decisions made
 
 - Primary active baseline: BED-style exact expected information gain, because D0
@@ -357,3 +365,32 @@ No D0 SFT, GPU work, human collection, or Track A test evaluation is authorized.
   within every family. Record this as a planning/construct failure. Before D0
   SFT, prospectively freeze a revised model and adaptation-diversity check; do
   not mistake the current oracle-prioritization win for active investigation.
+- Gate 2B protocol/config/preflight work is feasibility evidence only. It is
+  retained as historical unexecuted design work. The owner selected the stop
+  branch in `v2/D0_BRIDGE_VALIDITY_DECISION.md`; it may not be frozen or run.
+
+---
+
+# Active-investigation extension stopped — 2026-08-29
+
+**Controlling status:** the owner selected option 3 at the bridge-validity fork.
+The methodological failure study is the retained deliverable. The real-active
+extension is closed.
+
+This is a programme-level stop, not a retroactive change to Gate 2A and not a
+Gate 2B result. Gate 2A remains a valid formal PASS with the recorded narrow
+oracle-prioritization interpretation. Gate 2B was never frozen, implemented, or
+run.
+
+No counterfactual-fork benchmark, Gate 2B work, D0 SFT, GPU work, new human data,
+or Track A test access is authorized. Existing Gate 2B drafts are preserved only
+as evidence of the explored but rejected branch.
+
+Any future revival requires a fresh explicit owner decision anchored to the
+original real-active objective. Do not resume from the deepest available draft.
+First decide whether a proposed bridge is scientifically worth pursuing and
+what its success would authorize.
+
+The authorized closeout task is repository cleanup and packaging of the
+executed work as a methodological failure study. Use
+`docs/FINALIZATION_PROMPT.md`; it does not authorize new experimental work.

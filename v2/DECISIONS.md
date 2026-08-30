@@ -883,3 +883,58 @@ the run.** This is a new prospective requirement, not a retroactive gate edit.
 The mandatory real-replay Gate 3B remains unchanged.
 
 Full result and artifact hashes: `v2/results/d0_gate2a/README.md`.
+
+---
+
+### 2026-08-28 — Gate 2B paused at the bridge-validity fork
+
+**Owner direction:** the programme has gone deeper into the experimental tree
+than the current evidence justifies. Before freezing or implementing a repaired
+Gate 2B, return to the original objective and decide whether exact synthetic
+response-conditioned BED is a scientifically useful bridge to language-level,
+real-active investigation.
+
+**Decision:** Gate 2B freezing, implementation, and performance evaluation are
+paused. The existing draft protocol, config, analytical proof, and structural
+preflight remain feasibility work; they are not an authorized next experiment
+and their sunk effort is not evidence for continuing.
+
+The decision now required is one the repository cannot make numerically:
+
+1. run a small counterfactual transcript-fork construct-validity check before
+   reconsidering exact synthetic mechanics;
+2. run Gate 2B only as an independently valuable, explicitly narrow Bayesian-
+   mechanics result, with a separate later decision before any SFT; or
+3. stop the active extension and retain the methodological failure study.
+
+The recommendation, conditional on retaining the real-active objective, is the
+first option. Fixed transcript replay is not a substitute because it measures
+belief updating but cannot exercise question selection. Full comparison and
+claim boundaries: `v2/D0_BRIDGE_VALIDITY_DECISION.md`.
+
+**Authorization boundary:** no Gate 2B freeze or run, no D0 SFT/GPU work, no
+human collection, and no Track A test access until the owner chooses a branch.
+
+---
+
+### 2026-08-29 — Owner stops the active-investigation extension
+
+**Owner decision:** option 3 — stop the active extension.
+
+The retained deliverable is the methodological failure study. Do not construct
+the counterfactual-fork prerequisite, freeze or run Gate 2B, create D0 SFT,
+spend GPU compute, collect human data, or access the frozen Track A test split.
+
+This decision does not reinterpret the frozen Gate 2A outcome. Gate 2A remains
+a formal PASS for the preregistered comparison and a narrow demonstration of
+family-specific oracle prioritization and exact ledger mechanics. Its post-run
+audit remains a planning/construct failure for response-conditioned adaptation.
+Gate 2B has no PASS, INCONCLUSIVE, or FAIL outcome because it was never frozen
+or executed.
+
+The existing Gate 2B protocol, config, analytical note, and structural preflight
+are retained as historical unexecuted feasibility work. Sunk effort is not an
+authorization to revive them. Any future active-programme revival requires a
+new explicit owner decision that starts from the original real-active objective
+and re-establishes the scientific value of the proposed bridge before deeper
+design or implementation.

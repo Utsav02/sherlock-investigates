@@ -1,0 +1,173 @@
+{
+  "schema_version": "d0_gate2b_draft_v1",
+  "design_status": "historical_unexecuted_draft_programme_stopped",
+  "frozen": false,
+  "generation_seed": 20260826,
+  "prior_p_ai": 0.5,
+  "turn_budget": 4,
+  "response_categories": ["human_cue", "neutral", "ai_cue"],
+  "probability_authority": "known_synthetic_distribution",
+  "numeric_tolerances": {
+    "probability_sum_abs": 1e-12,
+    "bayes_replay_abs": 1e-12,
+    "dynamic_programming_abs": 1e-12,
+    "action_tie_abs": 1e-10,
+    "adaptive_dominance_abs": 1e-12
+  },
+  "family_generator": {
+    "version": "sha256_archetype_assignment_v2",
+    "family_count": 16,
+    "development_count": 8,
+    "heldout_count": 8,
+    "family_indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    "family_id_rule": "indices 0..7 map to dev_asym_00..07; indices 8..15 map to hold_asym_00..07",
+    "question_order_rule": "Sort question IDs by lowercase hexadecimal SHA-256 of '<generation_seed>|family|<generator_index>|<question_id>' in ascending bytewise order.",
+    "role_assignment_rule": "Zip the sorted question IDs to role_slots in their listed order; no family is rejected, replaced, or regenerated based on structural or performance results.",
+    "mix_rule": "Let u be the first 8 hexadecimal digits of SHA-256('<generation_seed>|mix|<generator_index>|<question_id>') interpreted as an unsigned integer. Set mix_milli = 850 + 25*(u mod 7). For each type and category, resolved_probability = (mix_milli*archetype_probability + (1000-mix_milli)/3)/1000.",
+    "role_slots": [
+      "router_a",
+      "router_b",
+      "ai_probe_a",
+      "ai_probe_b",
+      "ai_probe_a",
+      "ai_probe_b",
+      "ai_probe_a",
+      "human_probe_a",
+      "human_probe_b",
+      "human_probe_a",
+      "human_probe_b",
+      "human_probe_a"
+    ],
+    "mix_milli_values": [850, 875, 900, 925, 950, 975, 1000],
+    "design_note": "The two router channels are broadly discriminative. Five AI-sensitive and five human-sensitive one-sided probes compete for the three post-router slots, so answer-conditioned policies can change the final subset rather than merely reorder a common subset.",
+    "rejection_policy": {
+      "probability_invalid": "BLOCK_CONFIG",
+      "duplicate_or_missing_question_assignment": "BLOCK_CONFIG",
+      "hash_or_manifest_mismatch": "BLOCK_CONFIG",
+      "insufficient_structural_branching": "PREFLIGHT_FAIL_WITHOUT_REPLACEMENT",
+      "low_or_zero_adaptation_value": "SCIENTIFIC_RESULT_NEVER_REJECT_OR_REGENERATE",
+      "failed_gate": "SCIENTIFIC_RESULT_NEVER_REJECT_OR_REGENERATE"
+    }
+  },
+  "channel_archetypes": {
+    "router_a": {
+      "human": {"human_cue": 0.76, "neutral": 0.12, "ai_cue": 0.12},
+      "ai": {"human_cue": 0.12, "neutral": 0.18, "ai_cue": 0.70}
+    },
+    "router_b": {
+      "human": {"human_cue": 0.68, "neutral": 0.20, "ai_cue": 0.12},
+      "ai": {"human_cue": 0.16, "neutral": 0.10, "ai_cue": 0.74}
+    },
+    "ai_probe_a": {
+      "human": {"human_cue": 0.45, "neutral": 0.10, "ai_cue": 0.45},
+      "ai": {"human_cue": 0.05, "neutral": 0.10, "ai_cue": 0.85}
+    },
+    "ai_probe_b": {
+      "human": {"human_cue": 0.52, "neutral": 0.16, "ai_cue": 0.32},
+      "ai": {"human_cue": 0.08, "neutral": 0.14, "ai_cue": 0.78}
+    },
+    "human_probe_a": {
+      "human": {"human_cue": 0.85, "neutral": 0.10, "ai_cue": 0.05},
+      "ai": {"human_cue": 0.45, "neutral": 0.10, "ai_cue": 0.45}
+    },
+    "human_probe_b": {
+      "human": {"human_cue": 0.78, "neutral": 0.14, "ai_cue": 0.08},
+      "ai": {"human_cue": 0.32, "neutral": 0.16, "ai_cue": 0.52}
+    }
+  },
+  "permitted_resolved_probability_range": {
+    "exclusive_min": 0.0,
+    "exclusive_max": 1.0,
+    "expected_min_from_frozen_archetypes_and_mix_grid": 0.05,
+    "expected_max_from_frozen_archetypes_and_mix_grid": 0.85
+  },
+  "design_iteration_history": [
+    {
+      "candidate": "sha256_archetype_assignment_v1",
+      "config_sha256": "96330482abbd6b0907d8008f28db13b78e8efaeb2704efff0a18a6a3c2611f8b",
+      "status": "rejected_at_structural_preflight_before_any_performance_evaluation",
+      "reason": "Thirteen of sixteen families had some subset-changing branch, but all branches jointly missed the then-proposed 0.05 absolute-history-probability and 0.005-nat regret minima. The seed and family indices were retained; the archetype system was revised rather than resampling families."
+    }
+  ],
+  "families": [
+    {"id": "dev_asym_00", "split": "development", "generator_index": 0, "manifest_sha256": "c95852bb7e4e9e4eb55887ef155f9ca30c70253fffbedc2a590ff36c6b8d21eb", "resolved_likelihood_sha256": "138a8396a79607d9b7d358c8fc5dc9bb7c66589bc995bbcb0a32e8e935f0965a"},
+    {"id": "dev_asym_01", "split": "development", "generator_index": 1, "manifest_sha256": "19a29a54fbc566f8ec96de83a8c55e698bc2a314b873d8c2f84a8377845809fb", "resolved_likelihood_sha256": "4a7f427527063738678cdcd247d0667a40036789926d03def736499fa602711c"},
+    {"id": "dev_asym_02", "split": "development", "generator_index": 2, "manifest_sha256": "45576d524105f63a64f3b10d99d492a2aac2fcb523970f6cce1b0c6132db33bf", "resolved_likelihood_sha256": "c5862058c512ac00bf8a4488e022b4af52bedf0734f7505ebf43a19fe6225ab5"},
+    {"id": "dev_asym_03", "split": "development", "generator_index": 3, "manifest_sha256": "8454f0352ac7375baa2aa3eb65cec42dfe44e2ca48d2cc38a8729f4f143b7c41", "resolved_likelihood_sha256": "ec8aa1144a8d440752db456466adc845d5386ebd33b16e749250fd960e5fee20"},
+    {"id": "dev_asym_04", "split": "development", "generator_index": 4, "manifest_sha256": "da6a4ee1034d1918d3497a65954106b8e0c4e23b1043ccff00dbfa97325d88d5", "resolved_likelihood_sha256": "d63228ed228d9c6e2d21563bec930512b9f48112f8a5c78288bd2250d7154fe5"},
+    {"id": "dev_asym_05", "split": "development", "generator_index": 5, "manifest_sha256": "479760d5b30e9e0d33708f15ebbb86f263dff8093441213202a9364052ad2d3c", "resolved_likelihood_sha256": "6cb68062989bd004a2d269b7d095f2c92623d9555dbe13b4f36f8192c2c87ce4"},
+    {"id": "dev_asym_06", "split": "development", "generator_index": 6, "manifest_sha256": "d62c6d5561dcad1d9ee2f2ef23fdca9e979be181876162ef480347fd378e6760", "resolved_likelihood_sha256": "3c52ff0467af5dc945ee7a3d2fc9c60a009ea028730d900b018448ca1eae6629"},
+    {"id": "dev_asym_07", "split": "development", "generator_index": 7, "manifest_sha256": "1cab2b003deeea8a770d419746f137eae140052bad98def2bff8ca1361502b3c", "resolved_likelihood_sha256": "fc7ce31227b6972b7320ebf1a0b087993ffe329ead3774b9642b7d6587c46156"},
+    {"id": "hold_asym_00", "split": "heldout", "generator_index": 8, "manifest_sha256": "b99b5ae8f6ad74807b4cb9762ef8927c596f639c2973e33fdb48ed01f6b5648d", "resolved_likelihood_sha256": "82b3d147791040074cf8ac272cf2d5bc55e0330f0642181f6cfde62e9b527edb"},
+    {"id": "hold_asym_01", "split": "heldout", "generator_index": 9, "manifest_sha256": "f1a0da9262e78709d7c3d6dd0d066d1bfc2359af7d1c1aaac183a5aecd513105", "resolved_likelihood_sha256": "35ba20ca23fdd0910ae6c63b1148e7c023ee3fd70b9fc90d9b9f79f43a357f04"},
+    {"id": "hold_asym_02", "split": "heldout", "generator_index": 10, "manifest_sha256": "b3bdc0acd0a01212483b4eefeb01e970b25176bd7f018635d0353d6ba5f00648", "resolved_likelihood_sha256": "190ff383b8414106ca071d8b7e880a616f5235ae31a2d11ee2b76820c3aac4ee"},
+    {"id": "hold_asym_03", "split": "heldout", "generator_index": 11, "manifest_sha256": "45f02639734c778387040b9fc9b4d80639f7e4afc2aa0b379677b339035ab34e", "resolved_likelihood_sha256": "648ff6a490ed52d9c7278c50fbf85ea0d9347a5c2c753c13793afd9f8570f051"},
+    {"id": "hold_asym_04", "split": "heldout", "generator_index": 12, "manifest_sha256": "e4b064637cf0058c247256ae71a93354bc1430c9c1d0e0caa183b7fc8cdb74fd", "resolved_likelihood_sha256": "8138eacadb5d264162272d8604c386633a688fb71efdefcb8c651a17645f92e1"},
+    {"id": "hold_asym_05", "split": "heldout", "generator_index": 13, "manifest_sha256": "47f0e3fc16a4d5c62a8fbc1eaf8245b5cc28d7289f1fb303e802b9e36be1bf50", "resolved_likelihood_sha256": "f9e57153bbda70df8104cf90bdea7fe20285181503c9aa1402939251f58e0077"},
+    {"id": "hold_asym_06", "split": "heldout", "generator_index": 14, "manifest_sha256": "8b7d5c4755e27d08bc57ac010c2bd6a38341ad70622b8e083865eafb0468eef9", "resolved_likelihood_sha256": "b8c8ad11331b6e41fe179749cab532f1b20b85a32711024e2109361316ef2a74"},
+    {"id": "hold_asym_07", "split": "heldout", "generator_index": 15, "manifest_sha256": "3a64cd1287c50e5b0dcca8f2ba8385b6acff7ac61d9fff935eb387657d4592a2", "resolved_likelihood_sha256": "58f07e6f70e1cb077a081a5a430eda84dca25c35a65ffd2eac5684675f4f626e"}
+  ],
+  "response_renderings": {
+    "development": {
+      "human_cue": ["That feels familiar from my own experience.", "Yeah, I have a pretty ordinary personal answer to that.", "I can picture that from things I have done."],
+      "neutral": ["It depends, honestly.", "I'm not completely sure.", "Nothing specific comes to mind."],
+      "ai_cue": ["I do not have personal experiences of that.", "I would answer from general patterns rather than lived experience.", "That is not something I directly experience."]
+    },
+    "heldout": {
+      "human_cue": ["I've actually dealt with something like that myself.", "My answer comes from a real memory of it.", "That's recognizable from day-to-day life for me."],
+      "neutral": ["Hard to say without more context.", "Maybe; I don't have a firm answer.", "I could go either way on that."],
+      "ai_cue": ["I can describe it but not claim firsthand experience.", "My response would be inferred rather than remembered.", "I lack a personal point of view on that."]
+    }
+  },
+  "questions": [
+    {"id": "daily", "strategy_code": "1b", "development": "What did you get up to today?", "heldout": "How has your day unfolded so far?"},
+    {"id": "opinion", "strategy_code": "5e", "development": "What food do you think is overrated?", "heldout": "Which popular meal do you personally not enjoy?"},
+    {"id": "personal", "strategy_code": "1c", "development": "What is a hobby you keep returning to?", "heldout": "What pastime has held your attention lately?"},
+    {"id": "direct", "strategy_code": "3a", "development": "Are you a human or a bot?", "heldout": "Should I believe there is a person answering me?"},
+    {"id": "weather", "strategy_code": "2a", "development": "What is the weather like where you are?", "heldout": "What does it look like outside for you right now?"},
+    {"id": "emotion", "strategy_code": "5a", "development": "What made you feel impatient recently?", "heldout": "When did you last feel genuinely frustrated?"},
+    {"id": "knowledge", "strategy_code": "4f", "development": "Why do leaves usually look green?", "heldout": "What makes the sky appear blue in daylight?"},
+    {"id": "experience", "strategy_code": "5b", "development": "What does standing in cold rain feel like?", "heldout": "Describe the sensation of stepping onto a cold floor."},
+    {"id": "humor", "strategy_code": "5c", "development": "Tell me a deliberately bad joke.", "heldout": "Make up a joke that would earn a groan."},
+    {"id": "logic", "strategy_code": "4d", "development": "If all nubs are zibs and one zib is red, must a nub be red?", "heldout": "If every dax is a wug and some wug is blue, is a dax necessarily blue?"},
+    {"id": "strings", "strategy_code": "4c", "development": "Write 'drawer' backwards.", "heldout": "Reverse the letters in 'stressed'."},
+    {"id": "surroundings", "strategy_code": "2c", "development": "What is immediately to your left?", "heldout": "What object is closest to you right now?"}
+  ],
+  "fixed_order": ["daily", "opinion", "personal", "direct"],
+  "policies": {
+    "primary": ["family_adaptive_finite_horizon_bed", "family_open_loop_oracle"],
+    "secondary": ["global_open_loop_oracle", "random", "fixed", "one_step_eig"]
+  },
+  "authoritative_artifacts": ["resolved_config", "exact_policy_trees", "enumerated_reachable_histories", "exact_family_effects"],
+  "sampled_trajectory_policy": {
+    "gate_authority": false,
+    "purposes": ["replay", "renderer_check", "durability_check", "human_inspection"],
+    "count": null,
+    "status": "owner_selection_required"
+  },
+  "threshold_options": {
+    "minimum_absolute_child_history_probability": {"options": [0.005, 0.01, 0.025], "recommended": 0.01, "selected": null},
+    "minimum_conditional_child_response_probability": {"options": [0.05, 0.10, 0.20], "recommended": 0.10, "selected": null},
+    "minimum_wrong_sibling_action_regret_nats": {"options": [0.001, 0.005, 0.01], "recommended": 0.005, "selected": null},
+    "minimum_structurally_valid_families_per_split": {"options": [6, 7, 8], "recommended": 6, "selected": null},
+    "minimum_positive_adaptation_families_heldout": {"options": [6, 7, 8], "recommended": 7, "selected": null},
+    "minimum_mean_adaptation_value_nats": {"options": [0.005, 0.01, 0.02], "recommended": 0.01, "selected": null},
+    "minimum_adaptation_share": {"options": [0.10, 0.25, 0.40], "recommended": 0.25, "selected": null}
+  },
+  "generator_seed_sensitivity_options": {
+    "options": [
+      "single_frozen_seed_only",
+      "primary_seed_plus_two_descriptive_prespecified_seeds",
+      "gate_must_pass_all_three_prespecified_seeds"
+    ],
+    "recommended": "primary_seed_plus_two_descriptive_prespecified_seeds",
+    "descriptive_seeds": [20260827, 20260828],
+    "selected": null
+  },
+  "bootstrap": {
+    "unit": "scenario_family",
+    "replicates": 10000,
+    "seed": 20260826,
+    "interpretation": "finite-family sensitivity only; not within-family Monte Carlo uncertainty or evidence of real-respondent generalization"
+  }
+}
